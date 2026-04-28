@@ -3,16 +3,31 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { user, logout } = useAuth();
+  const [userName, setUserName] = useState("");
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem("yadira_user");
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        setUserName(user.name || "");
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   if (!mounted) return null;
+
+  const handleLogout = () => {
+    localStorage.removeItem("yadira_user");
+    window.location.href = "/login";
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background/95 backdrop-blur">
@@ -33,22 +48,18 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-6">
-          {user && (
-            <>
-              <Link
-                href="/plan"
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              >
-                Plan
-              </Link>
-              <Link
-                href="/estadisticas"
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              >
-                Estadísticas
-              </Link>
-            </>
-          )}
+          <Link
+            href="/plan"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+          >
+            Plan
+          </Link>
+          <Link
+            href="/estadisticas"
+            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+          >
+            Estadísticas
+          </Link>
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="rounded-full p-2 hover:bg-foreground/10 transition-colors"
@@ -64,9 +75,9 @@ export default function Header() {
               </svg>
             )}
           </button>
-          {user && (
+          {userName && (
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
             >
               Salir

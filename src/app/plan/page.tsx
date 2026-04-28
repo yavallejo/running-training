@@ -24,11 +24,11 @@ export default function PlanPage() {
     }
     try {
       const user = JSON.parse(stored);
-      if (!user?.name) {
+      if (!user?.authenticated) {
         router.replace("/login");
         return;
       }
-      setUserName(user.name);
+      setUserName(user.name || "Yadira");
     } catch {
       localStorage.removeItem(USER_KEY);
       router.replace("/login");
@@ -83,7 +83,7 @@ export default function PlanPage() {
 
   const handleLogout = () => {
     localStorage.removeItem(USER_KEY);
-    router.replace("/login");
+    window.location.href = "/login";
   };
 
   if (loading) {

@@ -40,7 +40,7 @@ export default function EstadisticasPage() {
     }
     try {
       const user = JSON.parse(stored);
-      if (!user?.name) {
+      if (!user?.authenticated) {
         router.replace("/login");
         return;
       }
@@ -99,7 +99,6 @@ export default function EstadisticasPage() {
   const completionRate = totalSessions > 0 ? Math.round((completedSessions.length / totalSessions) * 100) : 0;
   const totalDistance = completedSessions.reduce((sum, s) => sum + s.distance, 0);
   const totalPlannedDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
-  const remainingDistance = totalPlannedDistance - totalDistance;
 
   // Find next session
   const nextSession = sessions.find((s) => !s.completed);

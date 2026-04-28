@@ -3,26 +3,26 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-
-const USER_KEY = "yadira_user";
+import { validateCredentials } from "@/lib/auth";
 
 export default function LoginPage() {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem(USER_KEY);
+    const stored = localStorage.getItem("yadira_user");
     if (stored) {
       try {
         const user = JSON.parse(stored);
-        if (user?.name) {
+        if (user?.authenticated) {
           router.replace("/plan");
           return;
         }
       } catch {
-        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("yadira_user");
       }
     }
     setLoading(false);
@@ -42,13 +42,24 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError("Por favor ingresa tu nombre");
+    setError("");
+
+    if (!username.trim() || !password.trim()) {
+      setError("Por favor ingresa usuario y contraseña");
       return;
     }
-    const userData = { name: name.trim(), loggedInAt: new Date().toISOString() };
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    router.replace("/plan");
+
+    if (validateCredentials(username.trim(), password)) {
+      const userData = { 
+        name: username.trim(), 
+        authenticated: true,
+        loggedInAt: new Date().toISOString() 
+      };
+      localStorage.setItem("yadira_user", JSON.stringify(userData));
+      router.replace("/plan");
+    } else {
+      setError("Usuario o contraseña incorrectos");
+    }
   };
 
   return (
@@ -90,30 +101,48 @@ export default function LoginPage() {
           className="space-y-6"
         >
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-foreground/80">
-              Tu nombre
+            <label htmlFor="username" className="block text-sm font-medium text-foreground/80">
+              Usuario
             </label>
             <input
-              id="name"
+              id="username"
               type="text"
-              value={name}
+              value={username}
               onChange={(e) => {
-                setName(e.target.value);
+                setUsername(e.target.value);
                 setError("");
               }}
-              placeholder="Ingresa tu nombre"
+              placeholder="Ingresa tu usuario"
               className="mt-1 block w-full rounded-lg border border-foreground/20 bg-background px-4 py-3 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
-            {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-red-500"
-              >
-                {error}
-              </motion.p>
-            )}
           </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground/80">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              placeholder="Ingresa tu contraseña"
+              className="mt-1 block w-full rounded-lg border border-foreground/20 bg-background px-4 py-3 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-sm text-red-500"
+            >
+              {error}
+            </motion.p>
+          )}
 
           <button
             type="submit"
