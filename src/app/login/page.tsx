@@ -1,95 +1,122 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { validateCredentials } from "@/lib/auth";
+import { validateCredentials, createSession, initializeCredentials } from "@/lib/auth";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem("yadira_user");
-    if (stored) {
-      try {
-        const user = JSON.parse(stored);
-        if (user?.authenticated) {
-          router.replace("/plan");
-          return;
-        }
-      } catch {
-        localStorage.removeItem("yadira_user");
+    const checkSession = async () => {
+      // Initialize credentials if not present
+      if (!localStorage.getItem("yadira_credentials")) {
+        initializeCredentials();
       }
-    }
-    setLoading(false);
+
+      // Check existing session
+      const stored = localStorage.getItem("yadira_session");
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          if (session?.authenticated && session?.expiresAt > Date.now()) {
+            router.replace("/plan");
+            return;
+          }
+          localStorage.removeItem("yadira_session");
+        } catch {
+          localStorage.removeItem("yadira_session");
+        }
+      }
+      setLoading(false);
+    };
+    checkSession();
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!username.trim() || !password.trim()) {
+    
+    if (!username.trim() || !password) {
       setError("Por favor ingresa usuario y contraseña");
       return;
     }
 
-    if (validateCredentials(username.trim(), password)) {
-      const userData = { 
-        name: username.trim(), 
-        authenticated: true,
-        loggedInAt: new Date().toISOString() 
-      };
-      localStorage.setItem("yadira_user", JSON.stringify(userData));
-      router.replace("/plan");
-    } else {
-      setError("Usuario o contraseña incorrectos");
+    setIsAuthenticating(true);
+    try {
+      const isValid = await validateCredentials(username.trim(), password);
+      if (isValid) {
+        createSession(username.trim());
+        router.replace("/plan");
+      } else {
+        setError("Usuario o contraseña incorrectos");
+      }
+    } catch {
+      setError("Error al validar credenciales");
+    } finally {
+      setIsAuthenticating(false);
     }
+  }, [username, password, router]);
+
+  const handleClearAndRetry = () => {
+    localStorage.clear();
+    setError("");
+    setUsername("");
+    setPassword("");
+    initializeCredentials();
   };
 
+  if (loading) {
+    return (
+      <main className="flex flex-1 items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+        />
+      </main>
+    );
+  }
+
   return (
-    <div className="flex flex-1 items-center justify-center px-4">
+    <main className="flex flex-1 items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md space-y-8"
+        className="w-full max-w-sm"
       >
-        <div className="text-center">
+        <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10"
+            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
+              fill="none"
               viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-10 h-10 text-primary"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 text-primary"
             >
-              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-              <path d="M12 2c-4.42 0-8 3.58-8 8 0 2.76 1.5 5.21 3.75 6.5L12 22l4.25-5.5C18.5 15.21 20 12.76 20 10c0-4.42-3.58-8-8-8zm0 2c1.93 0 3.5 1.57 3.5 3.5S13.93 11 12 11s-3.5-1.57-3.5-3.5S10.07 4 12 4z" fill="currentColor" className="text-secondary"/>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z"
+              />
             </svg>
           </motion.div>
-          <h1 className="text-3xl font-bold text-foreground">Yadira Running</h1>
-          <p className="mt-2 text-foreground/60">
-            Tu plan personalizado de entrenamiento
+          <h1 className="text-xl font-semibold text-foreground">Yadira Running</h1>
+          <p className="mt-1 text-xs text-foreground/50">
+            Plan personalizado de entrenamiento
           </p>
         </div>
 
@@ -98,12 +125,11 @@ export default function LoginPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
           onSubmit={handleSubmit}
-          className="space-y-6"
+          className="space-y-3"
+          noValidate
         >
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-foreground/80">
-              Usuario
-            </label>
+            <label htmlFor="username" className="sr-only">Usuario</label>
             <input
               id="username"
               type="text"
@@ -112,15 +138,15 @@ export default function LoginPage() {
                 setUsername(e.target.value);
                 setError("");
               }}
-              placeholder="Ingresa tu usuario"
-              className="mt-1 block w-full rounded-lg border border-foreground/20 bg-background px-4 py-3 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="Usuario"
+              autoComplete="username"
+              required
+              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground/80">
-              Contraseña
-            </label>
+            <label htmlFor="password" className="sr-only">Contraseña</label>
             <input
               id="password"
               type="password"
@@ -129,33 +155,45 @@ export default function LoginPage() {
                 setPassword(e.target.value);
                 setError("");
               }}
-              placeholder="Ingresa tu contraseña"
-              className="mt-1 block w-full rounded-lg border border-foreground/20 bg-background px-4 py-3 text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="Contraseña"
+              autoComplete="current-password"
+              required
+              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
             />
           </div>
 
           {error && (
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-red-500"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-red-500 text-center"
             >
               {error}
+              {error.includes("incorrectos") && (
+                <button
+                  type="button"
+                  onClick={handleClearAndRetry}
+                  className="ml-2 underline hover:text-red-600"
+                >
+                  Limpiar y reintentar
+                </button>
+              )}
             </motion.p>
           )}
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            disabled={isAuthenticating}
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            Entrar al plan
+            {isAuthenticating ? "Entrando..." : "Entrar al plan"}
           </button>
         </motion.form>
 
-        <p className="text-center text-xs text-foreground/40">
-          Plan personalizado para el evento del 24 de mayo
+        <p className="mt-4 text-center text-[11px] text-foreground/40">
+          Evento: 24 de mayo de 2026
         </p>
       </motion.div>
-    </div>
+    </main>
   );
 }
