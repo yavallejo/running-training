@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { TrainingSession, EVENT_DATE, EVENT_DISTANCE, generateTrainingPlan, PLAN_VERSION } from "@/lib/training-plan";
+import { TrainingSession, EVENT_DATE, EVENT_DISTANCE, generateTrainingPlan, loadUserProgress } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import { BADGES, checkAchievements } from "@/lib/achievements";
 import { loadWellnessData, WellnessData } from "@/components/WellnessTracker";
@@ -22,45 +22,41 @@ export default function EstadisticasPage() {
   const [weightEffortData, setWeightEffortData] = useState<WeightEffortData[]>([]);
 
   useEffect(() => {
-    try {
-      const session = getSession();
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-
-      const planStored = localStorage.getItem(STORAGE_KEY);
-      const storedVersion = localStorage.getItem(`${STORAGE_KEY}_version`);
-      const generated = generateTrainingPlan();
-      
-      let sessionsData: TrainingSession[];
-      if (planStored && storedVersion === PLAN_VERSION) {
-        try {
-          const parsed = JSON.parse(planStored);
-          sessionsData = generated.map((gen) => {
-            const saved = parsed.find((s: TrainingSession) => s.id === gen.id);
-            return saved ? { ...gen, completed: saved.completed ?? false } : gen;
-          });
-        } catch {
-          sessionsData = generated;
+    const loadData = async () => {
+      try {
+        const session = getSession();
+        if (!session) {
+          router.replace("/login");
+          return;
         }
-      } else {
-        sessionsData = generated;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(generated));
-        localStorage.setItem(`${STORAGE_KEY}_version`, PLAN_VERSION);
-      }
-      setSessions(sessionsData);
 
-      const eventDate = new Date(EVENT_DATE);
-      const today = new Date();
-      const diffTime = eventDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setDaysLeft(Math.max(0, diffDays));
-    } catch (error) {
-      console.error("Error loading estadisticas:", error);
-    } finally {
-      setLoading(false);
-    }
+        // Cargar sesiones desde Supabase según el plan del usuario
+        const sessionsData = await generateTrainingPlan(session.planId);
+        const progressMap = await loadUserProgress(session.userId);
+        
+        const sessionsWithProgress = sessionsData.map(s => {
+          const progress = progressMap.get(s.id);
+          if (progress) {
+            return { ...s, ...progress };
+          }
+          return s;
+        });
+
+        setSessions(sessionsWithProgress);
+
+        const eventDate = new Date(EVENT_DATE);
+        const today = new Date();
+        const diffTime = eventDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        setDaysLeft(Math.max(0, diffDays));
+      } catch (error) {
+        console.error("Error loading estadisticas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, [router]);
 
   useEffect(() => {
