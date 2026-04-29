@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
-import { TrainingSession, generateTrainingPlan, EVENT_DATE, EVENT_NAME, PLAN_VERSION } from "@/lib/training-plan";
+import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, EVENT_DATE, EVENT_NAME } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
@@ -14,12 +14,9 @@ import ShareModal from "@/components/ShareModal";
 import PlanHeader from "@/components/PlanHeader";
 import PlanStats from "@/components/PlanStats";
 import SessionCard from "@/components/SessionCard";
-import { parseLocalDate, getLocalDateString, formatDayLabel, checkBlockedSessions } from "@/lib/date-utils";
+import { checkBlockedSessions } from "@/lib/date-utils";
 import { checkAchievements, saveAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
-
-const STORAGE_KEY = "yadira_training_plan";
-const SAVE_DEBOUNCE_MS = 500;
 
 export default function PlanPage() {
   const router = useRouter();
@@ -27,8 +24,9 @@ export default function PlanPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const [userId, setUserId] = useState("");
+  const [planName, setPlanName] = useState("");
 
-  // New states for features
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
@@ -54,47 +52,58 @@ export default function PlanPage() {
       router.replace("/login");
       return;
     }
-    setUserName(session.name || "Yadira");
+    setUserName(session.username || "");
+    setUserId(session.userId);
+    setPlanName(session.planName || "");
 
-    const todayStr = getLocalDateString(new Date());
+    const todayStr = new Date().toISOString().split("T")[0];
     setToday(todayStr);
 
-    loadPlan(todayStr);
+    loadPlan(session.planId, session.userId, todayStr);
     setLoading(false);
   }, [router]);
 
-  const loadPlan = (todayStr: string) => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const storedVersion = localStorage.getItem(`${STORAGE_KEY}_version`);
-    const generated = generateTrainingPlan();
+  const loadPlan = async (planId: string, uId: string, todayStr: string) => {
+    try {
+      const [sessionsData, progressMap] = await Promise.all([
+        generateTrainingPlan(planId),
+        loadUserProgress(uId)
+      ]);
 
-    let sessionsData: TrainingSession[];
-    if (stored && storedVersion === PLAN_VERSION) {
-      try {
-        const parsed = JSON.parse(stored);
-        sessionsData = generated.map((gen) => {
-          const saved = parsed.find((s: TrainingSession) => s.id === gen.id);
-          return saved ? { ...gen, ...saved, completed: saved.completed ?? false } : gen;
-        });
-      } catch {
-        sessionsData = generated;
-      }
-    } else {
-      sessionsData = generated;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(generated));
-      localStorage.setItem(`${STORAGE_KEY}_version`, PLAN_VERSION);
+      const sessionsWithProgress = sessionsData.map(s => {
+        const progress = progressMap.get(s.id);
+        if (progress) {
+          return { ...s, ...progress };
+        }
+        return s;
+      });
+
+      const withBlocked = checkBlockedSessions(sessionsWithProgress, todayStr);
+      withBlocked.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setSessions(withBlocked);
+    } catch (error) {
+      console.error('Error loading plan:', error);
     }
-
-    sessionsData = checkBlockedSessions(sessionsData, todayStr);
-    sessionsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    setSessions(sessionsData);
   };
 
-  const savePlan = useCallback((updated: TrainingSession[]) => {
+  const saveProgress = useCallback(async (updated: TrainingSession[]) => {
     setSaving(true);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setTimeout(() => setSaving(false), SAVE_DEBOUNCE_MS);
-  }, []);
+    if (userId) {
+      const promises = updated.map(s =>
+        saveUserProgress(userId, s.id, {
+          completed: s.completed,
+          rescheduled: s.rescheduled,
+          rescheduledTo: (s as any).rescheduledTo,
+          actualTime: s.actualTime,
+          actualPace: s.actualPace,
+          feeling: s.feeling,
+          notes: s.notes
+        })
+      );
+      await Promise.all(promises);
+    }
+    setTimeout(() => setSaving(false), 500);
+  }, [userId]);
 
   const toggleComplete = useCallback((id: string) => {
     setSessions(prev => {
@@ -127,10 +136,10 @@ export default function PlanPage() {
         }
       }
 
-      savePlan(updated);
+      saveProgress(updated);
       return updated;
     });
-  }, [savePlan]);
+  }, [saveProgress]);
 
   const handlePostWorkoutSave = useCallback((id: string, data: {
     actualTime: string;
@@ -142,19 +151,17 @@ export default function PlanPage() {
       const updated = prev.map(s =>
         s.id === id ? { ...s, ...data } : s
       );
-      savePlan(updated);
+      saveProgress(updated);
       return updated;
     });
     setShowPostWorkout(null);
-  }, [savePlan]);
+  }, [saveProgress]);
 
   const getCardState = useCallback((session: TrainingSession): string => {
     if (session.completed && session.rescheduled) return 'rescheduled-completed';
     if (session.completed) return 'completed';
     if (session.blocked) return 'blocked';
-
     if (session.rescheduled) return 'rescheduled';
-
     if (session.date === today) return 'today';
 
     const parseLocalDate = (dateStr: string) => {
@@ -181,7 +188,6 @@ export default function PlanPage() {
             ...s,
             originalDate: s.date,
             date: dateStr,
-            dayLabel: formatDayLabel(dateStr),
             rescheduled: true,
             rescheduleUsed: true,
           };
@@ -190,16 +196,16 @@ export default function PlanPage() {
       });
 
       updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      savePlan(updated);
+      saveProgress(updated);
       return updated;
     });
     setShowDatePicker(null);
-  }, [savePlan]);
+  }, [saveProgress]);
 
   useEffect(() => {
     if (sessions.length > 0) {
       const todaySession = sessions.find(s => s.date === today);
-      const sessionNumber = todaySession ? parseInt(todaySession.id.split('-')[1]) : 0;
+      const sessionNumber = todaySession ? todaySession.sessionOrder : 0;
       const completedCount = sessions.filter(s => s.completed).length;
       const message = getTodaysMessage(sessionNumber, sessions.length, completedCount);
       setMotivationalMessage(message);
@@ -228,7 +234,6 @@ export default function PlanPage() {
 
   return (
     <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8 relative">
-      {/* Confetti */}
       {showConfetti && (
         <Confetti
           width={windowSize.width}
@@ -239,14 +244,12 @@ export default function PlanPage() {
         />
       )}
 
-      {/* Badge Notification */}
       <BadgeNotification
         badge={newBadge}
         onClose={() => setNewBadge(null)}
       />
 
       <div className="mx-auto max-w-2xl">
-        {/* Header with progress, wellness, etc. */}
         <PlanHeader
           userName={userName}
           sessions={sessions}
@@ -254,7 +257,6 @@ export default function PlanPage() {
           motivacionalMessage={motivationalMessage}
         />
 
-        {/* View Toggle */}
         <div className="flex justify-end">
           <button
             onClick={() => setViewMode(prev => prev === 'list' ? 'calendar' : 'list')}
@@ -264,7 +266,6 @@ export default function PlanPage() {
           </button>
         </div>
 
-        {/* Calendar View */}
         {viewMode === 'calendar' && (
           <CalendarView
             sessions={sessions}
@@ -275,7 +276,6 @@ export default function PlanPage() {
           />
         )}
 
-        {/* List View */}
         {viewMode === 'list' && (
           <div className="space-y-2 sm:space-y-3">
             <AnimatePresence>
@@ -297,7 +297,6 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* Share Plan Progress Button */}
         <div className="mt-4 sm:mt-6 flex justify-center">
           <button
             onClick={() => setShowShare('plan')}
@@ -307,14 +306,13 @@ export default function PlanPage() {
           </button>
         </div>
 
-        {/* Stats */}
         <div className="mt-6 sm:mt-8">
           <PlanStats sessions={sessions} completedCount={completedCount} />
         </div>
 
         <footer className="mt-6 sm:mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-3 sm:p-4 text-center">
           <p className="text-xs sm:text-sm font-medium text-foreground/70">
-            🏃‍♀️ {EVENT_NAME}
+            🏃‍♀️ {EVENT_NAME} - Plan: {planName}
           </p>
           <p className="mt-0.5 text-[10px] sm:text-xs text-foreground/40">
             7 km recreativos · ¡Tú puedes!
@@ -322,7 +320,6 @@ export default function PlanPage() {
         </footer>
       </div>
 
-        {/* Modals */}
       {showDatePicker && (
         <DatePickerModal
           sessionId={showDatePicker}

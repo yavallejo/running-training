@@ -138,6 +138,14 @@ export function getTodaysMessage(
   }
 
   // Rotar mensajes genéricos basado en el número de sesión
-  const message = genericMessages[sessionNumber % genericMessages.length];
+  if (genericMessages.length === 0) {
+    // Fallback por si no hay mensajes genéricos
+    return { text: "¡Tú puedes! Cada kilómetro te hace más fuerte.", icon: "💪" };
+  }
+  const index = Number.isFinite(sessionNumber) ? sessionNumber % genericMessages.length : 0;
+  const message = genericMessages[index];
+  if (!message) {
+    return { text: "¡Tú puedes! Cada kilómetro te hace más fuerte.", icon: "💪" };
+  }
   return { text: message.text, icon: message.icon };
 }

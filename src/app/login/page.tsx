@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { validateCredentials, createSession, initializeCredentials } from "@/lib/auth";
+import { validateCredentials, createSession } from "@/lib/auth";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -15,13 +15,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      // Initialize credentials if not present
-      if (!localStorage.getItem("yadira_credentials")) {
-        initializeCredentials();
-      }
-
-      // Check existing session
-      const stored = localStorage.getItem("yadira_session");
+      const stored = localStorage.getItem("running_session");
       if (stored) {
         try {
           const session = JSON.parse(stored);
@@ -29,9 +23,9 @@ export default function LoginPage() {
             router.replace("/plan");
             return;
           }
-          localStorage.removeItem("yadira_session");
+          localStorage.removeItem("running_session");
         } catch {
-          localStorage.removeItem("yadira_session");
+          localStorage.removeItem("running_session");
         }
       }
       setLoading(false);
@@ -42,7 +36,7 @@ export default function LoginPage() {
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
+
     if (!username.trim() || !password) {
       setError("Por favor ingresa usuario y contraseña");
       return;
@@ -50,9 +44,9 @@ export default function LoginPage() {
 
     setIsAuthenticating(true);
     try {
-      const isValid = await validateCredentials(username.trim(), password);
-      if (isValid) {
-        createSession(username.trim());
+      const result = await validateCredentials(username.trim(), password);
+      if (result.success && result.user) {
+        createSession(result.user);
         router.replace("/plan");
       } else {
         setError("Usuario o contraseña incorrectos");
@@ -63,16 +57,6 @@ export default function LoginPage() {
       setIsAuthenticating(false);
     }
   }, [username, password, router]);
-
-  const handleClearAndRetry = () => {
-    // Only clear auth data, not the training plan
-    localStorage.removeItem("yadira_credentials");
-    localStorage.removeItem("yadira_session");
-    setError("");
-    setUsername("");
-    setPassword("");
-    initializeCredentials();
-  };
 
   if (loading) {
     return (
@@ -116,9 +100,9 @@ export default function LoginPage() {
               />
             </svg>
           </motion.div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Yadira Running</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Running Plan</h1>
           <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-            Plan personalizado de entrenamiento
+            Entrena a tu ritmo
           </p>
         </div>
 
@@ -171,15 +155,6 @@ export default function LoginPage() {
               className="text-xs sm:text-sm text-red-500 text-center"
             >
               {error}
-              {error.includes("incorrectos") && (
-                <button
-                  type="button"
-                  onClick={handleClearAndRetry}
-                  className="ml-2 underline hover:text-red-600"
-                >
-                  Limpiar y reintentar
-                </button>
-              )}
             </motion.p>
           )}
 

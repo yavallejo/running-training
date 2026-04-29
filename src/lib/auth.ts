@@ -1,87 +1,134 @@
-// Secure auth for personal use with hashed credentials
-const USERNAME = "yadira";
-const PASSWORD_HASH = "c6269c975d9b548d36ad19673a4cc86086a081fa8de06162e5a1a5c7bb3e2400"; // SHA-256 hash of "running2026"
-const CREDENTIALS_KEY = "yadira_credentials";
-const SESSION_KEY = "yadira_session";
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+import { supabase } from './supabase'
 
-// Initialize credentials in localStorage
-export function initializeCredentials(): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({
-    username: USERNAME,
-    passwordHash: PASSWORD_HASH
-  }));
-}
+const SESSION_KEY = "running_session"
+const SESSION_DURATION = 24 * 60 * 60 * 1000
 
 // Hash password using Web Crypto API
 async function hashPassword(password: string): Promise<string> {
-  if (typeof window === "undefined") return "";
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  if (typeof window === "undefined") return ""
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-// Validate credentials
-export async function validateCredentials(username: string, password: string): Promise<boolean> {
-  if (typeof window === "undefined") return false;
-  
-  // Initialize if not exists
-  if (!localStorage.getItem(CREDENTIALS_KEY)) {
-    initializeCredentials();
-  }
-  
+// Validar credenciales contra Supabase
+export async function validateCredentials(username: string, password: string): Promise<{ success: boolean; user?: any }> {
+  if (typeof window === "undefined") return { success: false }
+
   try {
-    const stored = localStorage.getItem(CREDENTIALS_KEY);
-    if (!stored) return false;
-    
-    const creds = JSON.parse(stored);
-    const inputHash = await hashPassword(password);
-    return username.toLowerCase() === creds.username.toLowerCase() && inputHash === creds.passwordHash;
-    } catch (error) {
-    console.error('Auth validation error:', error);
-    return false;
+    const passwordHash = await hashPassword(password)
+    console.log('Login attempt:', { username, passwordHash })
+
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        id,
+        username,
+        password_hash,
+        plan_id,
+        plans:plan_id (
+          id,
+          name,
+          level
+        )
+      `)
+      .eq('username', username.toLowerCase())
+      .single()
+
+    console.log('Supabase response:', { data, error, expectedHash: passwordHash })
+
+    if (error || !data) {
+      console.log('No user found or error:', error)
+      return { success: false }
+    }
+
+    // Verificar hash manualmente
+    if (data.password_hash !== passwordHash) {
+      console.log('Hash mismatch:', { stored: data.password_hash, computed: passwordHash })
+      return { success: false }
+    }
+
+    return { success: true, user: data }
+  } catch (error) {
+    console.error('Auth validation error:', error)
+    return { success: false }
   }
 }
 
-// Session management
-interface Session {
-  authenticated: boolean;
-  name: string;
-  expiresAt: number;
+// Crear sesión local
+export function createSession(user: any): void {
+  if (typeof window === "undefined") return
+  const session = {
+    authenticated: true,
+    userId: user.id,
+    username: user.username,
+    planId: user.plan_id,
+    planLevel: user.plans?.level,
+    planName: user.plans?.name,
+    expiresAt: Date.now() + SESSION_DURATION
+  }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
 }
 
-export function createSession(name: string): void {
-  if (typeof window === "undefined") return;
-  const session: Session = {
-    authenticated: true,
-    name,
-    expiresAt: Date.now() + SESSION_DURATION
-  };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+interface Session {
+  authenticated: boolean
+  userId: string
+  username: string
+  planId: string
+  planLevel: string
+  planName: string
+  expiresAt: number
 }
 
 export function getSession(): Session | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(SESSION_KEY);
-  if (!stored) return null;
-  
+  if (typeof window === "undefined") return null
+  const stored = localStorage.getItem(SESSION_KEY)
+  if (!stored) return null
+
   try {
-    const session: Session = JSON.parse(stored);
+    const session: Session = JSON.parse(stored)
     if (session.expiresAt < Date.now()) {
-      localStorage.removeItem(SESSION_KEY);
-      return null;
+      localStorage.removeItem(SESSION_KEY)
+      return null
     }
-    return session;
+    return session
   } catch {
-    localStorage.removeItem(SESSION_KEY);
-    return null;
+    localStorage.removeItem(SESSION_KEY)
+    return null
   }
 }
 
 export function clearSession(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(SESSION_KEY);
+  if (typeof window === "undefined") return
+  localStorage.removeItem(SESSION_KEY)
+}
+
+// Crear usuario (para uso admin)
+export async function createUser(username: string, password: string, planLevel: 'beginner' | 'intermediate' | 'pro'): Promise<{ success: boolean; error?: string }> {
+  try {
+    const passwordHash = await hashPassword(password)
+
+    const { data: plan } = await supabase
+      .from('plans')
+      .select('id')
+      .eq('level', planLevel)
+      .single()
+
+    if (!plan) return { success: false, error: 'Plan no encontrado' }
+
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        username: username.toLowerCase(),
+        password_hash: passwordHash,
+        plan_id: plan.id
+      })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
 }
