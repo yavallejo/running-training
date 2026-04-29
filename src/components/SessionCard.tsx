@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import DatePickerModal from "@/components/DatePickerModal";
 import { TrainingSession } from "@/lib/training-plan";
@@ -16,6 +17,8 @@ interface SessionCardProps {
   showDatePickerId: string | null;
 }
 
+const MAX_LINES = 2;
+
 export default function SessionCard({
   session,
   index,
@@ -27,6 +30,7 @@ export default function SessionCard({
   onShowShare,
   showDatePickerId,
 }: SessionCardProps) {
+  const [expanded, setExpanded] = useState(false);
   const getStateBadge = () => {
     if (state === 'today') {
       return (
@@ -158,9 +162,19 @@ export default function SessionCard({
                 )}
               </div>
           </div>
-          <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-foreground/40 leading-relaxed line-clamp-2 sm:line-clamp-3">
+          <p className={`mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-foreground/40 leading-relaxed ${
+            expanded ? '' : 'line-clamp-2 sm:line-clamp-3'
+          }`}>
             {session.details}
           </p>
+          {session.details.length > 100 && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="mt-1 text-[10px] text-primary hover:text-primary/80 underline"
+            >
+              {expanded ? 'Ver menos' : 'Ver más...'}
+            </button>
+          )}
 
           {/* Post-workout notes */}
           {session.completed && (session.actualTime || session.feeling || session.notes) && (
