@@ -177,7 +177,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
 
           <div className="text-center pt-3 border-t border-white/20">
             <p className="text-[10px] opacity-60">
-              ¡Entrenando para el 24 de mayo! 🎉
+               ¡Entrenando para el 17 de mayo! 🎉
             </p>
           </div>
         </div>

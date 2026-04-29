@@ -193,7 +193,7 @@ export default function LoginPage() {
         </motion.form>
 
         <p className="mt-4 sm:mt-6 text-center text-[11px] sm:text-xs text-foreground/40">
-          Evento: 24 de mayo de 2026
+          Evento: 17 de mayo de 2026
         </p>
       </motion.div>
     </main>

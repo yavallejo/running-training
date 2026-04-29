@@ -1,4 +1,4 @@
-export const PLAN_VERSION = "2.0"; // Incrementar cuando se actualicen las descripciones
+export const PLAN_VERSION = "3.0"; // Fecha de carrera cambiada al 17 de mayo 2026
 
 export interface TrainingSession {
   id: string;
@@ -78,8 +78,8 @@ export function generateTrainingPlan(): TrainingSession[] {
     },
     {
       id: "session-7",
-      date: "2026-05-13",
-      dayLabel: "Miércoles 13 May",
+      date: "2026-05-12",
+      dayLabel: "Martes 12 May",
       workout: "5 km continuo",
       details: "¡GRAN DÍA! Primer intento de 5 km. Calienta bien con 8 min de caminata progresiva. Corre a ritmo muy cómodo (11-12 min/km), concéntrate en mantener un ritmo constante y sostenido. Divide mentalmente en 3 partes: 0-2 km (cómodo), 2-4 km (mantener), 4-5 km (empujar suave). No te preocupes si caminas unos minutos, lo importante es completar la distancia. Al terminar, tómate fotos y celebra este gran logro.",
       distance: 5,
@@ -87,8 +87,8 @@ export function generateTrainingPlan(): TrainingSession[] {
     },
     {
       id: "session-8",
-      date: "2026-05-15",
-      dayLabel: "Viernes 15 May",
+      date: "2026-05-14",
+      dayLabel: "Jueves 14 May",
       workout: "5 km continuo",
       details: "Consolida los 5 km corriendo de forma continua a ritmo cómodo. Mantén una postura erguida: mirada al frente, hombros atrás y abajo, brazos balanceando de forma natural. Controla la respiración para evitar hiperventilación. Si el ritmo se siente muy pesado, no dudes en caminar 1-2 minutos y retomar. Hidrátate bien. Esta sesión confirma que tu cuerpo está adaptándose a distancias mayores. Termina con estiramientos largos.",
       distance: 5,
@@ -96,29 +96,29 @@ export function generateTrainingPlan(): TrainingSession[] {
     },
     {
       id: "session-9",
-      date: "2026-05-17",
-      dayLabel: "Domingo 17 May",
-      workout: "6 km progresivo",
-      details: "Calienta 5 min caminando. Corre 6 km a ritmo cómodo (11 min/km). Los últimos 2 km puedes aumentar ligeramente el ritmo si te sientes bien, pero sin agotarte. Mantén hidratación durante el recorrido si es posible. Es normal sentir más fatiga en distancias mayores, camina si lo requieres sin culpa. Esta sesión es clave para preparar el cuerpo para el evento de 7 km. Al terminar, enfriamiento de 8 min caminando.",
+      date: "2026-05-15",
+      dayLabel: "Viernes 15 May",
+      workout: "6 km continuo",
+      details: "Última sesión fuerte antes de la carrera. Corre 6 km de forma continua a ritmo constante y cómodo. Visualiza el día de la carrera: tu ritmo, tu respiración, tu determinación. Mantén una zancada eficiente y brazos relajados. Si sientes dolor agudo, detente; si es fatiga normal, camina 1 minuto y continúa. Hidrátate bien. Esta sesión consolida tu resistencia para los 7 km del evento de este domingo.",
       distance: 6,
       targetPace: "~11 min/km",
     },
     {
       id: "session-10",
-      date: "2026-05-20",
-      dayLabel: "Miércoles 20 May",
-      workout: "6 km continuo",
-      details: "Casi llegas a la meta. Corre 6 km de forma continua a ritmo constante y cómodo. Visualiza el día del evento: tu ritmo, tu respiración, tu determinación. Mantén una zancada eficiente y brazos relajados. Si sientes dolor agudo, detente; si es fatiga normal, camina 1 minuto y continúa. Hidrátate bien. Esta sesión consolida tu resistencia para los 7 km del evento. Celebra estar a solo 4 días del evento.",
-      distance: 6,
-      targetPace: "~11 min/km",
+      date: "2026-05-16",
+      dayLabel: "Sábado 16 May",
+      workout: "4 km fácil (Taper)",
+      details: "Día de activación suave: corre 4 km a ritmo muy cómodo (11-12 min/km) para mantener las piernas activas sin fatigarlas. No intentes mejorar tiempos ni distancias hoy, solo activa músculos. Calienta 8 min caminando y termina con 8 min de enfriamiento. Hidrátate bien y come carbohidratos complejos después. Duerme bien esta noche. ¡Mañana es el gran día! Confía en tu entrenamiento.",
+      distance: 4,
+      targetPace: "~11-12 min/km",
     },
     {
       id: "session-11",
-      date: "2026-05-22",
-      dayLabel: "Viernes 22 May",
-      workout: "4 km fácil (Taper)",
-      details: "Día de activación suave: corre 4 km a ritmo muy cómodo (11-12 min/km) para mantener las piernas activas sin fatigarlas. No intentes mejorar tiempos ni distancias hoy, solo activa músculos. Calienta 8 min caminando y termina con 8 min de enfriamiento. Hidrátate bien y come carbohidratos complejos después. Duerme bien estos dos días previos. ¡Estás lista para el evento del domingo! Confía en tu entrenamiento.",
-      distance: 4,
+      date: "2026-05-17",
+      dayLabel: "Domingo 17 May",
+      workout: "7 km - ¡DÍA DE LA CARRERA!",
+      details: "¡ES EL GRAN DÍA! Calienta 10-15 minutos caminando y trotando suave. Durante la carrera: mantén un ritmo cómodo y constante (11-12 min/km), no salgas muy rápido. Respiración rítmica, hombros relajados, disfruta el momento. Si sientes fatiga, camina unos minutos y retoma. Hidrátate en los puntos de agua. ¡Cruza la meta con una sonrisa! Celebra tu logro, te has ganado este momento.",
+      distance: 7,
       targetPace: "~11-12 min/km",
     },
   ];
@@ -133,6 +133,6 @@ export function generateTrainingPlan(): TrainingSession[] {
   }));
 }
 
-export const EVENT_DATE = "2026-05-24";
+export const EVENT_DATE = "2026-05-17T06:00:00";
 export const EVENT_DISTANCE = 7; // km
 export const EVENT_NAME = "Carrera Recreativa 7km";
