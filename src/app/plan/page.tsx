@@ -210,7 +210,7 @@ export default function PlanPage() {
   const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
 
   return (
-    <main className="flex-1 px-4 py-8 relative">
+    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8 relative">
       {/* Confetti */}
       {showConfetti && (
         <Confetti
@@ -223,12 +223,12 @@ export default function PlanPage() {
       )}
       
       <div className="mx-auto max-w-2xl">
-        <header className="mb-8 flex items-center justify-between">
+        <header className="mb-6 sm:mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
               Hola, {userName} 👋
             </h1>
-            <p className="mt-1 text-sm text-foreground/50">
+            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
               {EVENT_NAME} · 24 mayo
             </p>
           </div>
@@ -240,10 +240,10 @@ export default function PlanPage() {
           </button>
         </header>
 
-        <div className="mb-6 rounded-xl border border-foreground/5 bg-background p-4">
+        <div className="mb-4 sm:mb-6 rounded-xl border border-foreground/5 bg-background p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-foreground/60">Progreso</span>
-            <span className="text-sm font-medium text-primary">{progress}%</span>
+            <span className="text-xs sm:text-sm text-foreground/60">Progreso</span>
+            <span className="text-xs sm:text-sm font-medium text-primary">{progress}%</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
             <motion.div
@@ -253,13 +253,13 @@ export default function PlanPage() {
               transition={{ duration: 0.6, ease: "easeOut" }}
             />
           </div>
-          <p className="mt-1.5 text-xs text-foreground/40">
+          <p className="mt-1.5 text-[10px] sm:text-xs text-foreground/40">
             {completedCount}/{totalSessions} sesiones
             {saving && <span className="ml-2 text-green-500">· Guardado</span>}
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <AnimatePresence>
             {sessions.map((session, index) => {
               const state = getCardState(session);
@@ -269,7 +269,7 @@ export default function PlanPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03, duration: 0.3 }}
-                  className={`rounded-xl border p-4 transition-colors relative overflow-hidden ${
+                  className={`rounded-xl border p-3 sm:p-4 transition-colors relative overflow-hidden ${
                     state === 'today' 
                       ? 'border-primary/50 shadow-lg shadow-primary/20 bg-primary/[0.05]'
                       : state === 'completed'
@@ -320,19 +320,19 @@ export default function PlanPage() {
                         ✓ REPROGRAMADA Y COMPLETADA
                       </span>
                     )}
-                    <span className={`text-sm font-medium text-foreground ${
+                    <span className={`text-xs sm:text-sm font-medium text-foreground ${
                       state === 'missed' ? 'line-through text-foreground/40' : ''
                     }`}>
                       {session.dayLabel}
                       {session.originalDate && (
-                        <span className="ml-2 text-xs text-foreground/40">
+                        <span className="ml-2 text-[10px] sm:text-xs text-foreground/40">
                           (Original: {session.originalDate})
                         </span>
                       )}
                     </span>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={() => toggleComplete(session.id)}
                       disabled={state === 'blocked'}
@@ -359,30 +359,30 @@ export default function PlanPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-xs text-foreground/50 mt-0.5">
+                          <p className="text-[10px] sm:text-xs text-foreground/50 mt-0.5">
                             {session.workout}
                           </p>
                         </div>
-                        <div className="flex shrink-0 gap-1.5">
-                          <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-[11px] font-medium text-secondary">
+                        <div className="flex shrink-0 gap-1 sm:gap-1.5">
+                          <span className="rounded-full bg-secondary/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-secondary">
                             {session.distance} km
                           </span>
                         </div>
                       </div>
-                      <p className="mt-1.5 text-xs text-foreground/40 leading-relaxed line-clamp-3">
+                      <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-foreground/40 leading-relaxed line-clamp-2 sm:line-clamp-3">
                         {session.details}
                       </p>
 
                       {/* Missed state message */}
                       {state === 'missed' && (
-                        <p className="mt-1.5 text-xs text-orange-500/70">
+                        <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-orange-500/70">
                           😢 No completado - ¡Ánimo, sigue adelante!
                         </p>
                       )}
 
                       {/* Blocked state message */}
                       {state === 'blocked' && (
-                        <p className="mt-1.5 text-xs text-red-500/70">
+                        <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-red-500/70">
                           No completada después de reprogramar
                         </p>
                       )}
@@ -391,7 +391,7 @@ export default function PlanPage() {
                       {state === 'missed' && !session.rescheduleUsed && (
                         <button 
                           onClick={() => setShowDatePicker(session.id)} 
-                          className="mt-2 text-xs text-secondary hover:text-secondary/80 underline"
+                          className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-secondary hover:text-secondary/80 underline"
                         >
                           ⚡ Reprogramar (1 vez)
                         </button>
@@ -411,7 +411,7 @@ export default function PlanPage() {
 
                   {/* Effect for rescheduled-completed */}
                   {state === 'rescheduled-completed' && (
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/5 rounded-bl-full" />
+                    <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 bg-green-500/5 rounded-bl-full" />
                   )}
                 </motion.div>
               );
@@ -419,11 +419,11 @@ export default function PlanPage() {
           </AnimatePresence>
         </div>
 
-        <footer className="mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-4 text-center">
-          <p className="text-sm font-medium text-foreground/70">
+        <footer className="mt-6 sm:mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-3 sm:p-4 text-center">
+          <p className="text-xs sm:text-sm font-medium text-foreground/70">
             🏃‍♀️ {EVENT_NAME}
           </p>
-          <p className="mt-0.5 text-xs text-foreground/40">
+          <p className="mt-0.5 text-[10px] sm:text-xs text-foreground/40">
             7 km recreativos · ¡Tú puedes!
           </p>
         </footer>

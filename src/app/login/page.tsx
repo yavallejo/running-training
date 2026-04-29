@@ -85,19 +85,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4">
+    <main className="flex flex-1 items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-sm sm:max-w-md"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10"
+            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 sm:h-14 sm:w-14"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@ export default function LoginPage() {
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-6 h-6 text-primary"
+              className="w-6 h-6 sm:w-7 sm:h-7 text-primary"
             >
               <path
                 strokeLinecap="round"
@@ -114,8 +114,8 @@ export default function LoginPage() {
               />
             </svg>
           </motion.div>
-          <h1 className="text-xl font-semibold text-foreground">Yadira Running</h1>
-          <p className="mt-1 text-xs text-foreground/50">
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">Yadira Running</h1>
+          <p className="mt-1 text-xs sm:text-sm text-foreground/50">
             Plan personalizado de entrenamiento
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
           onSubmit={handleSubmit}
-          className="space-y-3"
+          className="space-y-3 sm:space-y-4"
           noValidate
         >
           <div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
               placeholder="Usuario"
               autoComplete="username"
               required
-              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
+              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 sm:py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
             />
           </div>
 
@@ -158,7 +158,7 @@ export default function LoginPage() {
               placeholder="Contraseña"
               autoComplete="current-password"
               required
-              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
+              className="w-full rounded-lg border border-foreground/10 bg-background/50 px-3 py-2.5 sm:py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-colors"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function LoginPage() {
             <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-500 text-center"
+              className="text-xs sm:text-sm text-red-500 text-center"
             >
               {error}
               {error.includes("incorrectos") && (
@@ -190,7 +190,7 @@ export default function LoginPage() {
           </button>
         </motion.form>
 
-        <p className="mt-4 text-center text-[11px] text-foreground/40">
+        <p className="mt-4 sm:mt-6 text-center text-[11px] sm:text-xs text-foreground/40">
           Evento: 24 de mayo de 2026
         </p>
       </motion.div>

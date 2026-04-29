@@ -32,14 +32,14 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-foreground/5 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:px-4">
         <Link href="/plan" className="flex items-center gap-2 group">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            viewBox="0 0 24 24"
             strokeWidth={1.5}
+            stroke="currentColor"
             className="w-5 h-5 text-primary transition-transform group-hover:scale-110"
           >
             <path
@@ -58,7 +58,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 sm:gap-4">
           <NavLink href="/plan">Plan</NavLink>
           <NavLink href="/estadisticas">Estadísticas</NavLink>
           
