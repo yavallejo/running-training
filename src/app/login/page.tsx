@@ -65,7 +65,9 @@ export default function LoginPage() {
   }, [username, password, router]);
 
   const handleClearAndRetry = () => {
-    localStorage.clear();
+    // Only clear auth data, not the training plan
+    localStorage.removeItem("yadira_credentials");
+    localStorage.removeItem("yadira_session");
     setError("");
     setUsername("");
     setPassword("");

@@ -7,6 +7,7 @@ import Confetti from "react-confetti";
 import { TrainingSession, generateTrainingPlan, EVENT_DATE, EVENT_NAME, PLAN_VERSION } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
+import { parseLocalDate, getLocalDateString, formatDayLabel, checkBlockedSessions } from "@/lib/date-utils";
 
 const STORAGE_KEY = "yadira_training_plan";
 const SAVE_DEBOUNCE_MS = 500;
@@ -40,14 +41,6 @@ export default function PlanPage() {
       return;
     }
     setUserName(session.name || "Yadira");
-    
-    // Get today's date in local time (not UTC)
-    const getLocalDateString = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
     
     const todayStr = getLocalDateString(new Date());
     setToday(todayStr);
@@ -85,26 +78,6 @@ export default function PlanPage() {
     sessionsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
     setSessions(sessionsData);
-  };
-
-  const checkBlockedSessions = (sessionsData: TrainingSession[], todayStr: string): TrainingSession[] => {
-    // Parse local date (YYYY-MM-DD) manually to avoid UTC issues
-    const parseLocalDate = (dateStr: string) => {
-      const [year, month, day] = dateStr.split('-').map(Number);
-      return new Date(year, month - 1, day); // month is 0-indexed
-    };
-    
-    const todayDate = parseLocalDate(todayStr);
-    
-    return sessionsData.map(s => {
-      if (s.rescheduled && !s.completed) {
-        const rescheduledDate = parseLocalDate(s.date);
-        if (rescheduledDate < todayDate) {
-          return { ...s, blocked: true };
-        }
-      }
-      return s;
-    });
   };
 
   const savePlan = useCallback((updated: TrainingSession[]) => {
@@ -185,13 +158,6 @@ export default function PlanPage() {
     clearSession();
     window.location.href = "/login";
   }, []);
-
-  const formatDayLabel = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
-  };
 
   if (loading) {
     return (
