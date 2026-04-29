@@ -19,7 +19,6 @@ export async function validateCredentials(username: string, password: string): P
 
   try {
     const passwordHash = await hashPassword(password)
-    console.log('Login attempt:', { username, passwordHash })
 
     const { data, error } = await supabase
       .from('users')
@@ -37,16 +36,12 @@ export async function validateCredentials(username: string, password: string): P
       .eq('username', username.toLowerCase())
       .single()
 
-    console.log('Supabase response:', { data, error, expectedHash: passwordHash })
-
     if (error || !data) {
-      console.log('No user found or error:', error)
       return { success: false }
     }
 
     // Verificar hash manualmente
     if (data.password_hash !== passwordHash) {
-      console.log('Hash mismatch:', { stored: data.password_hash, computed: passwordHash })
       return { success: false }
     }
 
