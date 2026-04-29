@@ -52,10 +52,10 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
       try {
         const response = await fetch(imageUrl);
         const blob = await response.blob();
-        const file = new File([blob], "yadira-running.png", { type: "image/png" });
+        const file = new File([blob], "runplan-pro.png", { type: "image/png" });
 
         await navigator.share({
-          title: "Yadira Running",
+          title: "RunPlan Pro",
           text: shareType === 'session'
             ? `¡Completé mi entrenamiento de ${session?.distance}km!`
             : `¡Vas por ${planProgress?.completed}/${planProgress?.total} sesiones completadas!`,
@@ -67,7 +67,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
     } else {
       // Fallback: download
       const link = document.createElement("a");
-      link.download = `yadira-running-${shareType}.png`;
+      link.download = `runplan-pro-${shareType}.png`;
       link.href = imageUrl;
       link.click();
     }
@@ -130,7 +130,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
         >
           <div className="text-center mb-4">
             <div className="text-3xl mb-2">🏃‍♀️</div>
-            <h4 className="text-lg font-bold">Yadira Running</h4>
+            <h4 className="text-lg font-bold">RunPlan Pro</h4>
             {shareType === 'session' && session ? (
               <p className="text-xs opacity-70">{session.dayLabel}</p>
             ) : (

@@ -103,10 +103,10 @@ export function checkAchievements(
 
 export function saveAchievements(newBadgeIds: string[]) {
   try {
-    const stored = localStorage.getItem("yadira_achievements");
+    const stored = localStorage.getItem("runplan-pro_achievements");
     const current = stored ? JSON.parse(stored) : [];
     const updated = [...new Set([...current, ...newBadgeIds])];
-    localStorage.setItem("yadira_achievements", JSON.stringify(updated));
+    localStorage.setItem("runplan-pro_achievements", JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error saving achievements:', error);

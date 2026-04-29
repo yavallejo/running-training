@@ -104,7 +104,7 @@ export default function NutricionPage() {
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('yadira_session');
+      localStorage.removeItem('runplan-pro_session');
       router.push('/login');
     }
   };

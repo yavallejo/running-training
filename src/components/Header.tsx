@@ -15,7 +15,7 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
-    const session = localStorage.getItem("yadira_session");
+    const session = localStorage.getItem("runplan-pro_session");
     if (session) {
       try {
         const { name } = JSON.parse(session);
@@ -57,7 +57,7 @@ export default function Header() {
             />
           </svg>
           <span className="text-sm font-semibold tracking-tight text-foreground">
-            Yadira
+            RunPlan Pro
           </span>
         </Link>
 

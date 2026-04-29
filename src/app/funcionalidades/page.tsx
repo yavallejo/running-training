@@ -10,7 +10,7 @@ const FEATURES = [
   {
     icon: "🎯",
     title: "Plan de Entrenamiento Personalizado",
-    description: "11 sesiones progresivas del 29 de abril al 17 de mayo 2026, diseñadas específicamente para Yadira. Desde 3 km hasta los 7 km del evento.",
+    description: "11 sesiones progresivas del 29 de abril al 17 de mayo 2026, diseñadas para corredores principiantes. Desde 3 km hasta los 7 km del evento.",
     details: ["11 sesiones únicas", "Progresión 3→7 km", "Descripciones detalladas", "Ritmo objetivo ~11 min/km"],
     color: "from-blue-500/10 to-blue-600/5",
     border: "border-blue-500/20",
@@ -58,7 +58,7 @@ const FEATURES = [
   {
     icon: "📤",
     title: "Compartir Logros",
-    description: "Comparte tus sesiones completadas en redes sociales. Genera una imagen personalizada con distancia, tiempo, ritmo y el logo de Yadira Running.",
+    description: "Comparte tus sesiones completadas en redes sociales. Genera una imagen personalizada con distancia, tiempo, ritmo y el logo de RunPlan Pro.",
     details: ["Generación de imagen PNG", "Usa html2canvas", "Web Share API o descarga", "Diseño gradiente atractivo"],
     color: "from-teal-500/10 to-teal-600/5",
     border: "border-teal-500/20",
@@ -90,7 +90,7 @@ const FEATURES = [
   {
     icon: "🔐",
     title: "Autenticación Segura",
-    description: "Sistema de login con hash SHA-256 para la contraseña. Sesiones con expiración de 24 horas. Credenciales: yadira / running2026.",
+    description: "Sistema de login con hash SHA-256 para la contraseña. Sesiones con expiración de 24 horas.",
     details: ["Hash SHA-256 con Web Crypto API", "Sesiones de 24 horas", "localStorage seguro", "Redirección automática"],
     color: "from-red-500/10 to-red-500/5",
     border: "border-red-500/20",
@@ -116,7 +116,7 @@ export default function FuncionalidadesPage() {
               Funcionalidades
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-              Todo lo que Yadira Running puede hacer
+              Todo lo que RunPlan Pro puede hacer
             </p>
           </div>
           <button
@@ -134,7 +134,7 @@ export default function FuncionalidadesPage() {
           className="mb-8 sm:mb-10 rounded-2xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-6 sm:p-8 text-primary-foreground text-center"
         >
           <div className="text-4xl mb-3">🏃‍♀️</div>
-          <h2 className="text-xl sm:text-2xl font-bold mb-2">Yadira Running Plan</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">RunPlan Pro</h2>
           <p className="text-sm opacity-80">
             Tu entrenamiento personalizado para {EVENT_NAME}
           </p>

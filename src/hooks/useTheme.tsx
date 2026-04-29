@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("yadira-theme") as Theme | null;
+    const stored = localStorage.getItem("runplan-pro-theme") as Theme | null;
     if (stored) {
       setThemeState(stored);
     }
@@ -45,7 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove("dark");
     }
 
-    localStorage.setItem("yadira-theme", theme);
+    localStorage.setItem("runplan-pro-theme", theme);
   }, [theme, mounted]);
 
   const setTheme = (newTheme: Theme) => {

@@ -17,24 +17,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Yadira Running Plan",
-    template: "%s | Yadira Running",
+    default: "RunPlan Pro",
+    template: "%s | RunPlan Pro",
   },
-  description: "Plan de entrenamiento personalizado para correr 7km - Yadira",
-  keywords: ["running", "entrenamiento", "7km", "principiante", "Yadira", "carrera"],
-  authors: [{ name: "Yadira Running" }],
-  creator: "Yadira Running",
-  publisher: "Yadira Running",
+  description: "Plan de entrenamiento personalizado para correr 7km - RunPlan Pro",
+  keywords: ["running", "entrenamiento", "7km", "principiante", "runplan", "carrera", "profesional"],
+  authors: [{ name: "RunPlan Pro" }],
+  creator: "RunPlan Pro",
+  publisher: "RunPlan Pro",
   openGraph: {
-    title: "Yadira Running Plan",
+    title: "RunPlan Pro",
     description: "Plan de entrenamiento personalizado para 7km",
     type: "website",
     locale: "es_ES",
-    url: "https://yadira-running.vercel.app",
+    url: "https://runplan-pro.vercel.app",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Yadira Running Plan",
+    title: "RunPlan Pro",
     description: "Plan de entrenamiento para 7km",
   },
   robots: {

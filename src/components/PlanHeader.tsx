@@ -23,7 +23,7 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
 
   const handleLogout = useCallback(() => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('yadira_session');
+      localStorage.removeItem('runplan-pro_session');
       router.push("/login");
     }
   }, [router]);

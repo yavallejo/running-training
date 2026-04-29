@@ -121,7 +121,7 @@ export default function PlanPage() {
       );
 
       if (willComplete) {
-        const stored = localStorage.getItem("yadira_achievements");
+        const stored = localStorage.getItem("runplan-pro_achievements");
         const currentAchievements = stored ? JSON.parse(stored) : [];
         const { newBadges } = checkAchievements(updated, currentAchievements);
 

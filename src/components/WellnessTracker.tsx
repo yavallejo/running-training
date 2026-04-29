@@ -11,7 +11,7 @@ export interface WellnessData {
   notes?: string;
 }
 
-const STORAGE_KEY = "yadira_wellness";
+const STORAGE_KEY = "runplan-pro_wellness";
 
 export function loadWellnessData(): WellnessData[] {
   if (typeof window === 'undefined') return [];

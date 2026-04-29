@@ -11,7 +11,7 @@ import { BADGES, checkAchievements } from "@/lib/achievements";
 import { loadWellnessData, WellnessData } from "@/components/WellnessTracker";
 import { loadWeightEffortData, WeightEffortData } from "@/components/WeightEffortTracker";
 
-const STORAGE_KEY = "yadira_training_plan";
+const STORAGE_KEY = "runplan-pro_training_plan";
 
 export default function EstadisticasPage() {
   const router = useRouter();
@@ -232,7 +232,7 @@ export default function EstadisticasPage() {
           <h2 className="text-sm font-medium text-foreground">Logros</h2>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {BADGES.map((badge) => {
-              const stored = localStorage.getItem("yadira_achievements");
+              const stored = localStorage.getItem("runplan-pro_achievements");
               const unlockedBadges = stored ? JSON.parse(stored) : [];
               const isUnlocked = unlockedBadges.includes(badge.id);
               

@@ -90,7 +90,7 @@ const TECHNIQUE_SECTIONS = [
     border: "border-rose-500/20",
     tips: [
       { text: "Tu ritmo debe permitirte mantener una conversación (Test de la charla)", correct: true },
-      { text: "Meta: ~11 min/km para Yadira. Si es más rápido, DESACELERA", correct: true },
+      { text: "Meta: ~11 min/km para RunPlan Pro. Si es más rápido, DESACELERA", correct: true },
       { text: "Es mejor correr lento pero constante, que rápido y tener que caminar", correct: true },
       { text: "Si no puedes hablar sin jadear, eres DEMASIADO RÁPIDA", correct: true }
     ],
@@ -108,7 +108,7 @@ export default function TecnicaPage() {
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('yadira_session');
+      localStorage.removeItem('runplan-pro_session');
       router.push('/login');
     }
   };

@@ -10,7 +10,7 @@ export interface WeightEffortData {
   notes?: string;
 }
 
-const STORAGE_KEY = "yadira_weight_effort";
+const STORAGE_KEY = "runplan-pro_weight_effort";
 
 export function loadWeightEffortData(): WeightEffortData[] {
   if (typeof window === 'undefined') return [];
