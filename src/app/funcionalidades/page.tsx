@@ -88,14 +88,6 @@ const FEATURES = [
     border: "border-cyan-500/20",
   },
   {
-    icon: "📱",
-    title: "PWA Instalable",
-    description: "Progressive Web App completa con manifest, service worker, iconos 192/512 PNG, y soporte offline. Instálala en tu móvil o escritorio como una app nativa.",
-    details: ["Manifest.webmanifest", "Service Worker con cache", "Iconos PNG generados", "OfflineIndicator component"],
-    color: "from-emerald-500/10 to-emerald-600/5",
-    border: "border-emerald-500/20",
-  },
-  {
     icon: "🔐",
     title: "Autenticación Segura",
     description: "Sistema de login con hash SHA-256 para la contraseña. Sesiones con expiración de 24 horas. Credenciales: yadira / running2026.",
@@ -216,16 +208,16 @@ export default function FuncionalidadesPage() {
         </motion.div>
 
         {/* Tech Stack */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-4 rounded-xl border border-foreground/5 p-4 text-center"
-        >
-          <p className="text-[10px] sm:text-xs text-foreground/30">
-            Built with Next.js 16 · TypeScript · Tailwind 4.x · Framer Motion · Web Crypto API · Vercel
-          </p>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-4 rounded-xl border border-foreground/5 p-4 text-center"
+          >
+            <p className="text-[10px] sm:text-xs text-foreground/30">
+              Built with Next.js 16 · TypeScript · Tailwind 4.x · Framer Motion · Vercel
+            </p>
+          </motion.div>
       </div>
     </main>
   );

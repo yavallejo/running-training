@@ -8,12 +8,15 @@ import { TrainingSession, generateTrainingPlan, EVENT_DATE, EVENT_NAME, PLAN_VER
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
-import CountdownTimer from "@/components/CountdownTimer";
 import BadgeNotification from "@/components/BadgeNotification";
 import CalendarView from "@/components/CalendarView";
 import ShareModal from "@/components/ShareModal";
+import PlanHeader from "@/components/PlanHeader";
+import PlanStats from "@/components/PlanStats";
+import SessionCard from "@/components/SessionCard";
 import { parseLocalDate, getLocalDateString, formatDayLabel, checkBlockedSessions } from "@/lib/date-utils";
 import { checkAchievements, saveAchievements } from "@/lib/achievements";
+import { getTodaysMessage } from "@/lib/motivational-messages";
 
 const STORAGE_KEY = "yadira_training_plan";
 const SAVE_DEBOUNCE_MS = 500;
@@ -24,7 +27,7 @@ export default function PlanPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
-  
+
   // New states for features
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
@@ -34,6 +37,7 @@ export default function PlanPage() {
   const [newBadge, setNewBadge] = useState<{ icon: string; name: string; description: string } | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [today, setToday] = useState("");
+  const [motivationalMessage, setMotivationalMessage] = useState<{ text: string; icon: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,10 +55,10 @@ export default function PlanPage() {
       return;
     }
     setUserName(session.name || "Yadira");
-    
+
     const todayStr = getLocalDateString(new Date());
     setToday(todayStr);
-    
+
     loadPlan(todayStr);
     setLoading(false);
   }, [router]);
@@ -63,7 +67,7 @@ export default function PlanPage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     const storedVersion = localStorage.getItem(`${STORAGE_KEY}_version`);
     const generated = generateTrainingPlan();
-    
+
     let sessionsData: TrainingSession[];
     if (stored && storedVersion === PLAN_VERSION) {
       try {
@@ -81,12 +85,8 @@ export default function PlanPage() {
       localStorage.setItem(`${STORAGE_KEY}_version`, PLAN_VERSION);
     }
 
-    // Check for blocked sessions
     sessionsData = checkBlockedSessions(sessionsData, todayStr);
-    
-    // Sort by date
     sessionsData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
     setSessions(sessionsData);
   };
 
@@ -100,27 +100,24 @@ export default function PlanPage() {
     setSessions(prev => {
       const session = prev.find(s => s.id === id);
       const willComplete = !session?.completed;
-      
+
       if (willComplete) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 4000);
-        // Open post-workout modal
         setShowPostWorkout(id);
       }
-      
-      const updated = prev.map(s => 
+
+      const updated = prev.map(s =>
         s.id === id ? { ...s, completed: !s.completed } : s
       );
-      
-      // Check for new achievements
+
       if (willComplete) {
         const stored = localStorage.getItem("yadira_achievements");
         const currentAchievements = stored ? JSON.parse(stored) : [];
         const { newBadges } = checkAchievements(updated, currentAchievements);
-        
+
         if (newBadges.length > 0) {
           saveAchievements(newBadges.map(b => b.id));
-          // Show first new badge notification
           const badge = newBadges[0];
           setNewBadge({
             icon: badge.icon,
@@ -129,7 +126,7 @@ export default function PlanPage() {
           });
         }
       }
-      
+
       savePlan(updated);
       return updated;
     });
@@ -142,7 +139,7 @@ export default function PlanPage() {
     notes: string;
   }) => {
     setSessions(prev => {
-      const updated = prev.map(s => 
+      const updated = prev.map(s =>
         s.id === id ? { ...s, ...data } : s
       );
       savePlan(updated);
@@ -155,29 +152,28 @@ export default function PlanPage() {
     if (session.completed && session.rescheduled) return 'rescheduled-completed';
     if (session.completed) return 'completed';
     if (session.blocked) return 'blocked';
+
     if (session.rescheduled) return 'rescheduled';
-    
-    // Compare dates directly as strings (both are YYYY-MM-DD)
+
     if (session.date === today) return 'today';
-    
-    // For missed/blocked, parse dates manually to avoid UTC issues
+
     const parseLocalDate = (dateStr: string) => {
       const [year, month, day] = dateStr.split('-').map(Number);
-      return new Date(year, month - 1, day); // month is 0-indexed
+      return new Date(year, month - 1, day);
     };
-    
+
     const sessionDate = parseLocalDate(session.date);
     const todayDate = parseLocalDate(today);
-    
+
     if (sessionDate < todayDate && !session.rescheduleUsed) return 'missed';
     if (sessionDate < todayDate && session.rescheduleUsed) return 'blocked';
-    
+
     return 'normal';
   }, [today]);
 
   const handleReschedule = useCallback((id: string, newDate: Date) => {
     const dateStr = newDate.toISOString().split("T")[0];
-    
+
     setSessions(prev => {
       const updated = prev.map(s => {
         if (s.id === id) {
@@ -192,14 +188,23 @@ export default function PlanPage() {
         }
         return s;
       });
-      
-      // Re-sort by date
+
       updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       savePlan(updated);
       return updated;
     });
     setShowDatePicker(null);
   }, [savePlan]);
+
+  useEffect(() => {
+    if (sessions.length > 0) {
+      const todaySession = sessions.find(s => s.date === today);
+      const sessionNumber = todaySession ? parseInt(todaySession.id.split('-')[1]) : 0;
+      const completedCount = sessions.filter(s => s.completed).length;
+      const message = getTodaysMessage(sessionNumber, sessions.length, completedCount);
+      setMotivationalMessage(message);
+    }
+  }, [sessions, today]);
 
   const handleLogout = useCallback(() => {
     clearSession();
@@ -220,7 +225,6 @@ export default function PlanPage() {
 
   const completedCount = sessions.filter(s => s.completed).length;
   const totalSessions = sessions.length;
-  const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
 
   return (
     <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8 relative">
@@ -240,48 +244,15 @@ export default function PlanPage() {
         badge={newBadge}
         onClose={() => setNewBadge(null)}
       />
-      
+
       <div className="mx-auto max-w-2xl">
-        <header className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
-              Hola, {userName} 👋
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-              {EVENT_NAME} · 24 mayo
-            </p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
-          >
-            Salir
-          </button>
-        </header>
-
-        {/* Countdown Timer */}
-        <div className="mb-4 sm:mb-6">
-          <CountdownTimer />
-        </div>
-
-        <div className="mb-4 sm:mb-6 rounded-xl border border-foreground/5 bg-background p-3 sm:p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm text-foreground/60">Progreso</span>
-            <span className="text-xs sm:text-sm font-medium text-primary">{progress}%</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            />
-          </div>
-          <p className="mt-1.5 text-[10px] sm:text-xs text-foreground/40">
-            {completedCount}/{totalSessions} sesiones
-            {saving && <span className="ml-2 text-green-500">· Guardado</span>}
-          </p>
-        </div>
+        {/* Header with progress, wellness, etc. */}
+        <PlanHeader
+          userName={userName}
+          sessions={sessions}
+          completedCount={completedCount}
+          motivacionalMessage={motivationalMessage}
+        />
 
         {/* View Toggle */}
         <div className="flex justify-end">
@@ -307,215 +278,39 @@ export default function PlanPage() {
         {/* List View */}
         {viewMode === 'list' && (
           <div className="space-y-2 sm:space-y-3">
-          <AnimatePresence>
-            {sessions.map((session, index) => {
-              const state = getCardState(session);
-              return (
-                <motion.div
+            <AnimatePresence>
+              {sessions.map((session, index) => (
+                <SessionCard
                   key={session.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03, duration: 0.3 }}
-                  className={`rounded-xl border p-3 sm:p-4 transition-colors relative overflow-hidden ${
-                    state === 'today' 
-                      ? 'border-primary/50 shadow-lg shadow-primary/20 bg-primary/[0.05]'
-                      : state === 'completed'
-                      ? 'border-primary/30 bg-primary/5'
-                      : state === 'rescheduled-completed'
-                      ? 'border-green-500/30 bg-green-500/5'
-                      : state === 'rescheduled'
-                      ? 'border-secondary/50 bg-secondary/5 shadow-md shadow-secondary/10'
-                      : state === 'missed'
-                      ? 'border-dashed border-foreground/10 bg-foreground/[0.02] opacity-60'
-                      : state === 'blocked'
-                      ? 'border-red-500/30 bg-red-500/[0.03] opacity-50 cursor-not-allowed'
-                      : 'border-foreground/5 hover:border-foreground/10'
-                  }`}
-                >
-                  {/* State badges */}
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {state === 'today' && (
-                      <motion.span 
-                        animate={{ scale: [1, 1.01, 1] }}
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium"
-                      >
-                        HOY
-                      </motion.span>
-                    )}
-                    {state === 'missed' && (
-                      <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded font-medium">
-                        PERDIDO
-                      </span>
-                    )}
-                    {state === 'rescheduled' && (
-                      <motion.span 
-                        animate={{ scale: [1, 1.01, 1] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        className="text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded font-medium"
-                      >
-                        ⚡ REPROGRAMADA - ¡DEBE HACERSE!
-                      </motion.span>
-                    )}
-                    {state === 'blocked' && (
-                      <span className="text-[10px] bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded font-medium">
-                        🔴 BLOQUEADA
-                      </span>
-                    )}
-                    {state === 'rescheduled-completed' && (
-                      <span className="text-[10px] bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded font-medium">
-                        ✓ REPROGRAMADA Y COMPLETADA
-                      </span>
-                    )}
-                    <span className={`text-xs sm:text-sm font-medium text-foreground ${
-                      state === 'missed' ? 'line-through text-foreground/40' : ''
-                    }`}>
-                      {session.dayLabel}
-                      {session.originalDate && (
-                        <span className="ml-2 text-[10px] sm:text-xs text-foreground/40">
-                          (Original: {session.originalDate})
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2 sm:gap-3">
-                    <button
-                      onClick={() => toggleComplete(session.id)}
-                      disabled={state === 'blocked'}
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                        session.completed
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-foreground/20 hover:border-primary"
-                      } ${state === 'blocked' ? 'opacity-30 cursor-not-allowed' : ''}`}
-                      aria-label={session.completed ? "Marcar incompleto" : "Marcar completado"}
-                    >
-                      {session.completed && (
-                        <motion.svg
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="h-3 w-3"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </motion.svg>
-                      )}
-                    </button>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-[10px] sm:text-xs text-foreground/50 mt-0.5">
-                            {session.workout}
-                          </p>
-                        </div>
-                         <div className="flex shrink-0 gap-1 sm:gap-1.5">
-                           <span className="rounded-full bg-secondary/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-secondary">
-                             {session.distance} km
-                           </span>
-                           {session.completed && (
-                             <button
-                               onClick={() => setShowShare(session.id)}
-                               className="text-[10px] sm:text-[11px] hover:scale-110 transition-transform"
-                               title="Compartir logro"
-                             >
-                               📤
-                             </button>
-                           )}
-                         </div>
-                      </div>
-                      <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-foreground/40 leading-relaxed line-clamp-2 sm:line-clamp-3">
-                        {session.details}
-                      </p>
-
-                      {/* Post-workout notes */}
-                      {session.completed && (session.actualTime || session.feeling || session.notes) && (
-                        <div className="mt-1.5 p-2 rounded-lg bg-primary/5 border border-primary/10">
-                          <p className="text-[10px] sm:text-xs font-medium text-primary/70 mb-0.5">
-                            ✅ Notas del entrenamiento
-                          </p>
-                          {session.actualTime && (
-                            <p className="text-[10px] sm:text-xs text-foreground/60">
-                              ⏱️ Tiempo: {session.actualTime} ({session.actualPace})
-                            </p>
-                          )}
-                          {session.feeling && (
-                            <p className="text-[10px] sm:text-xs text-foreground/60">
-                              {'⭐'.repeat(session.feeling)} ({session.feeling}/5)
-                            </p>
-                          )}
-                          {session.notes && (
-                            <p className="text-[10px] sm:text-xs text-foreground/50 mt-0.5 italic">
-                              "{session.notes}"
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Missed state message */}
-                      {state === 'missed' && (
-                        <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-orange-500/70">
-                          😢 No completado - ¡Ánimo, sigue adelante!
-                        </p>
-                      )}
-
-                      {/* Blocked state message */}
-                      {state === 'blocked' && (
-                        <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-red-500/70">
-                          No completada después de reprogramar
-                        </p>
-                      )}
-
-                      {/* Reschedule button for missed sessions */}
-                      {state === 'missed' && !session.rescheduleUsed && (
-                        <button 
-                          onClick={() => setShowDatePicker(session.id)} 
-                          className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-secondary hover:text-secondary/80 underline"
-                        >
-                          ⚡ Reprogramar (1 vez)
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* DatePicker modal */}
-                  {showDatePicker === session.id && (
-                    <DatePickerModal
-                      sessionId={session.id}
-                      sessions={sessions}
-                      onConfirm={handleReschedule}
-                      onCancel={() => setShowDatePicker(null)}
-                    />
-                  )}
-
-                  {/* Post-workout modal */}
-                  {showPostWorkout === session.id && (
-                    <PostWorkoutModal
-                      session={session}
-                      onSave={(data) => handlePostWorkoutSave(session.id, data)}
-                      onClose={() => setShowPostWorkout(null)}
-                    />
-                  )}
-
-                  {/* Share modal */}
-                  {showShare === session.id && (
-                    <ShareModal
-                      session={session}
-                      onClose={() => setShowShare(null)}
-                    />
-                  )}
-
-                  {/* Effect for rescheduled-completed */}
-                  {state === 'rescheduled-completed' && (
-                    <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 bg-green-500/5 rounded-bl-full" />
-                  )}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+                  session={session}
+                  index={index}
+                  state={getCardState(session)}
+                  onToggleComplete={() => toggleComplete(session.id)}
+                  onShowDatePicker={() => setShowDatePicker(session.id)}
+                  onReschedule={(id, date) => handleReschedule(id, date)}
+                  onShowPostWorkout={() => setShowPostWorkout(session.id)}
+                  onShowShare={() => setShowShare(session.id)}
+                  showDatePickerId={showDatePicker}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
+
+        {/* Share Plan Progress Button */}
+        <div className="mt-4 sm:mt-6 flex justify-center">
+          <button
+            onClick={() => setShowShare('plan')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors text-sm text-primary"
+          >
+            📤 Compartir Progreso Completo
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div className="mt-6 sm:mt-8">
+          <PlanStats sessions={sessions} completedCount={completedCount} />
+        </div>
 
         <footer className="mt-6 sm:mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-3 sm:p-4 text-center">
           <p className="text-xs sm:text-sm font-medium text-foreground/70">
@@ -526,6 +321,49 @@ export default function PlanPage() {
           </p>
         </footer>
       </div>
+
+        {/* Modals */}
+      {showDatePicker && (
+        <DatePickerModal
+          sessionId={showDatePicker}
+          sessions={sessions}
+          onConfirm={(id: string, date: Date) => handleReschedule(id, date)}
+          onCancel={() => setShowDatePicker(null)}
+        />
+      )}
+
+      {showPostWorkout && (
+        <PostWorkoutModal
+          session={sessions.find(s => s.id === showPostWorkout)!}
+          onSave={(data) => handlePostWorkoutSave(showPostWorkout, data)}
+          onClose={() => setShowPostWorkout(null)}
+        />
+      )}
+
+      {showShare === 'plan' && (
+        <ShareModal
+          planProgress={{
+            completed: completedCount,
+            total: totalSessions,
+            distance: sessions.filter(s => s.completed).reduce((sum, s) => sum + s.distance, 0),
+            totalDistance: sessions.reduce((sum, s) => sum + s.distance, 0)
+          }}
+          onClose={() => setShowShare(null)}
+        />
+      )}
+
+      {showShare && showShare !== 'plan' && (
+        <ShareModal
+          session={sessions.find(s => s.id === showShare)}
+          planProgress={{
+            completed: completedCount,
+            total: totalSessions,
+            distance: sessions.filter(s => s.completed).reduce((sum, s) => sum + s.distance, 0),
+            totalDistance: sessions.reduce((sum, s) => sum + s.distance, 0)
+          }}
+          onClose={() => setShowShare(null)}
+        />
+      )}
     </main>
   );
 }

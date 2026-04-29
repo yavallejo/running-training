@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import html2canvas from "html2canvas";
 
 interface ShareModalProps {
-  session: {
+  session?: {
     id: string;
     dayLabel: string;
     workout: string;
@@ -13,12 +13,21 @@ interface ShareModalProps {
     actualTime?: string;
     actualPace?: string;
   };
+  planProgress?: {
+    completed: number;
+    total: number;
+    distance: number;
+    totalDistance: number;
+  };
   onClose: () => void;
 }
 
-export default function ShareModal({ session, onClose }: ShareModalProps) {
+export default function ShareModal({ session, planProgress, onClose }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [shareType, setShareType] = useState<'session' | 'plan'>(
+    session ? 'session' : 'plan'
+  );
 
   useEffect(() => {
     if (cardRef.current) {
@@ -29,7 +38,7 @@ export default function ShareModal({ session, onClose }: ShareModalProps) {
         setImageUrl(canvas.toDataURL("image/png"));
       });
     }
-  }, []);
+  }, [shareType]);
 
   const handleShare = async () => {
     if (!imageUrl) return;
@@ -39,10 +48,12 @@ export default function ShareModal({ session, onClose }: ShareModalProps) {
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const file = new File([blob], "yadira-running.png", { type: "image/png" });
-        
+
         await navigator.share({
-          title: "Yadira Running - Sesión completada",
-          text: `¡Completé mi entrenamiento de ${session.distance}km!`,
+          title: "Yadira Running",
+          text: shareType === 'session'
+            ? `¡Completé mi entrenamiento de ${session?.distance}km!`
+            : `¡Vas por ${planProgress?.completed}/${planProgress?.total} sesiones completadas!`,
           files: [file],
         });
       } catch (err) {
@@ -51,11 +62,15 @@ export default function ShareModal({ session, onClose }: ShareModalProps) {
     } else {
       // Fallback: download
       const link = document.createElement("a");
-      link.download = `yadira-running-${session.id}.png`;
+      link.download = `yadira-running-${shareType}.png`;
       link.href = imageUrl;
       link.click();
     }
   };
+
+  const completionRate = planProgress
+    ? Math.round((planProgress.completed / planProgress.total) * 100)
+    : 0;
 
   return (
     <motion.div
@@ -74,8 +89,34 @@ export default function ShareModal({ session, onClose }: ShareModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-foreground mb-3 text-center">
-          Compartir Logro
+          Compartir Progreso
         </h3>
+
+        {/* Tab selector */}
+        {session && planProgress && (
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setShareType('session')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                shareType === 'session'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-foreground/5 text-foreground/50'
+              }`}
+            >
+              Sesión
+            </button>
+            <button
+              onClick={() => setShareType('plan')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                shareType === 'plan'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-foreground/5 text-foreground/50'
+              }`}
+            >
+              Plan Completo
+            </button>
+          </div>
+        )}
 
         {/* Shareable Card Preview */}
         <div
@@ -83,29 +124,56 @@ export default function ShareModal({ session, onClose }: ShareModalProps) {
           className="rounded-xl bg-gradient-to-br from-primary via-primary/80 to-secondary p-6 text-primary-foreground"
         >
           <div className="text-center mb-4">
-            <div className="text-3xl mb-2">🏃♀️</div>
+            <div className="text-3xl mb-2">🏃‍♀️</div>
             <h4 className="text-lg font-bold">Yadira Running</h4>
-            <p className="text-xs opacity-70">{session.dayLabel}</p>
+            {shareType === 'session' && session ? (
+              <p className="text-xs opacity-70">{session.dayLabel}</p>
+            ) : (
+              <p className="text-xs opacity-70">Plan de Entrenamiento</p>
+            )}
           </div>
 
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between">
-              <span className="text-xs opacity-70">Distancia</span>
-              <span className="text-sm font-bold">{session.distance} km</span>
+          {shareType === 'session' && session ? (
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between">
+                <span className="text-xs opacity-70">Distancia</span>
+                <span className="text-sm font-bold">{session.distance} km</span>
+              </div>
+              {session.actualTime && (
+                <div className="flex justify-between">
+                  <span className="text-xs opacity-70">Tiempo</span>
+                  <span className="text-sm font-bold">{session.actualTime}</span>
+                </div>
+              )}
+              {session.actualPace && (
+                <div className="flex justify-between">
+                  <span className="text-xs opacity-70">Ritmo</span>
+                  <span className="text-sm font-bold">{session.actualPace}</span>
+                </div>
+              )}
             </div>
-            {session.actualTime && (
+          ) : planProgress ? (
+            <div className="space-y-2 mb-4">
               <div className="flex justify-between">
-                <span className="text-xs opacity-70">Tiempo</span>
-                <span className="text-sm font-bold">{session.actualTime}</span>
+                <span className="text-xs opacity-70">Sesiones</span>
+                <span className="text-sm font-bold">{planProgress.completed}/{planProgress.total}</span>
               </div>
-            )}
-            {session.actualPace && (
               <div className="flex justify-between">
-                <span className="text-xs opacity-70">Ritmo</span>
-                <span className="text-sm font-bold">{session.actualPace}</span>
+                <span className="text-xs opacity-70">Progreso</span>
+                <span className="text-sm font-bold">{completionRate}%</span>
               </div>
-            )}
-          </div>
+              <div className="w-full bg-white/20 rounded-full h-1.5">
+                <div
+                  className="bg-white h-full rounded-full"
+                  style={{ width: `${completionRate}%` }}
+                />
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs opacity-70">Distancia</span>
+                <span className="text-sm font-bold">{planProgress.distance}/{planProgress.totalDistance} km</span>
+              </div>
+            </div>
+          ) : null}
 
           <div className="text-center pt-3 border-t border-white/20">
             <p className="text-[10px] opacity-60">

@@ -74,22 +74,22 @@ export default function CountdownTimer() {
           { label: "Min", value: timeLeft.minutes },
           { label: "Seg", value: timeLeft.seconds },
         ].map((item, index) => (
-          <motion.div
-            key={item.label}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
-            className="text-center"
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-background border border-primary/20 flex items-center justify-center shadow-sm">
-              <span className="text-base sm:text-lg font-bold text-primary">
-                {String(item.value).padStart(2, '0')}
-              </span>
-            </div>
-            <span className="text-[9px] sm:text-[10px] text-foreground/40 mt-0.5 block">
-              {item.label}
-            </span>
-          </motion.div>
+            <motion.div
+             key={item.label}
+             initial={{ scale: 0 }}
+             animate={{ scale: 1 }}
+             transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+             className="text-center"
+           >
+             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-background border border-primary/20 flex items-center justify-center shadow-sm" aria-label={`${item.value} ${item.label}`}>
+               <span className="text-base sm:text-lg font-bold text-primary">
+                 {String(item.value).padStart(2, '0')}
+               </span>
+             </div>
+             <span className="text-[9px] sm:text-[10px] text-foreground/40 mt-0.5 block">
+               {item.label}
+             </span>
+           </motion.div>
         ))}
       </div>
     </motion.div>

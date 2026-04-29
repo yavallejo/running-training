@@ -3,10 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
-import OfflineIndicator from "@/components/OfflineIndicator";
-import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +16,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yadira Running Plan",
-  description: "Personalized running training plan for Yadira",
+  title: {
+    default: "Yadira Running Plan",
+    template: "%s | Yadira Running",
+  },
+  description: "Plan de entrenamiento personalizado para correr 7km - Yadira",
+  keywords: ["running", "entrenamiento", "7km", "principiante", "Yadira", "carrera"],
+  authors: [{ name: "Yadira Running" }],
+  creator: "Yadira Running",
+  publisher: "Yadira Running",
+  openGraph: {
+    title: "Yadira Running Plan",
+    description: "Plan de entrenamiento personalizado para 7km",
+    type: "website",
+    locale: "es_ES",
+    url: "https://yadira-running.vercel.app",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Yadira Running Plan",
+    description: "Plan de entrenamiento para 7km",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -30,32 +50,12 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <Script id="sw-register" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                  function(registration) {
-                    console.log('SW registered: ', registration);
-                  },
-                  function(err) {
-                    console.log('SW registration failed: ', err);
-                  }
-                );
-              });
-            }
-          `}
-        </Script>
-      </head>
       <body className="min-h-full flex flex-col">
-        <OfflineIndicator />
         <Providers>
           <ErrorBoundary>
-            <NotificationManager />
             <Header />
             <main className="flex-1 flex flex-col">{children}</main>
           </ErrorBoundary>

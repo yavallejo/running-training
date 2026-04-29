@@ -9,6 +9,7 @@ export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("");
+  const [showResources, setShowResources] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -58,11 +59,56 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-4">
+        <nav className="flex items-center gap-2 sm:gap-3">
           <NavLink href="/plan">Plan</NavLink>
           <NavLink href="/estadisticas">Estadísticas</NavLink>
-          <NavLink href="/funcionalidades">Funcionalidades</NavLink>
-          
+
+          {/* Resources Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowResources(!showResources)}
+              className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              Recursos
+              <svg className={`w-3 h-3 transition-transform ${showResources ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showResources && (
+              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-foreground/10 bg-background shadow-lg py-2 z-50">
+                <DropdownLink href="/guia-principiante" onClick={() => setShowResources(false)}>
+                  📚 Guía del Principiante
+                </DropdownLink>
+                <DropdownLink href="/calentamiento" onClick={() => setShowResources(false)}>
+                  🧘 Calentamiento
+                </DropdownLink>
+                <DropdownLink href="/tecnica" onClick={() => setShowResources(false)}>
+                  🏃 Técnica
+                </DropdownLink>
+                <DropdownLink href="/nutricion" onClick={() => setShowResources(false)}>
+                  🥗 Nutrición
+                </DropdownLink>
+                <DropdownLink href="/dia-carrera" onClick={() => setShowResources(false)}>
+                  🏁 Día de la Carrera
+                </DropdownLink>
+                <DropdownLink href="/faq" onClick={() => setShowResources(false)}>
+                  ❓ FAQ
+                </DropdownLink>
+                <DropdownLink href="/playlist" onClick={() => setShowResources(false)}>
+                  🎵 Playlist
+                </DropdownLink>
+                <DropdownLink href="/clima" onClick={() => setShowResources(false)}>
+                  🌤️ Clima
+                </DropdownLink>
+                <div className="border-t border-foreground/5 my-1" />
+                <DropdownLink href="/funcionalidades" onClick={() => setShowResources(false)}>
+                  ⚙️ Funcionalidades
+                </DropdownLink>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="rounded-lg p-1.5 hover:bg-foreground/5 transition-colors"
@@ -87,6 +133,11 @@ export default function Header() {
           </button>
         </nav>
       </div>
+
+      {/* Overlay to close dropdown */}
+      {showResources && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowResources(false)} />
+      )}
     </header>
   );
 }
@@ -96,6 +147,18 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link
       href={href}
       className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function DropdownLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-colors"
     >
       {children}
     </Link>

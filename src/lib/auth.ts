@@ -40,7 +40,8 @@ export async function validateCredentials(username: string, password: string): P
     const creds = JSON.parse(stored);
     const inputHash = await hashPassword(password);
     return username.toLowerCase() === creds.username.toLowerCase() && inputHash === creds.passwordHash;
-  } catch {
+    } catch (error) {
+    console.error('Auth validation error:', error);
     return false;
   }
 }

@@ -98,13 +98,18 @@ export function checkAchievements(
     };
   });
 
-  return { newBadges, allBadges };
+    return { newBadges, allBadges };
 }
 
 export function saveAchievements(newBadgeIds: string[]) {
-  const stored = localStorage.getItem("yadira_achievements");
-  const current = stored ? JSON.parse(stored) : [];
-  const updated = [...new Set([...current, ...newBadgeIds])];
-  localStorage.setItem("yadira_achievements", JSON.stringify(updated));
-  return updated;
+  try {
+    const stored = localStorage.getItem("yadira_achievements");
+    const current = stored ? JSON.parse(stored) : [];
+    const updated = [...new Set([...current, ...newBadgeIds])];
+    localStorage.setItem("yadira_achievements", JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Error saving achievements:', error);
+    return newBadgeIds;
+  }
 }

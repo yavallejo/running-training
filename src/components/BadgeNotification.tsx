@@ -34,6 +34,8 @@ export default function BadgeNotification({ badge, onClose }: BadgeNotificationP
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -50, scale: 0.9 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          role="alert"
+          aria-live="assertive"
           className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4"
         >
           <div className="rounded-2xl bg-gradient-to-r from-primary to-secondary p-4 text-primary-foreground shadow-2xl">

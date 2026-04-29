@@ -102,16 +102,26 @@ export default function CalendarView({ sessions, onSessionClick }: CalendarViewP
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((item, index) => (
           <div
-            key={index}
-            onClick={() => {
-              if (item?.session) {
-                onSessionClick(item.session.id);
-              }
-            }}
-            className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs transition-colors ${
-              item?.session ? getDayColor(item.session) + " cursor-pointer hover:opacity-80" : "bg-foreground/[0.02]"
-            }`}
-          >
+             key={index}
+             onClick={() => {
+               if (item?.session) {
+                 onSessionClick(item.session.id);
+               }
+             }}
+             onKeyDown={(e) => {
+               if (e.key === 'Enter' || e.key === ' ') {
+                 if (item?.session) {
+                   onSessionClick(item.session.id);
+                 }
+               }
+             }}
+             role="button"
+             tabIndex={item?.session ? 0 : -1}
+             aria-label={item ? (item.session ? `Sesión ${item.day}: ${item.session.workout}` : `Día ${item.day}`) : `Día vacío ${index}`}
+             className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs transition-colors ${
+               item?.session ? getDayColor(item.session) + " cursor-pointer hover:opacity-80" : "bg-foreground/[0.02]"
+             }`}
+           >
             {item && (
               <>
                 <span className="text-[10px] sm:text-xs">{item.day}</span>

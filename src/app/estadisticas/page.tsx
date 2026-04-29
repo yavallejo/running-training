@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { TrainingSession, EVENT_DATE, EVENT_DISTANCE, generateTrainingPlan, PLAN_VERSION } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import { BADGES, checkAchievements } from "@/lib/achievements";
+import { loadWellnessData, WellnessData } from "@/components/WellnessTracker";
+import { loadWeightEffortData, WeightEffortData } from "@/components/WeightEffortTracker";
 
 const STORAGE_KEY = "yadira_training_plan";
 
@@ -77,6 +79,32 @@ export default function EstadisticasPage() {
   const totalPlannedDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
   const nextSession = sessions.find(s => !s.completed);
 
+  // Load wellness and weight/effort data
+  const [wellnessData, setWellnessData] = useState<WellnessData[]>([]);
+  const [weightEffortData, setWeightEffortData] = useState<WeightEffortData[]>([]);
+
+  useEffect(() => {
+    setWellnessData(loadWellnessData());
+    setWeightEffortData(loadWeightEffortData());
+  }, []);
+
+  // Calculate averages
+  const avgSleep = wellnessData.length > 0
+    ? (wellnessData.reduce((sum, w) => sum + w.sleep, 0) / wellnessData.length).toFixed(1)
+    : null;
+  const avgLegs = wellnessData.length > 0
+    ? (wellnessData.reduce((sum, w) => sum + w.legs, 0) / wellnessData.length).toFixed(1)
+    : null;
+  const avgEnergy = wellnessData.length > 0
+    ? (wellnessData.reduce((sum, w) => sum + w.energy, 0) / wellnessData.length).toFixed(1)
+    : null;
+  const avgEffort = weightEffortData.filter(d => d.effort).length > 0
+    ? (weightEffortData.filter(d => d.effort).reduce((sum, d) => sum + (d.effort || 0), 0) / weightEffortData.filter(d => d.effort).length).toFixed(1)
+    : null;
+  const recentWeight = weightEffortData.filter(d => d.weight).length > 0
+    ? weightEffortData.filter(d => d.weight).slice(-1)[0].weight
+    : null;
+
   return (
     <main className="flex-1 px-4 py-8">
       <div className="mx-auto max-w-2xl">
@@ -117,6 +145,53 @@ export default function EstadisticasPage() {
             </motion.div>
           ))}
         </div>
+
+        {/* Wellness Stats */}
+        {wellnessData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mb-6 space-y-3"
+          >
+            <h2 className="text-sm font-medium text-foreground">💆‍♀️ Bienestar Promedio</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "😴 Sueño", value: avgSleep, icon: "🌙" },
+                { label: "🦵 Piernas", value: avgLegs, icon: "💪" },
+                { label: "⚡ Energía", value: avgEnergy, icon: "🔋" },
+              ].map((item, i) => (
+                <div key={i} className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
+                  <p className="text-[10px] text-foreground/40 mb-1">{item.label}</p>
+                  <p className="text-lg font-semibold text-foreground">{item.value || "-"}</p>
+                  <p className="text-[9px] text-foreground/30">/ 5</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Weight & Effort Stats */}
+        {weightEffortData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mb-6 space-y-3"
+          >
+            <h2 className="text-sm font-medium text-foreground">⚖️ Peso e Esfuerzo</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
+                <p className="text-[10px] text-foreground/40 mb-1">⚖️ Peso Actual</p>
+                <p className="text-lg font-semibold text-foreground">{recentWeight || "-"} <span className="text-xs font-normal text-foreground/40">kg</span></p>
+              </div>
+              <div className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
+                <p className="text-[10px] text-foreground/40 mb-1">💪 Esfuerzo Promedio</p>
+                <p className="text-lg font-semibold text-foreground">{avgEffort || "-"} <span className="text-xs font-normal text-foreground/40">/ 5</span></p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
