@@ -61,6 +61,7 @@ export default function Header() {
         <nav className="flex items-center gap-2 sm:gap-4">
           <NavLink href="/plan">Plan</NavLink>
           <NavLink href="/estadisticas">Estadísticas</NavLink>
+          <NavLink href="/funcionalidades">Funcionalidades</NavLink>
           
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
