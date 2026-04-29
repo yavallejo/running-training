@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TrainingSession, EVENT_DATE, EVENT_DISTANCE, generateTrainingPlan, PLAN_VERSION } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
+import { BADGES, checkAchievements } from "@/lib/achievements";
 
 const STORAGE_KEY = "yadira_training_plan";
 
@@ -144,6 +145,45 @@ export default function EstadisticasPage() {
               </div>
             </div>
           ))}
+        </motion.div>
+
+        {/* Badges Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="space-y-3"
+        >
+          <h2 className="text-sm font-medium text-foreground">Logros</h2>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {BADGES.map((badge) => {
+              const stored = localStorage.getItem("yadira_achievements");
+              const unlockedBadges = stored ? JSON.parse(stored) : [];
+              const isUnlocked = unlockedBadges.includes(badge.id);
+              
+              return (
+                <motion.div
+                  key={badge.id}
+                  whileHover={{ scale: 1.05 }}
+                  className={`rounded-xl border p-3 text-center transition-colors ${
+                    isUnlocked 
+                      ? "border-primary/20 bg-primary/5" 
+                      : "border-foreground/5 bg-foreground/[0.02] opacity-40"
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{isUnlocked ? badge.icon : "🔒"}</div>
+                  <p className={`text-[10px] font-medium ${isUnlocked ? "text-foreground" : "text-foreground/40"}`}>
+                    {badge.name}
+                  </p>
+                  {isUnlocked && (
+                    <p className="text-[9px] text-foreground/40 mt-0.5">
+                      {badge.description}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
         </motion.div>
 
         {nextSession && (

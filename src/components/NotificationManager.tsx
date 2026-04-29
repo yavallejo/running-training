@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 export default function NotificationManager() {
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -21,20 +22,50 @@ export default function NotificationManager() {
     setPermission(result);
     
     if (result === "granted") {
-      // Register for push (simplified - in production you'd use VAPID)
-      if ("serviceWorker" in navigator) {
+      // Register for push
+      if ("serviceWorker" in navigator && "PushManager" in window) {
         try {
           const registration = await navigator.serviceWorker.ready;
-          console.log("Ready for push notifications", registration);
+          
+          // Get VAPID public key
+          const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
+          const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+          
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedKey,
+          });
+          
+          // Send subscription to server
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(subscription),
+          });
+          
+          setSubscribed(true);
         } catch (e) {
-          console.error("SW not ready", e);
+          console.error("Push subscription failed", e);
         }
       }
     }
   };
 
+  // Helper to convert VAPID key
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
   if (!isSupported) return null;
-  if (permission === "granted") return null;
+  if (permission === "granted" && subscribed) return null;
+  if (permission === "denied") return null;
 
   return (
     <motion.div

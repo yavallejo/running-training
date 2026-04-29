@@ -7,7 +7,13 @@ import Confetti from "react-confetti";
 import { TrainingSession, generateTrainingPlan, EVENT_DATE, EVENT_NAME, PLAN_VERSION } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
+import PostWorkoutModal from "@/components/PostWorkoutModal";
+import CountdownTimer from "@/components/CountdownTimer";
+import BadgeNotification from "@/components/BadgeNotification";
+import CalendarView from "@/components/CalendarView";
+import ShareModal from "@/components/ShareModal";
 import { parseLocalDate, getLocalDateString, formatDayLabel, checkBlockedSessions } from "@/lib/date-utils";
+import { checkAchievements, saveAchievements } from "@/lib/achievements";
 
 const STORAGE_KEY = "yadira_training_plan";
 const SAVE_DEBOUNCE_MS = 500;
@@ -23,6 +29,10 @@ export default function PlanPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
+  const [showPostWorkout, setShowPostWorkout] = useState<string | null>(null);
+  const [showShare, setShowShare] = useState<string | null>(null);
+  const [newBadge, setNewBadge] = useState<{ icon: string; name: string; description: string } | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [today, setToday] = useState("");
 
   useEffect(() => {
@@ -94,14 +104,51 @@ export default function PlanPage() {
       if (willComplete) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 4000);
+        // Open post-workout modal
+        setShowPostWorkout(id);
       }
       
       const updated = prev.map(s => 
         s.id === id ? { ...s, completed: !s.completed } : s
       );
+      
+      // Check for new achievements
+      if (willComplete) {
+        const stored = localStorage.getItem("yadira_achievements");
+        const currentAchievements = stored ? JSON.parse(stored) : [];
+        const { newBadges } = checkAchievements(updated, currentAchievements);
+        
+        if (newBadges.length > 0) {
+          saveAchievements(newBadges.map(b => b.id));
+          // Show first new badge notification
+          const badge = newBadges[0];
+          setNewBadge({
+            icon: badge.icon,
+            name: badge.name,
+            description: badge.description,
+          });
+        }
+      }
+      
       savePlan(updated);
       return updated;
     });
+  }, [savePlan]);
+
+  const handlePostWorkoutSave = useCallback((id: string, data: {
+    actualTime: string;
+    actualPace: string;
+    feeling: number;
+    notes: string;
+  }) => {
+    setSessions(prev => {
+      const updated = prev.map(s => 
+        s.id === id ? { ...s, ...data } : s
+      );
+      savePlan(updated);
+      return updated;
+    });
+    setShowPostWorkout(null);
   }, [savePlan]);
 
   const getCardState = useCallback((session: TrainingSession): string => {
@@ -187,6 +234,12 @@ export default function PlanPage() {
           gravity={0.3}
         />
       )}
+
+      {/* Badge Notification */}
+      <BadgeNotification
+        badge={newBadge}
+        onClose={() => setNewBadge(null)}
+      />
       
       <div className="mx-auto max-w-2xl">
         <header className="mb-6 sm:mb-8 flex items-center justify-between">
@@ -205,6 +258,11 @@ export default function PlanPage() {
             Salir
           </button>
         </header>
+
+        {/* Countdown Timer */}
+        <div className="mb-4 sm:mb-6">
+          <CountdownTimer />
+        </div>
 
         <div className="mb-4 sm:mb-6 rounded-xl border border-foreground/5 bg-background p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
@@ -225,7 +283,30 @@ export default function PlanPage() {
           </p>
         </div>
 
-        <div className="space-y-2 sm:space-y-3">
+        {/* View Toggle */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setViewMode(prev => prev === 'list' ? 'calendar' : 'list')}
+            className="text-xs px-3 py-1.5 rounded-lg border border-foreground/10 hover:bg-foreground/5 transition-colors"
+          >
+            {viewMode === 'list' ? '📅 Calendario' : '📋 Lista'}
+          </button>
+        </div>
+
+        {/* Calendar View */}
+        {viewMode === 'calendar' && (
+          <CalendarView
+            sessions={sessions}
+            onSessionClick={(id) => {
+              const element = document.getElementById(id);
+              element?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* List View */}
+        {viewMode === 'list' && (
+          <div className="space-y-2 sm:space-y-3">
           <AnimatePresence>
             {sessions.map((session, index) => {
               const state = getCardState(session);
@@ -329,15 +410,48 @@ export default function PlanPage() {
                             {session.workout}
                           </p>
                         </div>
-                        <div className="flex shrink-0 gap-1 sm:gap-1.5">
-                          <span className="rounded-full bg-secondary/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-secondary">
-                            {session.distance} km
-                          </span>
-                        </div>
+                         <div className="flex shrink-0 gap-1 sm:gap-1.5">
+                           <span className="rounded-full bg-secondary/10 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-secondary">
+                             {session.distance} km
+                           </span>
+                           {session.completed && (
+                             <button
+                               onClick={() => setShowShare(session.id)}
+                               className="text-[10px] sm:text-[11px] hover:scale-110 transition-transform"
+                               title="Compartir logro"
+                             >
+                               📤
+                             </button>
+                           )}
+                         </div>
                       </div>
                       <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-foreground/40 leading-relaxed line-clamp-2 sm:line-clamp-3">
                         {session.details}
                       </p>
+
+                      {/* Post-workout notes */}
+                      {session.completed && (session.actualTime || session.feeling || session.notes) && (
+                        <div className="mt-1.5 p-2 rounded-lg bg-primary/5 border border-primary/10">
+                          <p className="text-[10px] sm:text-xs font-medium text-primary/70 mb-0.5">
+                            ✅ Notas del entrenamiento
+                          </p>
+                          {session.actualTime && (
+                            <p className="text-[10px] sm:text-xs text-foreground/60">
+                              ⏱️ Tiempo: {session.actualTime} ({session.actualPace})
+                            </p>
+                          )}
+                          {session.feeling && (
+                            <p className="text-[10px] sm:text-xs text-foreground/60">
+                              {'⭐'.repeat(session.feeling)} ({session.feeling}/5)
+                            </p>
+                          )}
+                          {session.notes && (
+                            <p className="text-[10px] sm:text-xs text-foreground/50 mt-0.5 italic">
+                              "{session.notes}"
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       {/* Missed state message */}
                       {state === 'missed' && (
@@ -375,6 +489,23 @@ export default function PlanPage() {
                     />
                   )}
 
+                  {/* Post-workout modal */}
+                  {showPostWorkout === session.id && (
+                    <PostWorkoutModal
+                      session={session}
+                      onSave={(data) => handlePostWorkoutSave(session.id, data)}
+                      onClose={() => setShowPostWorkout(null)}
+                    />
+                  )}
+
+                  {/* Share modal */}
+                  {showShare === session.id && (
+                    <ShareModal
+                      session={session}
+                      onClose={() => setShowShare(null)}
+                    />
+                  )}
+
                   {/* Effect for rescheduled-completed */}
                   {state === 'rescheduled-completed' && (
                     <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 bg-green-500/5 rounded-bl-full" />
@@ -384,6 +515,7 @@ export default function PlanPage() {
             })}
           </AnimatePresence>
         </div>
+        )}
 
         <footer className="mt-6 sm:mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-3 sm:p-4 text-center">
           <p className="text-xs sm:text-sm font-medium text-foreground/70">

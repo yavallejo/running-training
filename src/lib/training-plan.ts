@@ -13,6 +13,11 @@ export interface TrainingSession {
   rescheduled: boolean; // If it was rescheduled
   rescheduleUsed: boolean; // If chance was used
   blocked: boolean; // If missed after reschedule
+  // Post-workout notes
+  actualTime?: string; // e.g., "32:45"
+  actualPace?: string; // e.g., "~10:30 min/km"
+  feeling?: number; // 1-5 stars
+  notes?: string; // Free text notes
 }
 
 export function generateTrainingPlan(): TrainingSession[] {
