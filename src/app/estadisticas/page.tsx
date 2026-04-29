@@ -70,7 +70,7 @@ export default function EstadisticasPage() {
 
   const handleLogout = () => {
     clearSession();
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   if (loading) {

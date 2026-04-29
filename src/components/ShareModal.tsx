@@ -24,18 +24,23 @@ interface ShareModalProps {
 
 export default function ShareModal({ session, planProgress, onClose }: ShareModalProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
   const [shareType, setShareType] = useState<'session' | 'plan'>(
     session ? 'session' : 'plan'
   );
 
   useEffect(() => {
+    setGenerating(true);
     if (cardRef.current) {
       html2canvas(cardRef.current, {
         backgroundColor: "#0a0a0a",
         scale: 2,
       }).then(canvas => {
         setImageUrl(canvas.toDataURL("image/png"));
+        setGenerating(false);
+      }).catch(() => {
+        setGenerating(false);
       });
     }
   }, [shareType]);
@@ -193,9 +198,10 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
           <button
             type="button"
             onClick={handleShare}
-            className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-1"
+            disabled={generating || !imageUrl}
+            className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
           >
-            📤 Compartir
+            {generating ? 'Generando...' : '📤 Compartir'}
           </button>
         </div>
       </motion.div>

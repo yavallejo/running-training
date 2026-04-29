@@ -41,7 +41,7 @@ export default function DiaCarreraPage() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('yadira_session');
-      window.location.href = '/login';
+      router.push('/login');
     }
   };
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import CountdownTimer from "./CountdownTimer";
 import WellnessTracker from "./WellnessTracker";
@@ -17,6 +19,15 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
   const totalSessions = sessions.length;
   const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
 
+  const router = useRouter();
+
+  const handleLogout = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('yadira_session');
+      router.push("/login");
+    }
+  }, [router]);
+
   return (
     <>
       <header className="mb-6 sm:mb-8 flex items-center justify-between">
@@ -25,16 +36,11 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
             Hola, {userName} 👋
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-            Carrera Recreativa 7km · 24 mayo
+            Carrera Recreativa 7km · 17 mayo
           </p>
         </div>
         <button
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('yadira_session');
-              window.location.href = "/login";
-            }
-          }}
+          onClick={handleLogout}
           className="text-sm text-foreground/50 hover:text-foreground transition-colors"
         >
           Salir

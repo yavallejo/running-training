@@ -83,7 +83,7 @@ const NUTRITION_SECTIONS = [
   {
     id: "dia-carrera-nut",
     icon: "🎉",
-    title: "Día de la Carrera (24 mayo)",
+    title: "Día de la Carrera (17 mayo)",
     color: "from-rose-500/10 to-pink-500/5",
     border: "border-rose-500/20",
     time: "Estrategia especial",
@@ -105,7 +105,7 @@ export default function NutricionPage() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('yadira_session');
-      window.location.href = '/login';
+      router.push('/login');
     }
   };
 

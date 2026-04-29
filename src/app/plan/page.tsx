@@ -208,8 +208,8 @@ export default function PlanPage() {
 
   const handleLogout = useCallback(() => {
     clearSession();
-    window.location.href = "/login";
-  }, []);
+    router.push("/login");
+  }, [router]);
 
   if (loading) {
     return (

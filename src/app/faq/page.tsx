@@ -74,7 +74,7 @@ export default function FAQPage() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('yadira_session');
-      window.location.href = '/login';
+      router.push('/login');
     }
   };
 

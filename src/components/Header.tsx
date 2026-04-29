@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/hooks/useTheme";
 import { clearSession } from "@/lib/auth";
 
 export default function Header() {
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("");
@@ -26,8 +28,8 @@ export default function Header() {
 
   const handleLogout = useCallback(() => {
     clearSession();
-    window.location.href = "/login";
-  }, []);
+    router.push("/login");
+  }, [router]);
 
   if (!mounted) return null;
 

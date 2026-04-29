@@ -12,9 +12,13 @@ interface CalendarViewProps {
 const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export default function CalendarView({ sessions, onSessionClick }: CalendarViewProps) {
-  const [currentMonth, setCurrentMonth] = useState(4); // May is month 4 (0-indexed)
-  const [currentYear, setCurrentYear] = useState(2026);
-
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // Mes actual (0-indexed: 0=Enero, 3=Abril)
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  
+  // Today string in local time (not UTC)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
   // Get first day of month and number of days
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -40,7 +44,6 @@ export default function CalendarView({ sessions, onSessionClick }: CalendarViewP
     if (session.blocked) return "bg-red-500/10 text-red-500 border border-red-500/20";
     if (session.rescheduled) return "bg-secondary/10 text-secondary border border-secondary/20";
     
-    const todayStr = new Date().toISOString().split('T')[0];
     if (session.date === todayStr) return "bg-primary/20 text-primary border-2 border-primary font-bold";
     
     return "bg-foreground/[0.04] text-foreground/60";

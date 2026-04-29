@@ -10,7 +10,7 @@ const FEATURES = [
   {
     icon: "🎯",
     title: "Plan de Entrenamiento Personalizado",
-    description: "11 sesiones progresivas del 29 de abril al 22 de mayo 2026, diseñadas específicamente para Yadira. Desde 3 km hasta los 7 km del evento.",
+    description: "11 sesiones progresivas del 29 de abril al 17 de mayo 2026, diseñadas específicamente para Yadira. Desde 3 km hasta los 7 km del evento.",
     details: ["11 sesiones únicas", "Progresión 3→7 km", "Descripciones detalladas", "Ritmo objetivo ~11 min/km"],
     color: "from-blue-500/10 to-blue-600/5",
     border: "border-blue-500/20",
@@ -103,7 +103,7 @@ export default function FuncionalidadesPage() {
 
   const handleLogout = () => {
     clearSession();
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   return (
