@@ -9,6 +9,10 @@ interface PostWorkoutModalProps {
     workout: string;
     distance: number;
     dayLabel: string;
+    actualTime?: string;
+    feeling?: number;
+    notes?: string;
+    actualDistance?: number;
   };
   onSave: (data: {
     actualTime: string;
@@ -21,10 +25,12 @@ interface PostWorkoutModalProps {
 }
 
 export default function PostWorkoutModal({ session, onSave, onClose }: PostWorkoutModalProps) {
-  const [time, setTime] = useState("");
-  const [feeling, setFeeling] = useState(0);
-  const [notes, setNotes] = useState("");
-  const [kmCompleted, setKmCompleted] = useState(session.distance.toString());
+  const [time, setTime] = useState(session.actualTime || "");
+  const [feeling, setFeeling] = useState(session.feeling || 0);
+  const [notes, setNotes] = useState(session.notes || "");
+  const [kmCompleted, setKmCompleted] = useState(
+    session.actualDistance ? session.actualDistance.toString() : session.distance.toString()
+  );
 
   const calculatePace = (timeStr: string, distance: number): string => {
     if (!timeStr || !distance) return "";
