@@ -5,18 +5,6 @@ import { Providers } from "./providers";
 import Header from "@/components/Header";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
-
 export const metadata: Metadata = {
   title: {
     default: "RunPlan Pro",
@@ -44,6 +32,20 @@ export const metadata: Metadata = {
     follow: true,
   },
 };
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   width: "device-width",

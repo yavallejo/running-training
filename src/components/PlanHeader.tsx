@@ -136,6 +136,24 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
         </motion.div>
       </div>
 
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <WellnessTracker />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <WeightEffortTracker />
+        </motion.div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -143,13 +161,9 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
         className="rounded-xl bg-gradient-to-br from-primary/10 via-surface to-surface border border-primary/20 p-4 mb-6"
       >
         <div className="flex items-start gap-3">
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-2xl flex-shrink-0"
-          >
+          <div className="text-2xl flex-shrink-0">
             {motivacionalMessage?.icon || "🔥"}
-          </motion.div>
+          </div>
           <p className="text-sm text-foreground/80 leading-relaxed">
             {motivacionalMessage?.text || "Cada paso cuenta. ¡Sigue así!"}
           </p>
