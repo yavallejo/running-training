@@ -105,7 +105,8 @@ export default function PlanPage() {
           actualTime: s.actualTime,
           actualPace: s.actualPace,
           feeling: s.feeling,
-          notes: s.notes
+          notes: s.notes,
+          actualDistance: s.actualDistance
         })
       );
       await Promise.all(promises);
@@ -154,6 +155,7 @@ export default function PlanPage() {
     actualPace: string;
     feeling: number;
     notes: string;
+    actualDistance: number;
   }) => {
     setSessions(prev => {
       const updated = prev.map(s =>
@@ -167,7 +169,15 @@ export default function PlanPage() {
 
   const getCardState = useCallback((session: TrainingSession): string => {
     if (session.completed && session.rescheduled) return 'rescheduled-completed';
-    if (session.completed) return 'completed';
+    if (session.completed) {
+      if (session.actualDistance !== undefined && session.actualDistance < session.distance) {
+        return 'completed-under';
+      }
+      if (session.actualDistance !== undefined && session.actualDistance > session.distance) {
+        return 'completed-over';
+      }
+      return 'completed';
+    }
     if (session.blocked) return 'blocked';
     if (session.rescheduled) return 'rescheduled';
     if (session.date === today) return 'today';

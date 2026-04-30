@@ -18,6 +18,7 @@ export interface TrainingSession {
   actualPace?: string
   feeling?: number
   notes?: string
+  actualDistance?: number
 }
 
 export async function generateTrainingPlan(
@@ -82,7 +83,8 @@ export async function loadUserProgress(userId: string): Promise<Map<string, any>
       actualTime: p.actual_time,
       actualPace: p.actual_pace,
       feeling: p.feeling,
-      notes: p.notes
+      notes: p.notes,
+      actualDistance: p.actual_distance
     })
   })
   return progressMap
@@ -99,6 +101,7 @@ export async function saveUserProgress(
     actualPace?: string
     feeling?: number
     notes?: string
+    actualDistance?: number
   }
 ) {
   const { error } = await supabase
@@ -113,6 +116,7 @@ export async function saveUserProgress(
       actual_pace: progress.actualPace,
       feeling: progress.feeling,
       notes: progress.notes,
+      actual_distance: progress.actualDistance,
       completed_at: progress.completed ? new Date().toISOString() : null
     }, {
       onConflict: 'user_id,session_id'

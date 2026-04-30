@@ -45,6 +45,35 @@ export default function SessionCard({
 
   const shouldShowMore = session.details.length > (isDesktop ? DETAILS_DESKTOP_THRESHOLD : DETAILS_MOBILE_THRESHOLD);
 
+  const getCompletionState = (): 'completed' | 'completed-under' | 'completed-over' | null => {
+    if (!session.completed) return null;
+    if (!session.actualDistance) return 'completed';
+    if (session.actualDistance >= session.distance) return 'completed-over';
+    return 'completed-under';
+  };
+
+  const getMotivationalMessage = (): { text: string; icon: string } | null => {
+    const completionState = getCompletionState();
+    if (completionState === 'completed-under') {
+      const missing = session.distance - (session.actualDistance || 0);
+      return {
+        text: `¡Te faltaron ${missing.toFixed(1)} km, pero cada paso cuenta! ¡Sigue guerreando!`,
+        icon: '💪'
+      };
+    }
+    if (completionState === 'completed-over') {
+      const extra = (session.actualDistance || 0) - session.distance;
+      return {
+        text: `¡Superaste el plan por ${extra.toFixed(1)} km! ¡Eres una máquina! ¡SIGUE ASÍ, GUERRERO/A!`,
+        icon: '🔥'
+      };
+    }
+    return null;
+  };
+
+  const completionState = getCompletionState();
+  const motivationalMsg = getMotivationalMessage();
+
   const getStateStyles = () => {
     switch (state) {
       case 'today':
@@ -56,6 +85,16 @@ export default function SessionCard({
         return {
           container: 'border-primary/30 bg-primary/5',
           badgeText: 'bg-success/10 text-success',
+        };
+      case 'completed-under':
+        return {
+          container: 'border-warning/40 bg-warning/5',
+          badgeText: 'bg-warning/10 text-warning',
+        };
+      case 'completed-over':
+        return {
+          container: 'border-success/40 bg-gradient-to-br from-success/10 to-warning/5 shadow-lg shadow-success/20',
+          badgeText: 'bg-success/20 text-success',
         };
       case 'rescheduled':
         return {
@@ -130,6 +169,24 @@ export default function SessionCard({
         </span>
       );
     }
+    if (state === 'completed-under') {
+      return (
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${badge}`}>
+          ⚠️ PARCIAL
+        </span>
+      );
+    }
+    if (state === 'completed-over') {
+      return (
+        <motion.span
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          className="text-xs px-2.5 py-1 rounded-full font-semibold bg-gradient-to-r from-warning to-success text-white"
+        >
+          💪 SUPER PODER
+        </motion.span>
+      );
+    }
     return null;
   };
 
@@ -178,9 +235,27 @@ export default function SessionCard({
                 {session.dayLabel}
               </span>
             </div>
-            <span className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-semibold text-secondary">
-              {session.distance} km
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full bg-surface-elevated px-3 py-1 text-sm font-semibold ${
+                completionState === 'completed-over' ? 'text-success' :
+                completionState === 'completed-under' ? 'text-warning' : 'text-secondary'
+              }`}>
+                {session.actualDistance ? (
+                  <span>
+                    {session.actualDistance} km
+                    {completionState === 'completed-over' && <span className="ml-1">💪</span>}
+                    {completionState === 'completed-under' && <span className="ml-1">⚠️</span>}
+                  </span>
+                ) : (
+                  <span>{session.distance} km</span>
+                )}
+              </span>
+              {session.actualDistance && session.actualDistance !== session.distance && (
+                <span className="text-xs text-muted-foreground">
+                  (plan: {session.distance} km)
+                </span>
+              )}
+            </div>
           </div>
 
           <p className="text-base font-medium text-muted-foreground mb-2">
@@ -221,16 +296,31 @@ export default function SessionCard({
           )}
 
           <AnimatePresence>
-            {session.completed && (session.actualTime || session.feeling || session.notes) && (
+            {session.completed && (session.actualTime || session.feeling || session.notes || completionState) && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 className="mt-4 p-4 rounded-xl bg-surface/80 border border-border"
               >
+                {motivationalMsg && (
+                  <div className={`mb-4 p-3 rounded-xl border ${
+                    completionState === 'completed-over' 
+                      ? 'bg-gradient-to-r from-success/10 to-warning/10 border-success/30' 
+                      : 'bg-warning/10 border-warning/30'
+                  }`}>
+                    <p className={`text-sm sm:text-base font-semibold flex items-center gap-2 ${
+                      completionState === 'completed-over' ? 'text-success' : 'text-warning'
+                    }`}>
+                      <span className="text-lg">{motivationalMsg.icon}</span>
+                      {motivationalMsg.text}
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-sm sm:text-base font-semibold text-success mb-3 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25.15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Resumen del entrenamiento
                 </p>

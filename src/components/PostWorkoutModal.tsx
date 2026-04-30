@@ -15,6 +15,7 @@ interface PostWorkoutModalProps {
     actualPace: string;
     feeling: number;
     notes: string;
+    actualDistance: number;
   }) => void;
   onClose: () => void;
 }
@@ -23,6 +24,7 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
   const [time, setTime] = useState("");
   const [feeling, setFeeling] = useState(0);
   const [notes, setNotes] = useState("");
+  const [kmCompleted, setKmCompleted] = useState(session.distance.toString());
 
   const calculatePace = (timeStr: string, distance: number): string => {
     if (!timeStr || !distance) return "";
@@ -41,6 +43,7 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
       actualPace,
       feeling,
       notes,
+      actualDistance: parseFloat(kmCompleted) || session.distance,
     });
   };
 
@@ -107,6 +110,31 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
             {time && (
               <p className="mt-2 text-sm text-secondary font-medium">
                 Ritmo: {calculatePace(time, session.distance) || "..."}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-2">
+              🏃‍♂️ Km completados (plan: {session.distance} km)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder={session.distance.toString()}
+              value={kmCompleted}
+              onChange={(e) => setKmCompleted(e.target.value)}
+              className="w-full h-12 rounded-xl border border-border bg-surface-elevated px-4 text-base text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
+            />
+            {parseFloat(kmCompleted) < session.distance && (
+              <p className="mt-2 text-sm text-warning font-medium">
+                Te faltaron {(session.distance - parseFloat(kmCompleted || "0")).toFixed(1)} km
+              </p>
+            )}
+            {parseFloat(kmCompleted) > session.distance && (
+              <p className="mt-2 text-sm text-success font-medium">
+                ¡Superaste el plan por {(parseFloat(kmCompleted || "0") - session.distance).toFixed(1)} km! 💪
               </p>
             )}
           </div>
