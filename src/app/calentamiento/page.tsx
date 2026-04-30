@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 
 const WARMUP = [
   {
@@ -171,10 +172,8 @@ export default function CalentamientoPage() {
   const [activeTab, setActiveTab] = useState<'warmup' | 'cooldown'>('warmup');
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push('/login');
-    }
+    clearSession();
+    router.push('/login');
   };
 
   const data = activeTab === 'warmup' ? WARMUP : COOLDOWN;

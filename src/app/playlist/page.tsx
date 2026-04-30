@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 
 const PLAYLISTS = [
   {
@@ -61,10 +62,8 @@ export default function PlaylistPage() {
   const router = useRouter();
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push('/login');
-    }
+    clearSession();
+    router.push('/login');
   };
 
   return (

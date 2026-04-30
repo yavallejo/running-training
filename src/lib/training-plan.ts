@@ -20,7 +20,6 @@ export interface TrainingSession {
   notes?: string
 }
 
-// Cargar sesiones desde Supabase según el plan del usuario
 export async function generateTrainingPlan(
   planId: string,
   raceDistance: number = 7,
@@ -65,7 +64,6 @@ export async function generateTrainingPlan(
   })
 }
 
-// Cargar progreso del usuario desde Supabase
 export async function loadUserProgress(userId: string): Promise<Map<string, any>> {
   const { data, error } = await supabase
     .from('user_progress')
@@ -90,7 +88,6 @@ export async function loadUserProgress(userId: string): Promise<Map<string, any>
   return progressMap
 }
 
-// Guardar o actualizar progreso en Supabase
 export async function saveUserProgress(
   userId: string,
   sessionId: string,

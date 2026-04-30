@@ -7,6 +7,7 @@ import CountdownTimer from "./CountdownTimer";
 import WellnessTracker from "./WellnessTracker";
 import WeightEffortTracker from "./WeightEffortTracker";
 import { TrainingSession } from "@/lib/training-plan";
+import { clearSession } from "@/lib/auth";
 
 interface PlanHeaderProps {
   userName: string;
@@ -27,10 +28,8 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
   const router = useRouter();
 
   const handleLogout = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push("/login");
-    }
+    clearSession();
+    router.push("/login");
   }, [router]);
 
   const formattedRaceDate = raceDate ? new Date(raceDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '17 may';

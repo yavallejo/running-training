@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 
 const WEATHER_TIPS = {
   sunny: {
@@ -76,10 +77,8 @@ export default function ClimaPage() {
   const [customTemp, setCustomTemp] = useState<string>("");
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push('/login');
-    }
+    clearSession();
+    router.push('/login');
   };
 
   const getTempRecommendation = (temp: number) => {

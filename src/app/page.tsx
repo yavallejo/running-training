@@ -1,13 +1,13 @@
 "use client";
- 
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { getSession } from "@/lib/auth";
- 
+
 export default function Home() {
   const router = useRouter();
- 
+
   useEffect(() => {
     const session = getSession();
     if (session) {
@@ -16,7 +16,7 @@ export default function Home() {
       router.replace("/login");
     }
   }, [router]);
- 
+
   return (
     <main className="flex flex-1 items-center justify-center">
       <motion.div

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import Confetti from "react-confetti";
 import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
@@ -17,6 +17,8 @@ import SessionCard from "@/components/SessionCard";
 import { checkBlockedSessions } from "@/lib/date-utils";
 import { checkAchievements, saveAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
+
+const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
 export default function PlanPage() {
   const router = useRouter();

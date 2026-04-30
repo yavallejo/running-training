@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { EVENT_NAME, EVENT_DATE } from "@/lib/training-plan";
+import { clearSession } from "@/lib/auth";
 
 const CHECKLIST = [
   { id: "docs", text: "DNI / Documento de identidad", icon: "🆔", category: "esencial" },
@@ -39,10 +40,8 @@ export default function DiaCarreraPage() {
   const [activeTab, setActiveTab] = useState<'checklist' | 'strategy' | 'tips'>('checklist');
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push('/login');
-    }
+    clearSession();
+    router.push('/login');
   };
 
   const toggleCheck = (id: string) => {

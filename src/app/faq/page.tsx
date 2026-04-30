@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 
 const FAQ_ITEMS = [
   {
@@ -72,10 +73,8 @@ export default function FAQPage() {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('runplan-pro_session');
-      router.push('/login');
-    }
+    clearSession();
+    router.push('/login');
   };
 
   return (
