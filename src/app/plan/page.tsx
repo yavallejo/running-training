@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
-import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, EVENT_DATE, EVENT_NAME } from "@/lib/training-plan";
+import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
@@ -26,6 +26,9 @@ export default function PlanPage() {
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
   const [planName, setPlanName] = useState("");
+  const [raceDistance, setRaceDistance] = useState(7);
+  const [raceDate, setRaceDate] = useState("2026-05-17");
+  const [raceName, setRaceName] = useState("Carrera Recreativa");
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
@@ -55,18 +58,21 @@ export default function PlanPage() {
     setUserName(session.username || "");
     setUserId(session.userId);
     setPlanName(session.planName || "");
+    setRaceDistance(session.raceDistance || 7);
+    setRaceDate(session.raceDate || "2026-05-17");
+    setRaceName(session.raceName || "Carrera Recreativa");
 
     const todayStr = new Date().toISOString().split("T")[0];
     setToday(todayStr);
 
-    loadPlan(session.planId, session.userId, todayStr);
+    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr);
     setLoading(false);
   }, [router]);
 
-  const loadPlan = async (planId: string, uId: string, todayStr: string) => {
+  const loadPlan = async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string) => {
     try {
       const [sessionsData, progressMap] = await Promise.all([
-        generateTrainingPlan(planId),
+        generateTrainingPlan(planId, rDistance, rDate),
         loadUserProgress(uId)
       ]);
 
@@ -255,6 +261,9 @@ export default function PlanPage() {
           sessions={sessions}
           completedCount={completedCount}
           motivacionalMessage={motivationalMessage}
+          raceDistance={raceDistance}
+          raceDate={raceDate}
+          raceName={raceName}
         />
 
         <div className="flex justify-end">
@@ -312,10 +321,10 @@ export default function PlanPage() {
 
         <footer className="mt-6 sm:mt-8 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-3 sm:p-4 text-center">
           <p className="text-xs sm:text-sm font-medium text-foreground/70">
-            🏃‍♀️ {EVENT_NAME} - Plan: {planName}
+            🏃‍♀️ {raceName} - Plan: {planName}
           </p>
           <p className="mt-0.5 text-[10px] sm:text-xs text-foreground/40">
-            7 km recreativos · ¡Tú puedes!
+            {raceDistance} km recreativos · ¡Tú puedes!
           </p>
         </footer>
       </div>

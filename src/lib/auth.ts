@@ -27,6 +27,9 @@ export async function validateCredentials(username: string, password: string): P
         username,
         password_hash,
         plan_id,
+        race_distance,
+        race_date,
+        race_name,
         plans:plan_id (
           id,
           name,
@@ -62,6 +65,9 @@ export function createSession(user: any): void {
     planId: user.plan_id,
     planLevel: user.plans?.level,
     planName: user.plans?.name,
+    raceDistance: user.race_distance || 7,
+    raceDate: user.race_date || '2026-05-17',
+    raceName: user.race_name || 'Carrera Recreativa',
     expiresAt: Date.now() + SESSION_DURATION
   }
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
@@ -74,6 +80,9 @@ interface Session {
   planId: string
   planLevel: string
   planName: string
+  raceDistance: number
+  raceDate: string
+  raceName: string
   expiresAt: number
 }
 
@@ -101,7 +110,14 @@ export function clearSession(): void {
 }
 
 // Crear usuario (para uso admin)
-export async function createUser(username: string, password: string, planLevel: 'beginner' | 'intermediate' | 'pro'): Promise<{ success: boolean; error?: string }> {
+export async function createUser(
+  username: string,
+  password: string,
+  planLevel: 'beginner' | 'intermediate' | 'pro',
+  raceDistance: number = 7,
+  raceDate: string = '2026-05-17',
+  raceName: string = 'Carrera Recreativa'
+): Promise<{ success: boolean; error?: string }> {
   try {
     const passwordHash = await hashPassword(password)
 
@@ -118,7 +134,10 @@ export async function createUser(username: string, password: string, planLevel: 
       .insert({
         username: username.toLowerCase(),
         password_hash: passwordHash,
-        plan_id: plan.id
+        plan_id: plan.id,
+        race_distance: raceDistance,
+        race_date: raceDate,
+        race_name: raceName
       })
 
     if (error) return { success: false, error: error.message }

@@ -13,9 +13,12 @@ interface PlanHeaderProps {
   sessions: TrainingSession[];
   completedCount: number;
   motivacionalMessage: { text: string; icon: string } | null;
+  raceDistance?: number;
+  raceDate?: string;
+  raceName?: string;
 }
 
-export default function PlanHeader({ userName, sessions, completedCount, motivacionalMessage }: PlanHeaderProps) {
+export default function PlanHeader({ userName, sessions, completedCount, motivacionalMessage, raceDistance = 7, raceDate = "2026-05-17", raceName = "Carrera Recreativa" }: PlanHeaderProps) {
   const totalSessions = sessions.length;
   const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
 
@@ -36,7 +39,7 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
             Hola, {userName} 👋
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-            Carrera Recreativa 7km · 17 mayo
+            {raceName} {raceDistance}km · {raceDate ? new Date(raceDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '17 mayo'}
           </p>
         </div>
         <button

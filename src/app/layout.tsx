@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     default: "RunPlan Pro",
     template: "%s | RunPlan Pro",
   },
-  description: "Plan de entrenamiento personalizado para correr 7km - RunPlan Pro",
-  keywords: ["running", "entrenamiento", "7km", "principiante", "runplan", "carrera", "profesional"],
+  description: "Plan de entrenamiento personalizado para correr 7km o 11km - RunPlan Pro",
+  keywords: ["running", "entrenamiento", "7km", "11km", "principiante", "intermediate", "pro", "runplan", "carrera", "profesional"],
   authors: [{ name: "RunPlan Pro" }],
   creator: "RunPlan Pro",
   publisher: "RunPlan Pro",
   openGraph: {
     title: "RunPlan Pro",
-    description: "Plan de entrenamiento personalizado para 7km",
+    description: "Plan de entrenamiento personalizado para 7km o 11km",
     type: "website",
     locale: "es_ES",
     url: "https://runplan-pro.vercel.app",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RunPlan Pro",
-    description: "Plan de entrenamiento para 7km",
+    description: "Plan de entrenamiento para 7km o 11km",
   },
   robots: {
     index: true,
