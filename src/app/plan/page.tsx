@@ -120,8 +120,6 @@ export default function PlanPage() {
       const willComplete = !session?.completed;
 
       if (willComplete) {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 4000);
         setShowPostWorkout(id);
       }
 
@@ -165,6 +163,8 @@ export default function PlanPage() {
       return updated;
     });
     setShowPostWorkout(null);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 4000);
   }, [saveProgress]);
 
   const getCardState = useCallback((session: TrainingSession): string => {
