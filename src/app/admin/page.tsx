@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userProgress, setUserProgress] = useState<any[]>([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
   useEffect(() => {
@@ -40,6 +41,17 @@ export default function AdminPage() {
     }
     loadData();
   }, [router]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeProgressModal();
+        closeEditModal();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -140,6 +152,7 @@ export default function AdminPage() {
       console.error('Error loading progress:', error);
     } finally {
       setLoadingProgress(false);
+      setLoadingUserId(null);
     }
   };
 
@@ -305,11 +318,14 @@ export default function AdminPage() {
                     Editar
                   </button>
                   <button
-                    onClick={() => loadUserProgress(user.id)}
+                    onClick={() => {
+                      setLoadingUserId(user.id);
+                      loadUserProgress(user.id);
+                    }}
                     className="text-xs px-2 py-1 rounded text-blue-500 hover:bg-blue-500/10"
-                    disabled={loadingProgress}
+                    disabled={loadingUserId !== null}
                   >
-                    {loadingProgress ? 'Cargando...' : 'Ver Progreso'}
+                    {loadingUserId === user.id ? '...' : 'Ver Progreso'}
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user.id, user.username)}
@@ -343,8 +359,14 @@ export default function AdminPage() {
       </div>
 
       {showProgressModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          onClick={closeProgressModal}
+        >
+          <div 
+            className="bg-background rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-lg font-semibold">{selectedUser.username}</h2>
@@ -409,8 +431,14 @@ export default function AdminPage() {
       )}
 
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-xl max-w-md w-full p-6">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          onClick={closeEditModal}
+        >
+          <div 
+            className="bg-background rounded-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Editar Usuario</h2>
               <button onClick={closeEditModal} className="text-foreground/50 hover:text-foreground">
