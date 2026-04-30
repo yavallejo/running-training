@@ -46,7 +46,7 @@ const NUTRITION_SECTIONS = [
       { text: "Proteína + carbohidratos: batido de proteína + plátano", type: "good" },
       { text: "Comida real: pollo/atún + arroz/quinoa + vegetales", type: "good" },
       { text: "Chocolate con leche (proporción 1:3 ideal para recuperación)", type: "good" },
-      { text: "EVITA: ayunar después de correr (musculos no se recuperan)", type: "bad" },
+      { text: "EVITA: ayunar después de correr (músculos no se recuperan)", type: "bad" },
       { text: "Ejemplo: Bowl de yogurt griego + frutos rojos + granola", type: "example" }
     ]
   },
@@ -110,89 +110,95 @@ export default function NutricionPage() {
   };
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               🥗 Nutrición para Runners
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Qué comer para rendir mejor y recuperarte rápido
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {NUTRITION_SECTIONS.map((section, index) => (
             <motion.div
               key={section.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`rounded-xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
+              className={`rounded-2xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
             >
               <button
                 onClick={() => setExpanded(expanded === section.id ? null : section.id)}
-                className="w-full text-left p-4 sm:p-5 flex items-start gap-3"
+                className="w-full text-left p-4 sm:p-5 flex items-center gap-4"
               >
-                <span className="text-2xl flex-shrink-0">{section.icon}</span>
+                <span className="text-3xl flex-shrink-0">{section.icon}</span>
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-semibold text-foreground">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">
                       {section.title}
                     </h3>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/10 text-foreground/50">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-foreground/10 text-muted-foreground">
                       {section.time}
                     </span>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-foreground/40 mt-0.5">
-                    {expanded === section.id ? 'Click para contraer' : 'Click para ver recomendaciones'}
+                  <p className="text-sm text-muted-foreground">
+                    {expanded === section.id ? 'Toca para ocultar' : 'Toca para ver más'}
                   </p>
                 </div>
-                <svg
-                  className={`w-4 h-4 text-foreground/40 transition-transform flex-shrink-0 mt-0.5 ${expanded === section.id ? 'rotate-180' : ''}`}
+                <motion.svg
+                  animate={{ rotate: expanded === section.id ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-5 h-5 text-muted-foreground flex-shrink-0"
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </motion.svg>
               </button>
 
               {expanded === section.id && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-1.5"
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-2"
                 >
                   {section.items.map((item, i) => (
                     <div
                       key={i}
-                      className={`flex items-start gap-2 p-2 rounded-lg text-[11px] sm:text-xs leading-relaxed ${
+                      className={`flex items-start gap-3 p-3 rounded-xl text-sm ${
                         item.type === 'good'
-                          ? 'bg-green-500/10 text-foreground/70'
+                          ? 'bg-green-500/10 text-muted-foreground'
                           : item.type === 'bad'
-                          ? 'bg-red-500/10 text-foreground/60'
+                          ? 'bg-red-500/10 text-muted-foreground'
                           : item.type === 'example'
-                          ? 'bg-blue-500/10 text-foreground/70 border border-blue-500/20'
-                          : 'bg-foreground/5 text-foreground/50'
+                          ? 'bg-blue-500/10 text-muted-foreground border border-blue-500/20'
+                          : 'bg-foreground/5 text-muted-foreground'
                       }`}
                     >
-                      <span className="flex-shrink-0 mt-0.5">
+                      <span className="flex-shrink-0 text-base">
                         {item.type === 'good' ? '✅' : item.type === 'bad' ? '❌' : item.type === 'example' ? '💡' : 'ℹ️'}
                       </span>
-                      <span>{item.text}</span>
+                      <span className="leading-relaxed">{item.text}</span>
                     </div>
                   ))}
                 </motion.div>
@@ -205,12 +211,12 @@ export default function NutricionPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 sm:mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 text-center"
+          className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center"
         >
-          <p className="text-xs sm:text-sm font-medium text-primary mb-1">
+          <p className="text-base font-semibold text-primary mb-2">
             🥇 Regla de Oro
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             Nunca pruebes comida nueva el día de la carrera. Solo come lo que ya
             sabes que te sienta bien. ¡El estómago es el primer crítico!
           </p>

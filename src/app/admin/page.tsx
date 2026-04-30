@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [raceDistance, setRaceDistance] = useState<7 | 11>(7);
   const [raceDate, setRaceDate] = useState('2026-05-17');
   const [raceName, setRaceName] = useState('Carrera Recreativa');
+  const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -37,6 +38,10 @@ export default function AdminPage() {
     const session = getSession();
     if (!session) {
       router.replace("/login");
+      return;
+    }
+    if (session.role !== 'admin') {
+      router.replace("/plan");
       return;
     }
     loadData();
@@ -82,11 +87,12 @@ export default function AdminPage() {
       return;
     }
 
-    const result = await createUser(username.trim(), password, planLevel, raceDistance, raceDate, raceName);
+    const result = await createUser(username.trim(), password, planLevel, raceDistance, raceDate, raceName, userRole);
     if (result.success) {
       setMessage({ type: 'success', text: `Usuario ${username} creado exitosamente` });
       setUsername("");
       setPassword("");
+      setUserRole('user');
       loadData();
     } else {
       setMessage({ type: 'error', text: result.error || 'Error al crear usuario' });
@@ -247,7 +253,7 @@ export default function AdminPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <select
               value={planLevel}
               onChange={(e) => setPlanLevel(e.target.value as any)}
@@ -278,6 +284,14 @@ export default function AdminPage() {
               placeholder="Nombre carrera"
               className="rounded-lg border border-foreground/10 bg-background px-3 py-2 text-sm"
             />
+            <select
+              value={userRole}
+              onChange={(e) => setUserRole(e.target.value as 'user' | 'admin')}
+              className="rounded-lg border border-foreground/10 bg-background px-3 py-2 text-sm"
+            >
+              <option value="user">Usuario</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
           <button
@@ -305,9 +319,12 @@ export default function AdminPage() {
                 className="flex items-center justify-between p-3 rounded-lg border border-foreground/10 bg-foreground/[0.02]"
               >
                 <div>
-                  <p className="text-sm font-medium">{user.username}</p>
+                  <p className="text-sm font-medium">
+                    {user.username}
+                    {user.role === 'admin' && <span className="ml-2 text-xs text-yellow-500">⭐ Admin</span>}
+                  </p>
                   <p className="text-xs text-foreground/50">
-                    Plan: {user.plans?.name || 'Sin plan'} | {user.race_distance || 7}km | {user.race_name || 'Carrera'} | {new Date(user.race_date).toLocaleDateString()}
+                    Plan: {user.plans?.name || 'Sin plan'} | {user.race_distance || 7}km | {user.race_name || 'Carrera'}
                   </p>
                 </div>
                 <div className="flex gap-2">

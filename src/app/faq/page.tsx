@@ -79,69 +79,74 @@ export default function FAQPage() {
   };
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
-              ❓ Preguntas Frecuentes (FAQ)
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              ❓ Preguntas Frecuentes
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Respuestas para las dudas más comunes de principiantes
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        <div className="space-y-2 sm:space-y-3">
+        <div className="space-y-3">
           {FAQ_ITEMS.map((item, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`rounded-xl border transition-all overflow-hidden ${
+              className={`rounded-2xl border transition-all overflow-hidden ${
                 expanded === index
                   ? 'border-primary/30 bg-primary/5'
-                  : 'border-foreground/5 bg-background hover:border-foreground/10'
+                  : 'border-border bg-surface hover:bg-surface-elevated'
               }`}
             >
               <button
                 onClick={() => setExpanded(expanded === index ? null : index)}
-                className="w-full text-left p-3 sm:p-4 flex items-start gap-3"
+                className="w-full text-left p-4 flex items-start gap-4"
               >
-                <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                <span className="text-2xl flex-shrink-0 mt-0.5">{item.icon}</span>
                 <div className="flex-1">
-                  <h3 className="text-xs sm:text-sm font-medium text-foreground">
+                  <h3 className="text-base font-medium text-foreground text-left">
                     {item.q}
                   </h3>
                   {expanded === index && (
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="mt-2 text-[11px] sm:text-xs text-foreground/60 leading-relaxed"
+                      className="mt-3 text-base text-muted-foreground leading-relaxed text-left"
                     >
                       {item.a}
                     </motion.p>
                   )}
                 </div>
-                <svg
-                  className={`w-4 h-4 text-foreground/40 transition-transform flex-shrink-0 mt-0.5 ${expanded === index ? 'rotate-180' : ''}`}
+                <motion.svg
+                  animate={{ rotate: expanded === index ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1"
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </motion.svg>
               </button>
             </motion.div>
           ))}
@@ -151,12 +156,12 @@ export default function FAQPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 sm:mt-8 rounded-xl border border-green-500/20 bg-green-500/5 p-4 sm:p-5 text-center"
+          className="mt-8 rounded-2xl border border-green-500/20 bg-green-500/5 p-5 text-center"
         >
-          <p className="text-xs sm:text-sm font-medium text-green-600 mb-1">
+          <p className="text-base font-semibold text-green-500 mb-2">
             💪 ¿Tienes otra duda?
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             Recuerda: todas las corredoras principiantes tienen las mismas dudas.
             No estás sola. ¡Pregunta y sigue adelante!
           </p>

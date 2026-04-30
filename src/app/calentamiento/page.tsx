@@ -20,7 +20,7 @@ const WARMUP = [
   },
   {
     id: "tobillos",
-    title: "Movilidad de Tobillos",
+    title: "Movilidad de Tobillas",
     duration: "1 min",
     icon: "🔄",
     description: "Círculos suaves con los pies para lubricar las articulaciones.",
@@ -178,104 +178,105 @@ export default function CalentamientoPage() {
   };
 
   const data = activeTab === 'warmup' ? WARMUP : COOLDOWN;
-  const color = activeTab === 'warmup' ? 'from-orange-500/10 to-red-500/5 border-orange-500/20' : 'from-blue-500/10 to-cyan-500/5 border-blue-500/20';
+  const warmupColor = 'from-orange-500/10 to-orange-500/5 border-orange-500/20';
+  const cooldownColor = 'from-blue-500/10 to-blue-500/5 border-blue-500/20';
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               🧘 Calentamiento y Enfriamiento
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-              Rutinas visuales para preparar y recuperar tu cuerpo
+            <p className="text-base text-muted-foreground">
+              Rutinas para preparar y recuperar tu cuerpo
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setActiveTab('warmup')}
-            className={`flex-1 py-3 rounded-xl border transition-all text-sm font-medium ${
+            className={`flex-1 py-4 rounded-2xl border-2 transition-all text-base font-semibold ${
               activeTab === 'warmup'
-                ? 'border-orange-500/50 bg-orange-500/10 text-orange-600'
-                : 'border-foreground/10 text-foreground/50 hover:border-foreground/20'
+                ? 'border-orange-500 bg-orange-500/10 text-orange-500'
+                : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated'
             }`}
           >
             🔥 Calentamiento
           </button>
           <button
             onClick={() => setActiveTab('cooldown')}
-            className={`flex-1 py-3 rounded-xl border transition-all text-sm font-medium ${
+            className={`flex-1 py-4 rounded-2xl border-2 transition-all text-base font-semibold ${
               activeTab === 'cooldown'
-                ? 'border-blue-500/50 bg-blue-500/10 text-blue-600'
-                : 'border-foreground/10 text-foreground/50 hover:border-foreground/20'
+                ? 'border-blue-500 bg-blue-500/10 text-blue-500'
+                : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated'
             }`}
           >
             ❄️ Enfriamiento
           </button>
         </div>
 
-        {/* Total Duration */}
-        <div className={`rounded-xl border ${color} p-4 mb-6 text-center`}>
-          <p className="text-xs text-foreground/50 mb-1">Duración total recomendada</p>
-          <p className="text-lg font-bold text-foreground">
+        <div className={`rounded-2xl border ${activeTab === 'warmup' ? warmupColor : cooldownColor} p-5 mb-6 text-center`}>
+          <p className="text-sm text-muted-foreground mb-1">Duración total recomendada</p>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
             {activeTab === 'warmup' ? '8-12 minutos' : '10-15 minutos'}
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {data.map((item, index) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`rounded-xl border ${activeTab === 'warmup' ? 'border-orange-500/20 bg-orange-500/5' : 'border-blue-500/20 bg-blue-500/5'} p-4`}
+              className={`rounded-2xl border ${activeTab === 'warmup' ? 'border-orange-500/20 bg-orange-500/5' : 'border-blue-500/20 bg-blue-500/5'} p-5`}
             >
-              <div className="flex items-start gap-3">
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  activeTab === 'warmup' ? 'bg-orange-500/20 text-orange-600' : 'bg-blue-500/20 text-blue-600'
+              <div className="flex items-start gap-4">
+                <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${
+                  activeTab === 'warmup' ? 'bg-orange-500/20 text-orange-500' : 'bg-blue-500/20 text-blue-500'
                 }`}>
                   {index + 1}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">{item.icon}</span>
-                    <h3 className="text-sm font-semibold text-foreground">
+                  <div className="flex items-center flex-wrap gap-2 mb-2">
+                    <span className="text-2xl">{item.icon}</span>
+                    <h3 className="text-lg font-semibold text-foreground">
                       {item.title}
                     </h3>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                      activeTab === 'warmup' ? 'bg-orange-500/10 text-orange-600' : 'bg-blue-500/10 text-blue-600'
+                    <span className={`text-sm px-3 py-1 rounded-full ${
+                      activeTab === 'warmup' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500'
                     }`}>
                       {item.duration}
                     </span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-foreground/60 mb-2">
+                  <p className="text-base text-muted-foreground mb-3">
                     {item.description}
                   </p>
-                  <div className="bg-background/50 rounded-lg p-2.5 space-y-1.5">
+                  <div className="bg-background/60 rounded-xl p-4 space-y-2">
                     {item.steps.map((step, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
+                      <div key={i} className="flex items-start gap-3">
+                        <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                           activeTab === 'warmup' ? 'bg-orange-500' : 'bg-blue-500'
                         }`} />
-                        <span className="text-[10px] sm:text-[11px] text-foreground/70 leading-relaxed">
+                        <span className="text-base text-muted-foreground leading-relaxed">
                           {step}
                         </span>
                       </div>
@@ -291,18 +292,18 @@ export default function CalentamientoPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className={`mt-6 sm:mt-8 rounded-xl border p-4 sm:p-5 text-center ${
+          className={`mt-8 rounded-2xl border p-5 text-center ${
             activeTab === 'warmup'
               ? 'border-orange-500/20 bg-orange-500/5'
               : 'border-blue-500/20 bg-blue-500/5'
           }`}
         >
-          <p className={`text-xs sm:text-sm font-medium mb-1 ${
-            activeTab === 'warmup' ? 'text-orange-600' : 'text-blue-600'
+          <p className={`text-base font-semibold mb-2 ${
+            activeTab === 'warmup' ? 'text-orange-500' : 'text-blue-500'
           }`}>
             ⚠️ Recordatorio
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             {activeTab === 'warmup'
               ? 'Nunca hagas estiramientos estáticos (mantenidos) antes de correr. Solo hazlos después del entrenamiento.'
               : 'Mantén cada estiramiento al menos 30 segundos. No rebotes, estira suave y sostenido.'}

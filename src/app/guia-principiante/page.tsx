@@ -155,7 +155,6 @@ const SECTIONS = [
 export default function GuiaPrincipiantePage() {
   const router = useRouter();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [expandedSubSection, setExpandedSubSection] = useState<string | null>(null);
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -165,85 +164,91 @@ export default function GuiaPrincipiantePage() {
   };
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               📚 Guía del Runner Principiante
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Todo lo que necesitas saber para empezar con buen pie
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {SECTIONS.map((section, index) => (
             <motion.div
               key={section.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`rounded-xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
+              className={`rounded-2xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
             >
               <button
                 onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                className="w-full text-left p-4 sm:p-5 flex items-start gap-3"
+                className="w-full text-left p-4 sm:p-5 flex items-center gap-4"
               >
-                <span className="text-2xl flex-shrink-0">{section.icon}</span>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-foreground mb-0.5">
+                <span className="text-3xl flex-shrink-0">{section.icon}</span>
+                <div className="flex-1 text-left">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
                     {section.title}
                   </h3>
-                  <p className="text-[10px] sm:text-xs text-foreground/40">
-                    {expandedSection === section.id ? 'Click para contraer' : 'Click para expandir'}
+                  <p className="text-sm text-muted-foreground">
+                    {expandedSection === section.id ? 'Toca para ocultar' : 'Toca para ver más'}
                   </p>
                 </div>
-                <svg
-                  className={`w-4 h-4 text-foreground/40 transition-transform flex-shrink-0 mt-0.5 ${expandedSection === section.id ? 'rotate-180' : ''}`}
+                <motion.svg
+                  animate={{ rotate: expandedSection === section.id ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-5 h-5 text-muted-foreground flex-shrink-0"
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </motion.svg>
               </button>
 
               {expandedSection === section.id && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
                   className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3"
                 >
                   {section.content.map((item, i) => (
                     <div
                       key={i}
-                      className="bg-background/50 rounded-lg p-3 border border-foreground/5"
+                      className="bg-background/60 rounded-xl p-4 border border-foreground/5"
                     >
-                      <h4 className="text-xs font-medium text-primary mb-1.5">
+                      <h4 className="text-sm font-semibold text-primary mb-2">
                         {item.subtitle}
                       </h4>
                       {item.text && (
-                        <p className="text-[11px] sm:text-xs text-foreground/70 leading-relaxed">
+                        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                           {item.text}
                         </p>
                       )}
                       {item.items && (
-                        <ul className="space-y-1">
+                        <ul className="space-y-2 mt-2">
                           {item.items.map((it, j) => (
-                            <li key={j} className="text-[11px] sm:text-xs text-foreground/70 flex items-start gap-1.5">
-                              <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                            <li key={j} className="text-sm sm:text-base text-muted-foreground flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
                               {it}
                             </li>
                           ))}
@@ -261,12 +266,12 @@ export default function GuiaPrincipiantePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 sm:mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 text-center"
+          className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center"
         >
-          <p className="text-xs sm:text-sm font-medium text-primary mb-1">
+          <p className="text-sm font-semibold text-primary mb-2">
             💡 Tip Pro
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             La constancia vence al talento. No importa si vas lento, lo importante es no detenerse.
             ¡Cada kilómetro cuenta! 🏃‍♀️
           </p>

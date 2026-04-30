@@ -54,52 +54,53 @@ export default function DiaCarreraPage() {
   const categories = [...new Set(CHECKLIST.map(i => i.category))];
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               🏁 Guía del Día de la Carrera
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               {EVENT_NAME} · {EVENT_DATE}
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        {/* Countdown special */}
         <motion.div
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
-          className="mb-6 rounded-2xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-5 sm:p-6 text-primary-foreground text-center"
+          className="mb-6 rounded-2xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-5 text-primary-foreground text-center"
         >
-          <p className="text-sm opacity-80 mb-1">Faltan para la carrera</p>
+          <p className="text-base opacity-80 mb-1">Faltan para la carrera</p>
           <p className="text-2xl sm:text-3xl font-bold">{EVENT_DATE}</p>
-          <p className="text-xs mt-2 opacity-70">7 km · Domingo</p>
+          <p className="text-base mt-2 opacity-70">7 km · Domingo</p>
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-3 mb-6">
           {(['checklist', 'strategy', 'tips'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 rounded-xl border text-xs sm:text-sm font-medium transition-all ${
+              className={`flex-1 py-3.5 rounded-2xl border-2 text-base font-semibold transition-all ${
                 activeTab === tab
                   ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-foreground/10 text-foreground/50 hover:border-foreground/20'
+                  : 'border-border bg-surface text-muted-foreground hover:bg-surface-elevated'
               }`}
             >
               {tab === 'checklist' ? '📋 Checklist' : tab === 'strategy' ? '🎯 Estrategia' : '💡 Tips'}
@@ -107,54 +108,54 @@ export default function DiaCarreraPage() {
           ))}
         </div>
 
-        {/* Checklist */}
         {activeTab === 'checklist' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-foreground/50">
-                {checked.length}/{CHECKLIST.length} completados
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm text-muted-foreground">
+                {checked.length}/{CHECKLIST.length}
               </span>
-              <div className="h-1.5 flex-1 mx-3 rounded-full bg-foreground/5 overflow-hidden">
-                <div
+              <div className="h-2 flex-1 rounded-full bg-surface overflow-hidden">
+                <motion.div
                   className="h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${(checked.length / CHECKLIST.length) * 100}%` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(checked.length / CHECKLIST.length) * 100}%` }}
                 />
               </div>
-              <span className="text-xs text-primary">{Math.round((checked.length / CHECKLIST.length) * 100)}%</span>
+              <span className="text-sm text-primary font-medium">{Math.round((checked.length / CHECKLIST.length) * 100)}%</span>
             </div>
 
             {categories.map(cat => (
               <div key={cat}>
-                <h3 className="text-[10px] sm:text-xs font-medium text-foreground/40 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                   {cat}
                 </h3>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {CHECKLIST.filter(i => i.category === cat).map(item => (
                     <motion.div
                       key={item.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className={`flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${
                         checked.includes(item.id)
                           ? 'border-primary/30 bg-primary/5'
-                          : 'border-foreground/5 hover:border-foreground/10 bg-background'
+                          : 'border-border bg-surface hover:bg-surface-elevated'
                       }`}
                       onClick={() => toggleCheck(item.id)}
                     >
-                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                         checked.includes(item.id)
                           ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-foreground/20'
+                          : 'border-muted-foreground/30'
                       }`}>
                         {checked.includes(item.id) && (
-                          <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
                           </svg>
                         )}
                       </div>
-                      <span className="text-xl flex-shrink-0">{item.icon}</span>
-                      <span className={`text-xs sm:text-sm flex-1 ${
-                        checked.includes(item.id) ? 'line-through text-foreground/40' : 'text-foreground/70'
+                      <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                      <span className={`text-base flex-1 ${
+                        checked.includes(item.id) ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}>
                         {item.text}
                       </span>
@@ -166,37 +167,36 @@ export default function DiaCarreraPage() {
           </div>
         )}
 
-        {/* Strategy */}
         {activeTab === 'strategy' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {STRATEGY.map((item, i) => (
               <motion.div
                 key={item.km}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="flex items-start gap-3 p-4 rounded-xl border border-foreground/10 bg-background"
+                className="flex items-start gap-4 p-4 rounded-2xl border border-border bg-surface"
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
                   {item.icon}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-primary">KM {item.km}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary">
+                  <div className="flex items-center flex-wrap gap-2 mb-2">
+                    <span className="text-sm font-bold text-primary">KM {item.km}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary font-medium">
                       {item.pace}
                     </span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+                  <p className="text-base text-muted-foreground leading-relaxed">
                     {item.note}
                   </p>
                 </div>
               </motion.div>
             ))}
 
-            <div className="mt-4 p-4 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
-              <p className="text-xs font-medium text-green-600 mb-1">🏆 Meta Final</p>
-              <p className="text-[11px] sm:text-xs text-foreground/60">
+            <div className="mt-6 p-5 rounded-2xl border border-green-500/20 bg-green-500/5 text-center">
+              <p className="text-base font-semibold text-green-500 mb-2">🏆 Meta Final</p>
+              <p className="text-base text-muted-foreground leading-relaxed">
                 Cruza la meta sonriendo. No importa tu tiempo, el logro es haber entrenado y llegado.
                 ¡Eres increíble! 🎉
               </p>
@@ -204,9 +204,8 @@ export default function DiaCarreraPage() {
           </div>
         )}
 
-        {/* Tips */}
         {activeTab === 'tips' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[
               { icon: "🎽", title: "NO uses ropa nueva", text: "Usa lo que has usado en entrenamientos. Las ampollas del día de la carrera duelen el doble." },
               { icon: "🚽", title: "Ve al baño antes de la salida", text: "Haz fila 30 min antes. Las filas son largas y el estrés no ayuda." },
@@ -220,13 +219,13 @@ export default function DiaCarreraPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="p-4 rounded-xl border border-foreground/5 bg-foreground/[0.02]"
+                className="p-4 rounded-2xl border border-border bg-surface"
               >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl flex-shrink-0">{tip.icon}</span>
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl flex-shrink-0">{tip.icon}</span>
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-0.5">{tip.title}</h4>
-                    <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">{tip.text}</p>
+                    <h4 className="text-base font-semibold text-foreground mb-1">{tip.title}</h4>
+                    <p className="text-base text-muted-foreground leading-relaxed">{tip.text}</p>
                   </div>
                 </div>
               </motion.div>

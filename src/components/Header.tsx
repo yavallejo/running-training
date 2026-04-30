@@ -5,17 +5,36 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/hooks/useTheme";
 import { clearSession } from "@/lib/auth";
+import { motion, AnimatePresence } from "framer-motion";
+
+const RESOURCES_LINKS = [
+  { href: "/guia-principiante", label: "Guía del Principiante", icon: "📚" },
+  { href: "/calentamiento", label: "Calentamiento", icon: "🧘" },
+  { href: "/tecnica", label: "Técnica de Corrida", icon: "🏃" },
+  { href: "/nutricion", label: "Nutrición", icon: "🥗" },
+  { href: "/dia-carrera", label: "Día de la Carrera", icon: "🏁" },
+  { href: "/faq", label: "FAQ", icon: "❓" },
+  { href: "/playlist", label: "Playlist", icon: "🎵" },
+  { href: "/clima", label: "Clima", icon: "🌤️" },
+  { href: "/funcionalidades", label: "Funcionalidades", icon: "⚙️" },
+];
+
+const MAIN_LINKS = [
+  { href: "/plan", label: "Mi Plan", icon: "🏋️" },
+  { href: "/estadisticas", label: "Estadísticas", icon: "📊" },
+];
 
 export default function Header() {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("");
-  const [showResources, setShowResources] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const session = localStorage.getItem("runplan-pro_session");
+    const session = localStorage.getItem("running_session");
     if (session) {
       try {
         const { name } = JSON.parse(session);
@@ -27,142 +46,350 @@ export default function Header() {
   }, []);
 
   const handleLogout = useCallback(() => {
+    setMobileMenuOpen(false);
     clearSession();
     router.push("/login");
   }, [router]);
 
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   if (!mounted) return null;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-foreground/5 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:px-4">
-        <Link href="/plan" className="flex items-center gap-2 group">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5 text-primary transition-transform group-hover:scale-110"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8.25 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM12 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM15.75 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5Z"
-            />
-          </svg>
-          <span className="text-sm font-semibold tracking-tight text-foreground">
-            RunPlan Pro
-          </span>
-        </Link>
+    <>
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border safe-area-top">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex items-center justify-between h-14 px-4">
+            <Link href="/plan" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM12 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM15.75 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5Z"
+                  />
+                </svg>
+              </div>
+              <span
+                className="text-base font-bold tracking-tight text-foreground"
+                style={{ fontFamily: "var(--font-syne)" }}
+              >
+                RunPlan<span className="text-primary"> Pro</span>
+              </span>
+            </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
-          <NavLink href="/plan">Plan</NavLink>
-          <NavLink href="/estadisticas">Estadísticas</NavLink>
+            {/* Desktop Navigation - Hidden on mobile */}
+            <nav className="hidden md:flex items-center gap-1">
+              {MAIN_LINKS.map((link) => (
+                <NavLink key={link.href} href={link.href} icon={link.icon}>
+                  {link.label}
+                </NavLink>
+              ))}
 
-          {/* Resources Dropdown */}
-          <div className="relative">
+              <div className="relative">
+                <button
+                  onClick={() => setResourcesOpen(!resourcesOpen)}
+                  className="flex items-center gap-1 h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
+                >
+                  Recursos
+                  <motion.svg
+                    animate={{ rotate: resourcesOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </motion.svg>
+                </button>
+
+                <AnimatePresence>
+                  {resourcesOpen && (
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-40"
+                        onClick={() => setResourcesOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-64 rounded-xl bg-surface-elevated border border-border shadow-xl z-50 overflow-hidden"
+                      >
+                        <div className="py-2">
+                          {RESOURCES_LINKS.map((link) => (
+                            <DropdownLink key={link.href} href={link.href} onClick={() => setResourcesOpen(false)} icon={link.icon}>
+                              {link.label}
+                            </DropdownLink>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <button
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
+                aria-label="Cambiar tema"
+              >
+                {resolvedTheme === "dark" ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                  </svg>
+                )}
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
+                aria-label="Cerrar sesión"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+              </button>
+            </nav>
+
+            {/* Mobile Menu Button - Only visible on mobile */}
             <button
-              onClick={() => setShowResources(!showResources)}
-              className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors flex items-center gap-1"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-foreground hover:bg-surface-elevated transition-colors"
+              aria-label="Abrir menú"
             >
-              Recursos
-              <svg className={`w-3 h-3 transition-transform ${showResources ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>
-
-            {showResources && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-foreground/10 bg-background shadow-lg py-2 z-50">
-                <DropdownLink href="/guia-principiante" onClick={() => setShowResources(false)}>
-                  📚 Guía del Principiante
-                </DropdownLink>
-                <DropdownLink href="/calentamiento" onClick={() => setShowResources(false)}>
-                  🧘 Calentamiento
-                </DropdownLink>
-                <DropdownLink href="/tecnica" onClick={() => setShowResources(false)}>
-                  🏃 Técnica
-                </DropdownLink>
-                <DropdownLink href="/nutricion" onClick={() => setShowResources(false)}>
-                  🥗 Nutrición
-                </DropdownLink>
-                <DropdownLink href="/dia-carrera" onClick={() => setShowResources(false)}>
-                  🏁 Día de la Carrera
-                </DropdownLink>
-                <DropdownLink href="/faq" onClick={() => setShowResources(false)}>
-                  ❓ FAQ
-                </DropdownLink>
-                <DropdownLink href="/playlist" onClick={() => setShowResources(false)}>
-                  🎵 Playlist
-                </DropdownLink>
-                <DropdownLink href="/clima" onClick={() => setShowResources(false)}>
-                  🌤️ Clima
-                </DropdownLink>
-                <div className="border-t border-foreground/5 my-1" />
-                <DropdownLink href="/funcionalidades" onClick={() => setShowResources(false)}>
-                  ⚙️ Funcionalidades
-                </DropdownLink>
-              </div>
-            )}
           </div>
+        </div>
+      </header>
 
-          <button
-            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="rounded-lg p-1.5 hover:bg-foreground/5 transition-colors"
-            aria-label="Cambiar tema"
-          >
-            {resolvedTheme === "dark" ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 11-2 0 1 1 0 012 0zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            )}
-          </button>
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
 
-          <button
-            onClick={handleLogout}
-            className="text-sm text-foreground/50 hover:text-foreground transition-colors"
-          >
-            Salir
-          </button>
-        </nav>
-      </div>
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-5 h-5 text-white"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                      RunPlan Pro
+                    </p>
+                    {userName && (
+                      <p className="text-xs text-muted-foreground">Hola, {userName}</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
+                  aria-label="Cerrar menú"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-      {/* Overlay to close dropdown */}
-      {showResources && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowResources(false)} />
-      )}
-    </header>
+              <nav className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-1">
+                  {MAIN_LINKS.map((link) => (
+                    <MobileNavLink
+                      key={link.href}
+                      href={link.href}
+                      icon={link.icon}
+                      label={link.label}
+                      onClick={() => setMobileMenuOpen(false)}
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  <button
+                    onClick={() => setResourcesOpen(!resourcesOpen)}
+                    className="w-full flex items-center justify-between p-4 rounded-xl bg-surface hover:bg-surface-elevated transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">📖</span>
+                      <span className="text-sm font-semibold text-foreground">Recursos</span>
+                    </div>
+                    <motion.svg
+                      animate={{ rotate: resourcesOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </motion.svg>
+                  </button>
+
+                  <AnimatePresence>
+                    {resourcesOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-2 pl-4 space-y-1">
+                          {RESOURCES_LINKS.map((link) => (
+                            <MobileNavLink
+                              key={link.href}
+                              href={link.href}
+                              icon={link.icon}
+                              label={link.label}
+                              onClick={() => setMobileMenuOpen(false)}
+                              nested
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </nav>
+
+              <div className="p-4 border-t border-border space-y-2">
+                <button
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-surface hover:bg-surface-elevated transition-colors"
+                >
+                  <span className="text-xl">
+                    {resolvedTheme === "dark" ? "☀️" : "🌙"}
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {resolvedTheme === "dark" ? "Modo claro" : "Modo oscuro"}
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-danger/10 hover:bg-danger/20 transition-colors"
+                >
+                  <span className="text-xl">🚪</span>
+                  <span className="text-sm font-medium text-danger">Cerrar sesión</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({ href, children, icon }: { href: string; children: React.ReactNode; icon?: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
+      className="flex items-center gap-1.5 h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
     >
+      {icon}
+      <span>{children}</span>
+    </Link>
+  );
+}
+
+function DropdownLink({ href, children, onClick, icon }: { href: string; children: React.ReactNode; onClick: () => void; icon: string }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
+    >
+      <span className="text-base">{icon}</span>
       {children}
     </Link>
   );
 }
 
-function DropdownLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) {
+function MobileNavLink({
+  href,
+  icon,
+  label,
+  onClick,
+  nested = false,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  onClick: () => void;
+  nested?: boolean;
+}) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-colors"
+      className={`w-full flex items-center gap-3 p-4 rounded-xl transition-colors ${
+        nested
+          ? "hover:bg-surface-elevated text-muted-foreground hover:text-foreground"
+          : "bg-surface hover:bg-surface-elevated"
+      }`}
     >
-      {children}
+      <span className="text-xl">{icon}</span>
+      <span className={`font-medium ${nested ? "text-sm" : "text-sm font-semibold text-foreground"}`}>
+        {label}
+      </span>
     </Link>
   );
 }

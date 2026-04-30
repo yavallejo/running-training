@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
-// Simple weather component (simulated - in production use OpenWeatherMap or similar)
 const WEATHER_TIPS = {
   sunny: {
     icon: "☀️",
@@ -92,43 +91,45 @@ export default function ClimaPage() {
   };
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               🌤️ Clima y Recomendaciones
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Cómo adaptar tu entrenamiento según el clima
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        {/* Temperature Calculator */}
-        <div className="mb-6 rounded-xl border border-foreground/5 bg-foreground/[0.02] p-4 sm:p-5">
-          <h3 className="text-xs font-medium text-foreground mb-3">🌡️ Calculadora de clima</h3>
-          <div className="flex gap-2 items-end">
+        <div className="mb-6 rounded-2xl border border-border bg-surface p-5">
+          <h3 className="text-base font-semibold text-foreground mb-4">🌡️ Calculadora de clima</h3>
+          <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <label className="text-[10px] text-foreground/50">Temperatura actual (°C)</label>
+              <label className="text-sm text-muted-foreground block mb-2">Temperatura actual (°C)</label>
               <input
                 type="number"
                 value={customTemp}
                 onChange={(e) => setCustomTemp(e.target.value)}
                 placeholder="Ej: 22"
-                className="mt-1 w-full rounded-lg border border-foreground/10 bg-background px-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus:border-primary focus:outline-none"
+                className="w-full h-12 rounded-xl border border-border bg-surface-elevated px-4 text-base text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -136,13 +137,13 @@ export default function ClimaPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/10"
+              className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10"
             >
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-lg font-semibold text-foreground">
                 {getTempRecommendation(Number(customTemp)).icon}{' '}
                 {customTemp}°C - {getTempRecommendation(Number(customTemp)).level}
               </p>
-              <p className="mt-1 text-[11px] text-foreground/60">
+              <p className="mt-2 text-base text-muted-foreground leading-relaxed">
                 {Number(customTemp) >= 28
                   ? 'Hidrátate extra, usa ropa muy ligera, evita horas centrales.'
                   : Number(customTemp) >= 22
@@ -157,28 +158,27 @@ export default function ClimaPage() {
           )}
         </div>
 
-        {/* Weather Conditions */}
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {Object.entries(WEATHER_TIPS).map(([key, condition], index) => (
             <motion.div
               key={key}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`rounded-xl border ${condition.border} bg-gradient-to-br ${condition.color} overflow-hidden`}
+              className={`rounded-2xl border ${condition.border} bg-gradient-to-br ${condition.color} overflow-hidden`}
             >
-              <div className="p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">{condition.icon}</span>
-                  <h3 className="text-sm font-semibold text-foreground">
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">{condition.icon}</span>
+                  <h3 className="text-lg font-semibold text-foreground">
                     {condition.label}
                   </h3>
                 </div>
-                <div className="ml-9 space-y-1.5">
+                <div className="space-y-3 ml-11">
                   {condition.tips.map((tip, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-                      <span className="text-[11px] sm:text-xs text-foreground/70 leading-relaxed">
+                    <div key={i} className="flex items-start gap-3">
+                      <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
+                      <span className="text-base text-muted-foreground leading-relaxed">
                         {tip}
                       </span>
                     </div>
@@ -193,12 +193,12 @@ export default function ClimaPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 sm:mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 text-center"
+          className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center"
         >
-          <p className="text-xs sm:text-sm font-medium text-primary mb-1">
+          <p className="text-base font-semibold text-primary mb-2">
             💡 Tip para el día de la carrera
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             Revisa el clima 2 días antes y el día anterior. Si hace mucho calor (29°C+),
             ajusta tu estrategia a un ritmo más lento y hidrátate el doble. ¡No luches contra el clima!
           </p>

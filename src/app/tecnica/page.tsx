@@ -89,7 +89,7 @@ const TECHNIQUE_SECTIONS = [
     color: "from-rose-500/10 to-pink-500/5",
     border: "border-rose-500/20",
     tips: [
-      { text: "Tu ritmo debe permitirte mantener una conversación (Test de la charla)", correct: true },
+      { text: "Tu ritmo debe permitirte mantener una conversación (Test de la丽莎)", correct: true },
       { text: "Meta: ~11 min/km para RunPlan Pro. Si es más rápido, DESACELERA", correct: true },
       { text: "Es mejor correr lento pero constante, que rápido y tener que caminar", correct: true },
       { text: "Si no puedes hablar sin jadear, eres DEMASIADO RÁPIDA", correct: true }
@@ -114,85 +114,95 @@ export default function TecnicaPage() {
   };
 
   return (
-    <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6 sm:mb-8 flex items-center justify-between">
-          <div>
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex-1">
             <button
               onClick={() => router.back()}
-              className="text-sm text-foreground/50 hover:text-foreground transition-colors mb-2 flex items-center gap-1"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-3 flex items-center gap-1"
             >
-              ← Volver
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver
             </button>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               🏃 Técnica de Carrera
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-foreground/50">
+            <p className="text-base text-muted-foreground">
               Correr bien para evitar lesiones y disfrutar más
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {TECHNIQUE_SECTIONS.map((section, index) => (
             <motion.div
               key={section.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`rounded-xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
+              className={`rounded-2xl border ${section.border} bg-gradient-to-br ${section.color} overflow-hidden`}
             >
               <button
                 onClick={() => setExpanded(expanded === section.id ? null : section.id)}
-                className="w-full text-left p-4 sm:p-5 flex items-start gap-3"
+                className="w-full text-left p-4 sm:p-5 flex items-center gap-4"
               >
-                <span className="text-2xl flex-shrink-0">{section.icon}</span>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-foreground">
+                <span className="text-3xl flex-shrink-0">{section.icon}</span>
+                <div className="flex-1 text-left">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
                     {section.title}
                   </h3>
-                  <p className="text-[10px] sm:text-xs text-foreground/40 mt-0.5">
-                    {expanded === section.id ? 'Click para contraer' : 'Click para ver técnica'}
+                  <p className="text-sm text-muted-foreground">
+                    {expanded === section.id ? 'Toca para ocultar' : 'Toca para ver técnica'}
                   </p>
                 </div>
-                <svg
-                  className={`w-4 h-4 text-foreground/40 transition-transform flex-shrink-0 mt-0.5 ${expanded === section.id ? 'rotate-180' : ''}`}
+                <motion.svg
+                  animate={{ rotate: expanded === section.id ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-5 h-5 text-muted-foreground flex-shrink-0"
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </motion.svg>
               </button>
 
               {expanded === section.id && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3"
+                  exit={{ opacity: 0, height: 0 }}
+                  className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4"
                 >
-                  <div className="bg-background/50 rounded-lg p-3 space-y-2">
-                    <h4 className="text-xs font-medium text-primary mb-2">✅ Hacer</h4>
+                  <div className="bg-background/60 rounded-xl p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-green-500 flex items-center gap-2">
+                      <span className="text-lg">✅</span> Hacer
+                    </h4>
                     {section.tips.map((tip, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className="w-1 h-1 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
-                        <span className="text-[11px] sm:text-xs text-foreground/70 leading-relaxed">
+                      <div key={i} className="flex items-start gap-3">
+                        <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-2" />
+                        <span className="text-base text-muted-foreground leading-relaxed">
                           {tip.text}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="bg-red-500/5 rounded-lg p-3 border border-red-500/10">
-                    <h4 className="text-xs font-medium text-red-500 mb-2">❌ Evitar</h4>
+                  <div className="bg-red-500/5 rounded-xl p-4 border border-red-500/10 space-y-3">
+                    <h4 className="text-sm font-semibold text-red-500 flex items-center gap-2">
+                      <span className="text-lg">❌</span> Evitar
+                    </h4>
                     {section.wrong.map((item, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className="w-1 h-1 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />
-                        <span className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+                      <div key={i} className="flex items-start gap-3">
+                        <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-2" />
+                        <span className="text-base text-muted-foreground leading-relaxed">
                           {item}
                         </span>
                       </div>
@@ -208,12 +218,12 @@ export default function TecnicaPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-6 sm:mt-8 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 text-center"
+          className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-center"
         >
-          <p className="text-xs sm:text-sm font-medium text-primary mb-1">
+          <p className="text-base font-semibold text-primary mb-2">
             💡 Clave del éxito
           </p>
-          <p className="text-[11px] sm:text-xs text-foreground/60 leading-relaxed">
+          <p className="text-base text-muted-foreground leading-relaxed">
             Más vale una zancada corta y rápida que una larga y pesada.
             La técnica correcta desde el día 1 evita lesiones futuras. ¡Paciencia!
           </p>

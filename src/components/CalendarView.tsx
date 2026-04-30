@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { TrainingSession } from "@/lib/training-plan";
-import { parseLocalDate, formatDayLabel } from "@/lib/date-utils";
 
 interface CalendarViewProps {
   sessions: TrainingSession[];
@@ -10,145 +10,149 @@ interface CalendarViewProps {
 }
 
 const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 export default function CalendarView({ sessions, onSessionClick }: CalendarViewProps) {
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // Mes actual (0-indexed: 0=Enero, 3=Abril)
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  
-  // Today string in local time (not UTC)
+
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  
-  // Get first day of month and number of days
+
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  // Create calendar grid
-  const calendarDays = [];
-  
-  // Empty cells for days before month starts
+  const calendarDays: ({ day: number; dateStr: string; session: TrainingSession | undefined } | null)[] = [];
+
   for (let i = 0; i < firstDay; i++) {
     calendarDays.push(null);
   }
-  
-  // Days of the month
+
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const session = sessions.find(s => s.date === dateStr);
     calendarDays.push({ day, dateStr, session });
   }
 
-  const getDayColor = (session: TrainingSession | undefined) => {
-    if (!session) return "bg-foreground/[0.02] text-foreground/30";
-    if (session.completed) return "bg-primary/10 text-primary border border-primary/20";
-    if (session.blocked) return "bg-red-500/10 text-red-500 border border-red-500/20";
-    if (session.rescheduled) return "bg-secondary/10 text-secondary border border-secondary/20";
-    
+  const getDayStyles = (session: TrainingSession | undefined) => {
+    if (!session) return "bg-surface text-muted-foreground/40";
+    if (session.completed) return "bg-primary/15 text-primary border border-primary/30";
+    if (session.blocked) return "bg-danger/10 text-danger border border-danger/20";
+    if (session.rescheduled) return "bg-secondary/15 text-secondary border border-secondary/30";
     if (session.date === todayStr) return "bg-primary/20 text-primary border-2 border-primary font-bold";
-    
-    return "bg-foreground/[0.04] text-foreground/60";
+    return "bg-surface text-muted-foreground";
   };
 
-  const getSessionDot = (session: TrainingSession | undefined) => {
+  const getSessionIndicator = (session: TrainingSession | undefined) => {
     if (!session) return null;
-    if (session.completed) return <div className="w-1 h-1 rounded-full bg-primary mt-0.5" />;
-    if (session.blocked) return <div className="w-1 h-1 rounded-full bg-red-500 mt-0.5" />;
-    if (session.rescheduled) return <div className="w-1 h-1 rounded-full bg-secondary mt-0.5" />;
-    return <div className="w-1 h-1 rounded-full bg-foreground/30 mt-0.5" />;
+    if (session.completed) return <div className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5" />;
+    if (session.blocked) return <div className="w-1.5 h-1.5 rounded-full bg-danger mt-0.5" />;
+    if (session.rescheduled) return <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-0.5" />;
+    if (session.date === todayStr) return <div className="w-1.5 h-1.5 rounded-full bg-primary mt-0.5 animate-pulse" />;
+    return <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-0.5" />;
+  };
+
+  const goToPrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
   return (
-    <div className="rounded-xl border border-foreground/5 p-3 sm:p-4">
-      {/* Month Header */}
-      <div className="flex items-center justify-between mb-3">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl bg-surface border border-border overflow-hidden"
+    >
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <button
-          onClick={() => {
-            if (currentMonth === 0) {
-              setCurrentMonth(11);
-              setCurrentYear(currentYear - 1);
-            } else {
-              setCurrentMonth(currentMonth - 1);
-            }
-          }}
-          className="p-1 rounded hover:bg-foreground/5 transition-colors"
+          onClick={goToPrevMonth}
+          className="w-10 h-10 rounded-xl bg-surface-elevated hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
         >
-          ←
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
         </button>
-        <h3 className="text-sm font-medium text-foreground">
-          {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][currentMonth]} {currentYear}
+        <h3 className="text-base font-semibold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          {MONTHS[currentMonth]} {currentYear}
         </h3>
         <button
-          onClick={() => {
-            if (currentMonth === 11) {
-              setCurrentMonth(0);
-              setCurrentYear(currentYear + 1);
-            } else {
-              setCurrentMonth(currentMonth + 1);
-            }
-          }}
-          className="p-1 rounded hover:bg-foreground/5 transition-colors"
+          onClick={goToNextMonth}
+          className="w-10 h-10 rounded-xl bg-surface-elevated hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
         >
-          →
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
         </button>
       </div>
 
-      {/* Day Headers */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="grid grid-cols-7 p-3 gap-1.5">
         {DAYS_SHORT.map(day => (
-          <div key={day} className="text-center text-[10px] text-foreground/40">
+          <div key={day} className="text-center text-[10px] font-medium text-muted-foreground/60 py-2">
             {day}
           </div>
         ))}
-      </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((item, index) => (
-          <div
-             key={index}
-             onClick={() => {
-               if (item?.session) {
-                 onSessionClick(item.session.id);
-               }
-             }}
-             onKeyDown={(e) => {
-               if (e.key === 'Enter' || e.key === ' ') {
-                 if (item?.session) {
-                   onSessionClick(item.session.id);
-                 }
-               }
-             }}
-             role="button"
-             tabIndex={item?.session ? 0 : -1}
-             aria-label={item ? (item.session ? `Sesión ${item.day}: ${item.session.workout}` : `Día ${item.day}`) : `Día vacío ${index}`}
-             className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs transition-colors ${
-               item?.session ? getDayColor(item.session) + " cursor-pointer hover:opacity-80" : "bg-foreground/[0.02]"
-             }`}
-           >
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.01 }}
+            onClick={() => {
+              if (item?.session) {
+                onSessionClick(item.session.id);
+              }
+            }}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && item?.session) {
+                onSessionClick(item.session.id);
+              }
+            }}
+            role="button"
+            tabIndex={item?.session ? 0 : -1}
+            aria-label={item ? (item.session ? `Sesión ${item.day}: ${item.session.workout}` : `Día ${item.day}`) : `Día vacío ${index}`}
+            className={`aspect-square flex flex-col items-center justify-center rounded-xl text-xs transition-all min-h-[48px] ${
+              item?.session
+                ? getDayStyles(item.session) + " cursor-pointer hover:scale-105 active:scale-95"
+                : "bg-surface-elevated/50"
+            }`}
+          >
             {item && (
               <>
-                <span className="text-[10px] sm:text-xs">{item.day}</span>
-                {getSessionDot(item.session)}
+                <span className="font-medium">{item.day}</span>
+                {getSessionIndicator(item.session)}
               </>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-foreground/5">
+      <div className="flex flex-wrap gap-3 p-4 pt-2 border-t border-border">
         {[
-          { label: "Completado", color: "bg-primary/10 border-primary/20", dot: "bg-primary" },
-          { label: "HOY", color: "bg-primary/20 border-2 border-primary", dot: "bg-primary" },
-          { label: "Reprogramada", color: "bg-secondary/10 border-secondary/20", dot: "bg-secondary" },
-          { label: "Bloqueada", color: "bg-red-500/10 border-red-500/20", dot: "bg-red-500" },
+          { label: "Completado", bg: "bg-primary/15 border-primary/30", dot: "bg-primary" },
+          { label: "HOY", bg: "bg-primary/20 border-2 border-primary", dot: "bg-primary" },
+          { label: "Reprogramada", bg: "bg-secondary/15 border-secondary/30", dot: "bg-secondary" },
+          { label: "Bloqueada", bg: "bg-danger/10 border-danger/20", dot: "bg-danger" },
         ].map(legend => (
-          <div key={legend.label} className="flex items-center gap-1">
-            <div className={`w-3 h-3 rounded border ${legend.color}`} />
-            <span className="text-[9px] sm:text-[10px] text-foreground/40">{legend.label}</span>
+          <div key={legend.label} className="flex items-center gap-1.5">
+            <div className={`w-4 h-4 rounded-md border ${legend.bg}`} />
+            <span className="text-[10px] text-muted-foreground">{legend.label}</span>
           </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

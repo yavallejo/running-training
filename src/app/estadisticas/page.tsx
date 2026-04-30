@@ -11,8 +11,6 @@ import { BADGES, checkAchievements } from "@/lib/achievements";
 import { loadWellnessData, WellnessData } from "@/components/WellnessTracker";
 import { loadWeightEffortData, WeightEffortData } from "@/components/WeightEffortTracker";
 
-const STORAGE_KEY = "runplan-pro_training_plan";
-
 export default function EstadisticasPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
@@ -30,10 +28,9 @@ export default function EstadisticasPage() {
           return;
         }
 
-        // Cargar sesiones desde Supabase según el plan del usuario
         const sessionsData = await generateTrainingPlan(session.planId);
         const progressMap = await loadUserProgress(session.userId);
-        
+
         const sessionsWithProgress = sessionsData.map(s => {
           const progress = progressMap.get(s.id);
           if (progress) {
@@ -75,7 +72,7 @@ export default function EstadisticasPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+          className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
         />
       </main>
     );
@@ -88,7 +85,6 @@ export default function EstadisticasPage() {
   const totalPlannedDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
   const nextSession = sessions.find(s => !s.completed);
 
-  // Calculate averages
   const avgSleep = wellnessData.length > 0
     ? (wellnessData.reduce((sum, w) => sum + w.sleep, 0) / wellnessData.length).toFixed(1)
     : null;
@@ -106,28 +102,28 @@ export default function EstadisticasPage() {
     : null;
 
   return (
-    <main className="flex-1 px-4 py-8">
+    <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-2xl">
         <header className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Estadísticas</h1>
-            <p className="mt-1 text-sm text-foreground/50">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Estadísticas</h1>
+            <p className="mt-1 text-base text-muted-foreground">
               Progreso al 17 de mayo
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-foreground/40 hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
           >
             Salir
           </button>
         </header>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        <div className="mb-6 grid grid-cols-2 gap-3">
           {[
             { label: "Días restantes", value: daysLeft, color: "text-secondary", bg: "bg-secondary/5" },
             { label: "Sesiones", value: completedSessions.length, sub: `/ ${totalSessions}`, color: "text-primary", bg: "bg-primary/5" },
-            { label: "Distancia", value: totalDistance, sub: `km / ${totalPlannedDistance} km`, color: "text-green-500", bg: "bg-green-500/5" },
+            { label: "Distancia", value: totalDistance.toFixed(1), sub: `km`, color: "text-green-500", bg: "bg-green-500/5" },
             { label: "Cumplimiento", value: completionRate, sub: "%", color: "text-blue-500", bg: "bg-blue-500/5" },
           ].map((stat, index) => (
             <motion.div
@@ -135,18 +131,17 @@ export default function EstadisticasPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.3 }}
-              className={`rounded-xl border border-foreground/5 ${stat.bg} p-4`}
+              className={`rounded-2xl border border-border ${stat.bg} p-4`}
             >
-              <p className="text-xs text-foreground/50">{stat.label}</p>
-              <p className={`text-2xl font-semibold ${stat.color}`}>
+              <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+              <p className={`text-3xl font-bold ${stat.color}`} style={{ fontFamily: "var(--font-syne)" }}>
                 {stat.value}
-                {stat.sub && <span className="ml-1 text-sm font-normal text-foreground/40">{stat.sub}</span>}
+                {stat.sub && <span className="text-base font-normal text-muted-foreground ml-1">{stat.sub}</span>}
               </p>
             </motion.div>
           ))}
         </div>
 
-        {/* Wellness Stats */}
         {wellnessData.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -154,24 +149,23 @@ export default function EstadisticasPage() {
             transition={{ delay: 0.4 }}
             className="mb-6 space-y-3"
           >
-            <h2 className="text-sm font-medium text-foreground">💆‍♀️ Bienestar Promedio</h2>
+            <h2 className="text-base font-semibold text-foreground">💆‍♀️ Bienestar Promedio</h2>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: "😴 Sueño", value: avgSleep, icon: "🌙" },
                 { label: "🦵 Piernas", value: avgLegs, icon: "💪" },
                 { label: "⚡ Energía", value: avgEnergy, icon: "🔋" },
               ].map((item, i) => (
-                <div key={i} className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
-                  <p className="text-[10px] text-foreground/40 mb-1">{item.label}</p>
-                  <p className="text-lg font-semibold text-foreground">{item.value || "-"}</p>
-                  <p className="text-[9px] text-foreground/30">/ 5</p>
+                <div key={i} className="rounded-2xl border border-border bg-surface p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">{item.label}</p>
+                  <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>{item.value || "-"}</p>
+                  <p className="text-xs text-muted-foreground/50">/ 5</p>
                 </div>
               ))}
             </div>
           </motion.div>
         )}
 
-        {/* Weight & Effort Stats */}
         {weightEffortData.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -179,15 +173,19 @@ export default function EstadisticasPage() {
             transition={{ delay: 0.5 }}
             className="mb-6 space-y-3"
           >
-            <h2 className="text-sm font-medium text-foreground">⚖️ Peso e Esfuerzo</h2>
+            <h2 className="text-base font-semibold text-foreground">⚖️ Peso e Esfuerzo</h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
-                <p className="text-[10px] text-foreground/40 mb-1">⚖️ Peso Actual</p>
-                <p className="text-lg font-semibold text-foreground">{recentWeight || "-"} <span className="text-xs font-normal text-foreground/40">kg</span></p>
+              <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-2">⚖️ Peso Actual</p>
+                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                  {recentWeight || "-"} <span className="text-base font-normal text-muted-foreground">kg</span>
+                </p>
               </div>
-              <div className="rounded-xl border border-foreground/5 bg-background p-3 text-center">
-                <p className="text-[10px] text-foreground/40 mb-1">💪 Esfuerzo Promedio</p>
-                <p className="text-lg font-semibold text-foreground">{avgEffort || "-"} <span className="text-xs font-normal text-foreground/40">/ 5</span></p>
+              <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-2">💪 Esfuerzo Promedio</p>
+                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                  {avgEffort || "-"} <span className="text-base font-normal text-muted-foreground">/ 5</span>
+                </p>
               </div>
             </div>
           </motion.div>
@@ -197,20 +195,20 @@ export default function EstadisticasPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mb-6 space-y-3"
+          className="mb-6 space-y-4"
         >
           {[
             { label: "Distancia", current: totalDistance, total: EVENT_DISTANCE, color: "bg-gradient-to-r from-primary to-secondary" },
             { label: "Sesiones", current: completedSessions.length, total: totalSessions, color: "bg-primary" },
           ].map((bar) => (
-            <div key={bar.label} className="rounded-xl border border-foreground/5 p-4">
-              <div className="mb-1.5 flex justify-between">
-                <span className="text-xs text-foreground/50">{bar.label}</span>
-                <span className="text-xs text-foreground/50">
-                  {bar.current} / {bar.total}
+            <div key={bar.label} className="rounded-2xl border border-border bg-surface p-4">
+              <div className="mb-2 flex justify-between">
+                <span className="text-sm text-muted-foreground">{bar.label}</span>
+                <span className="text-sm text-muted-foreground font-medium">
+                  {bar.current.toFixed(1)} / {bar.total}
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-surface-elevated overflow-hidden">
                 <motion.div
                   className={`h-full rounded-full ${bar.color}`}
                   initial={{ width: 0 }}
@@ -222,36 +220,35 @@ export default function EstadisticasPage() {
           ))}
         </motion.div>
 
-        {/* Badges Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="space-y-3"
         >
-          <h2 className="text-sm font-medium text-foreground">Logros</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <h2 className="text-base font-semibold text-foreground">Logros</h2>
+          <div className="grid grid-cols-3 gap-3">
             {BADGES.map((badge) => {
               const stored = localStorage.getItem("runplan-pro_achievements");
               const unlockedBadges = stored ? JSON.parse(stored) : [];
               const isUnlocked = unlockedBadges.includes(badge.id);
-              
+
               return (
                 <motion.div
                   key={badge.id}
                   whileHover={{ scale: 1.05 }}
-                  className={`rounded-xl border p-3 text-center transition-colors ${
-                    isUnlocked 
-                      ? "border-primary/20 bg-primary/5" 
-                      : "border-foreground/5 bg-foreground/[0.02] opacity-40"
+                  className={`rounded-2xl border p-4 text-center transition-colors ${
+                    isUnlocked
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-border bg-surface opacity-50"
                   }`}
                 >
-                  <div className="text-2xl mb-1">{isUnlocked ? badge.icon : "🔒"}</div>
-                  <p className={`text-[10px] font-medium ${isUnlocked ? "text-foreground" : "text-foreground/40"}`}>
+                  <div className="text-3xl mb-2">{isUnlocked ? badge.icon : "🔒"}</div>
+                  <p className={`text-sm font-medium ${isUnlocked ? "text-foreground" : "text-muted-foreground"}`}>
                     {badge.name}
                   </p>
                   {isUnlocked && (
-                    <p className="text-[9px] text-foreground/40 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {badge.description}
                     </p>
                   )}
@@ -266,22 +263,22 @@ export default function EstadisticasPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="rounded-xl border border-primary/10 bg-primary/[0.03] p-4"
+            className="mt-6 rounded-2xl border border-primary/10 bg-primary/5 p-4"
           >
-            <h2 className="text-sm font-medium text-foreground mb-1">Próxima sesión</h2>
-            <p className="text-sm text-foreground/70">
-              <span className="font-medium">{nextSession.dayLabel}</span> · {nextSession.workout}
+            <h2 className="text-base font-semibold text-foreground mb-1">Próxima sesión</h2>
+            <p className="text-base text-muted-foreground">
+              <span className="font-medium text-foreground">{nextSession.dayLabel}</span> · {nextSession.workout}
             </p>
           </motion.div>
         )}
 
-        {completedSessions.length === totalSessions && (
+        {completedSessions.length === totalSessions && totalSessions > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mt-6 rounded-xl border border-green-500/10 bg-green-500/[0.03] p-4 text-center"
+            className="mt-6 rounded-2xl border border-green-500/20 bg-green-500/5 p-5 text-center"
           >
-            <p className="text-xl font-semibold text-green-500">🎉 ¡Plan completado!</p>
+            <p className="text-xl font-bold text-green-500">🎉 ¡Plan completado!</p>
           </motion.div>
         )}
       </div>

@@ -41,7 +41,7 @@ export default function CountdownTimer() {
 
   if (!timeLeft) return null;
 
-  const isEventDay = timeLeft.days === 0 && timeLeft.hours === 0 && 
+  const isEventDay = timeLeft.days === 0 && timeLeft.hours === 0 &&
                      timeLeft.minutes === 0 && timeLeft.seconds === 0;
 
   if (isEventDay) {
@@ -49,10 +49,10 @@ export default function CountdownTimer() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="rounded-xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-4 text-center shadow-lg"
+        className="mt-3 rounded-xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-3 text-center"
       >
         <p className="text-sm font-bold text-primary-foreground animate-pulse">
-          🎉 ¡ES HOY! {EVENT_NAME} 🎉
+          ¡ES HOY! {EVENT_NAME}
         </p>
       </motion.div>
     );
@@ -62,31 +62,28 @@ export default function CountdownTimer() {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-primary/20 bg-primary/[0.05] p-3 sm:p-4"
+      className="mt-2"
     >
-      <p className="text-center text-[10px] sm:text-xs text-foreground/50 mb-2">
-        ⏱️ Cuenta regresiva para {EVENT_NAME}
-      </p>
-      <div className="flex justify-center gap-2 sm:gap-3">
+      <div className="flex justify-center gap-1.5">
         {[
-          { label: "Días", value: timeLeft.days },
-          { label: "Horas", value: timeLeft.hours },
-          { label: "Min", value: timeLeft.minutes },
-          { label: "Seg", value: timeLeft.seconds },
+          { label: "D", value: timeLeft.days },
+          { label: "H", value: timeLeft.hours },
+          { label: "M", value: timeLeft.minutes },
+          { label: "S", value: timeLeft.seconds },
         ].map((item, index) => (
             <motion.div
              key={item.label}
              initial={{ scale: 0 }}
              animate={{ scale: 1 }}
-             transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+             transition={{ delay: index * 0.05, type: "spring", stiffness: 200 }}
              className="text-center"
            >
-             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-background border border-primary/20 flex items-center justify-center shadow-sm" aria-label={`${item.value} ${item.label}`}>
-               <span className="text-base sm:text-lg font-bold text-primary">
+             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center" aria-label={`${item.value} ${item.label}`}>
+               <span className="text-sm font-bold text-primary" style={{ fontFamily: "var(--font-syne)" }}>
                  {String(item.value).padStart(2, '0')}
                </span>
              </div>
-             <span className="text-[9px] sm:text-[10px] text-foreground/40 mt-0.5 block">
+             <span className="text-[8px] text-muted-foreground mt-0.5 block">
                {item.label}
              </span>
            </motion.div>

@@ -21,6 +21,8 @@ interface PlanHeaderProps {
 export default function PlanHeader({ userName, sessions, completedCount, motivacionalMessage, raceDistance = 7, raceDate = "2026-05-17", raceName = "Carrera Recreativa" }: PlanHeaderProps) {
   const totalSessions = sessions.length;
   const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
+  const circumference = 2 * Math.PI * 44;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   const router = useRouter();
 
@@ -31,73 +33,146 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
     }
   }, [router]);
 
+  const formattedRaceDate = raceDate ? new Date(raceDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '17 may';
+
   return (
     <>
-      <header className="mb-6 sm:mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
-            Hola, {userName} 👋
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-foreground/50">
-            {raceName} {raceDistance}km · {raceDate ? new Date(raceDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '17 mayo'}
-          </p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-foreground/50 hover:text-foreground transition-colors"
-        >
-          Salir
-        </button>
-      </header>
-
-      {/* Countdown Timer */}
-      <div className="mb-4 sm:mb-6">
-        <CountdownTimer />
-      </div>
-
-      {/* Motivational Message */}
-      {motivacionalMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 sm:mb-6 rounded-xl border border-primary/20 bg-primary/5 p-3 sm:p-4 flex items-start gap-2.5"
-        >
-          <span className="text-xl flex-shrink-0">{motivacionalMessage.icon}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <svg className="w-16 h-16 sm:w-20 sm:h-20 -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="var(--surface)"
+                strokeWidth="8"
+              />
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="url(#progressGradient)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                initial={{ strokeDashoffset: circumference }}
+                animate={{ strokeDashoffset }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="var(--primary)" />
+                  <stop offset="100%" stopColor="#FF6B6B" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-base sm:text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                {progress}%
+              </span>
+            </div>
+          </div>
           <div>
-            <p className="text-[11px] sm:text-xs text-foreground/70 leading-relaxed">
-              {motivacionalMessage.text}
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+              ¡Hola, {userName}!
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              {completedCount}/{totalSessions} sesiones completadas
             </p>
           </div>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-surface self-start"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          Salir
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl bg-surface border border-border p-4"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium">Distancia</span>
+          </div>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            {raceDistance}<span className="text-sm text-muted-foreground font-normal ml-1">km</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">{raceName}</p>
         </motion.div>
-      )}
 
-      {/* Wellness Tracker */}
-      <div className="mb-4 sm:mb-6">
-        <WellnessTracker />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-xl bg-surface border border-border p-4"
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium">Evento</span>
+          </div>
+          <p className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            {formattedRaceDate}
+          </p>
+          <CountdownTimer />
+        </motion.div>
       </div>
 
-      {/* Weight & Effort Tracker */}
-      <div className="mb-4 sm:mb-6">
-        <WeightEffortTracker />
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-4 sm:mb-6 rounded-xl border border-foreground/5 bg-background p-3 sm:p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs sm:text-sm text-foreground/60">Progreso</span>
-          <span className="text-xs sm:text-sm font-medium text-primary">{progress}%</span>
-        </div>
-        <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="rounded-xl bg-gradient-to-br from-primary/10 via-surface to-surface border border-primary/20 p-4 mb-6"
+      >
+        <div className="flex items-start gap-3">
           <motion.div
-            className="h-full bg-primary rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-          />
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-2xl flex-shrink-0"
+          >
+            {motivacionalMessage?.icon || "🔥"}
+          </motion.div>
+          <p className="text-sm text-foreground/80 leading-relaxed">
+            {motivacionalMessage?.text || "Cada paso cuenta. ¡Sigue así!"}
+          </p>
         </div>
-        <p className="mt-1.5 text-[10px] sm:text-xs text-foreground/40">
-          {completedCount}/{totalSessions} sesiones
-        </p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <WellnessTracker />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <WeightEffortTracker />
+        </motion.div>
       </div>
     </>
   );
