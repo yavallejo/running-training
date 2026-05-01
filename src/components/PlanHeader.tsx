@@ -113,45 +113,7 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
             {raceDistance}<span className="text-sm text-muted-foreground font-normal ml-1">km</span>
           </p>
           <p className="text-xs text-muted-foreground mt-1">{raceName}</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-xl bg-surface border border-border p-4"
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-              </svg>
-            </div>
-            <span className="text-xs text-muted-foreground font-medium">Evento</span>
-          </div>
-          <p className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
-            {formattedRaceDate}
-          </p>
-          <CountdownTimer />
-        </motion.div>
-      </div>
-
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <WellnessTracker />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <WeightEffortTracker />
-        </motion.div>
+</motion.div>
       </div>
 
       <motion.div
@@ -170,23 +132,6 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <WellnessTracker />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <WeightEffortTracker />
-        </motion.div>
-      </div>
     </>
   );
 }

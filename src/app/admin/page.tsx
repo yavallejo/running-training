@@ -34,6 +34,37 @@ export default function AdminPage() {
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [usersRes, plansRes] = await Promise.all([
+        supabase.from('users').select(`
+          id, username, plan_id, race_distance, race_date, race_name, created_at,
+          plans:plan_id (name, level)
+        `).order('created_at', { ascending: false }),
+        supabase.from('plans').select('*')
+      ]);
+
+      if (usersRes.data) setUsers(usersRes.data);
+      if (plansRes.data) setPlans(plansRes.data);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeProgressModal = () => {
+    setShowProgressModal(false);
+    setSelectedUser(null);
+    setUserProgress([]);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingUser(null);
+  };
+
   useEffect(() => {
     const session = getSession();
     if (!session) {
@@ -57,26 +88,6 @@ export default function AdminPage() {
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [usersRes, plansRes] = await Promise.all([
-        supabase.from('users').select(`
-          id, username, plan_id, race_distance, race_date, race_name, created_at,
-          plans:plan_id (name, level)
-        `).order('created_at', { ascending: false }),
-        supabase.from('plans').select('*')
-      ]);
-
-      if (usersRes.data) setUsers(usersRes.data);
-      if (plansRes.data) setPlans(plansRes.data);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,12 +173,6 @@ export default function AdminPage() {
     }
   };
 
-  const closeProgressModal = () => {
-    setShowProgressModal(false);
-    setSelectedUser(null);
-    setUserProgress([]);
-  };
-
   const openEditModal = (user: any) => {
     setEditingUser(user);
     setEditRaceDistance(user.race_distance || 7);
@@ -191,11 +196,6 @@ export default function AdminPage() {
       setEditingUser(null);
       loadData();
     }
-  };
-
-  const closeEditModal = () => {
-    setShowEditModal(false);
-    setEditingUser(null);
   };
 
   const handleLogout = () => {
