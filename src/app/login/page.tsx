@@ -142,7 +142,7 @@ export default function LoginPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-4xl font-bold tracking-tight mb-2"
-              style={{ fontFamily: "var(--font-syne)" }}
+              style={{ fontFamily: "var(--font-urbanist)" }}
             >
               <span className="text-gradient-primary">RunPlan</span> Pro
             </motion.h1>

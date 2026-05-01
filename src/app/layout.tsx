@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, Manrope } from "next/font/google";
+import { Urbanist, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
@@ -33,15 +33,15 @@ export const metadata: Metadata = {
   },
 };
 
-const syne = Syne({
-  variable: "--font-syne",
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
@@ -61,11 +61,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${syne.variable} ${manrope.variable} h-full antialiased`}>
+    <html lang="es" className={`${urbanist.variable} ${openSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <ErrorBoundary>
-            <Header />
             <main className="flex-1 flex flex-col">{children}</main>
           </ErrorBoundary>
         </Providers>

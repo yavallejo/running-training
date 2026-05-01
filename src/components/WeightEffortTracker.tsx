@@ -93,7 +93,7 @@ export default function WeightEffortTracker() {
             <span className="text-xl">⚖️</span>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
               Peso y Esfuerzo
             </h3>
             <p className="text-xs text-muted-foreground">Seguimiento físico</p>
@@ -125,7 +125,7 @@ export default function WeightEffortTracker() {
                   Peso corporal
                 </label>
                 {weight && (
-                  <span className="text-sm font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                  <span className="text-sm font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                     {weight} kg
                   </span>
                 )}
@@ -149,7 +149,7 @@ export default function WeightEffortTracker() {
                     <p className="text-[10px] text-muted-foreground">RPE de hoy</p>
                   </div>
                 </div>
-                <div className={`text-sm font-bold ${effortInfo.text}`} style={{ fontFamily: "var(--font-syne)" }}>
+                <div className={`text-sm font-bold ${effortInfo.text}`} style={{ fontFamily: "var(--font-urbanist)" }}>
                   {effort}/5 - {EFFORT_LABELS[effort]}
                 </div>
               </div>
@@ -216,7 +216,7 @@ export default function WeightEffortTracker() {
               {todaysData.weight && (
                 <div className="p-3 rounded-xl bg-surface-elevated text-center">
                   <span className="text-lg">⚖️</span>
-                  <p className="text-2xl font-bold text-foreground mt-1" style={{ fontFamily: "var(--font-syne)" }}>
+                  <p className="text-2xl font-bold text-foreground mt-1" style={{ fontFamily: "var(--font-urbanist)" }}>
                     {todaysData.weight}
                   </p>
                   <p className="text-[10px] text-muted-foreground">kg</p>
@@ -225,7 +225,7 @@ export default function WeightEffortTracker() {
               {todaysData.effort && (
                 <div className="p-3 rounded-xl bg-surface-elevated text-center">
                   <span className="text-lg">💪</span>
-                  <p className={`text-2xl font-bold mt-1 ${effortInfo.text}`} style={{ fontFamily: "var(--font-syne)" }}>
+                  <p className={`text-2xl font-bold mt-1 ${effortInfo.text}`} style={{ fontFamily: "var(--font-urbanist)" }}>
                     {todaysData.effort}
                   </p>
                   <p className={`text-[10px] font-medium ${effortInfo.text}`}>

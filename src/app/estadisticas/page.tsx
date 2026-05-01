@@ -134,7 +134,7 @@ export default function EstadisticasPage() {
               className={`rounded-2xl border border-border ${stat.bg} p-4`}
             >
               <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-              <p className={`text-3xl font-bold ${stat.color}`} style={{ fontFamily: "var(--font-syne)" }}>
+              <p className={`text-3xl font-bold ${stat.color}`} style={{ fontFamily: "var(--font-urbanist)" }}>
                 {stat.value}
                 {stat.sub && <span className="text-base font-normal text-muted-foreground ml-1">{stat.sub}</span>}
               </p>
@@ -158,7 +158,7 @@ export default function EstadisticasPage() {
               ].map((item, i) => (
                 <div key={i} className="rounded-2xl border border-border bg-surface p-4 text-center">
                   <p className="text-sm text-muted-foreground mb-2">{item.label}</p>
-                  <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>{item.value || "-"}</p>
+                  <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>{item.value || "-"}</p>
                   <p className="text-xs text-muted-foreground/50">/ 5</p>
                 </div>
               ))}
@@ -177,13 +177,13 @@ export default function EstadisticasPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border bg-surface p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-2">⚖️ Peso Actual</p>
-                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                   {recentWeight || "-"} <span className="text-base font-normal text-muted-foreground">kg</span>
                 </p>
               </div>
               <div className="rounded-2xl border border-border bg-surface p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-2">💪 Esfuerzo Promedio</p>
-                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                   {avgEffort || "-"} <span className="text-base font-normal text-muted-foreground">/ 5</span>
                 </p>
               </div>

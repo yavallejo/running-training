@@ -88,7 +88,7 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </motion.div>
-          <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             ¡Sesión Completada!
           </h3>
           <p className="text-sm text-muted-foreground mt-1">

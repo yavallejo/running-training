@@ -234,7 +234,7 @@ export default function CalentamientoPage() {
 
         <div className={`rounded-2xl border ${activeTab === 'warmup' ? warmupColor : cooldownColor} p-5 mb-6 text-center`}>
           <p className="text-sm text-muted-foreground mb-1">Duración total recomendada</p>
-          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {activeTab === 'warmup' ? '8-12 minutos' : '10-15 minutos'}
           </p>
         </div>

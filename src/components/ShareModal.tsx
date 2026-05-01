@@ -78,7 +78,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            <h3 className="text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
               Compartir Progreso
             </h3>
             <button
@@ -119,7 +119,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
           <div className="rounded-2xl p-5 border border-zinc-800" style={{ background: "linear-gradient(180deg, #18181B 0%, #27272A 100%)" }}>
             <div className="text-center mb-4">
               <div className="text-4xl mb-2">🏃‍♀️</div>
-              <h4 className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+              <h4 className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-urbanist)" }}>
                 RunPlan Pro
               </h4>
               {shareType === 'session' && session ? (
@@ -132,7 +132,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
             {shareType === 'session' && session ? (
               <div className="bg-white/5 rounded-xl p-4 mb-4">
                 <div className="text-center mb-3">
-                  <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-syne)", color: "#00D4FF" }}>
+                  <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-urbanist)", color: "#00D4FF" }}>
                     {session.distance}
                   </span>
                   <span className="text-lg text-white/60 ml-1">km</span>
@@ -183,7 +183,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+                    <span className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-urbanist)" }}>
                       {completionRate}%
                     </span>
                   </div>
@@ -191,13 +191,13 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
                 <div className="space-y-2">
                   <div>
                     <p className="text-xs text-white/60">Sesiones</p>
-                    <p className="text-base font-bold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+                    <p className="text-base font-bold text-white" style={{ fontFamily: "var(--font-urbanist)" }}>
                       {planProgress.completed}/{planProgress.total}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-white/60">Distancia</p>
-                    <p className="text-base font-bold" style={{ fontFamily: "var(--font-syne)", color: "#00D4FF" }}>
+                    <p className="text-base font-bold" style={{ fontFamily: "var(--font-urbanist)", color: "#00D4FF" }}>
                       {planProgress.distance}/{planProgress.totalDistance} km
                     </p>
                   </div>

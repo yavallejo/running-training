@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { EVENT_NAME, EVENT_DATE } from "@/lib/training-plan";
-import { clearSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 const CHECKLIST = [
   { id: "docs", text: "DNI / Documento de identidad", icon: "🆔", category: "esencial" },
@@ -26,23 +25,81 @@ const CHECKLIST = [
   { id: "smile", text: "¡Sonríe en la meta para la foto!", icon: "📸", category: "mental" }
 ];
 
-const STRATEGY = [
-  { km: "0-1", pace: "12:00 min/km", note: "KM 1: Sale lento, no te dejes llevar por la adrenalina", icon: "🐢" },
-  { km: "1-3", pace: "11:30 min/km", note: "KM 1-3: Ritmo cómodo, respiración controlada", icon: "🏃‍♀️" },
-  { km: "3-5", pace: "11:00 min/km", note: "KM 3-5: Si te sientes bien, mantén o acelera un poco", icon: "💪" },
-  { km: "5-6", pace: "11:30 min/km", note: "KM 5-6: Últimos km, usa la técnica de 'rees' (caminar 1 min cada 10 min)", icon: "🎯" },
-  { km: "6-7", pace: "¡Como puedas!", note: "KM 6-7: ¡Falta poco! Si tienes fuerza, acelera. Si no, camina con orgullo", icon: "🏁" }
+const STRATEGY_BY_DISTANCE = {
+  7: [
+    { km: "0-1", pace: "12:00 min/km", note: "KM 1: Sale lento, no te dejes llevar por la adrenalina", icon: "🐢" },
+    { km: "1-3", pace: "11:30 min/km", note: "KM 1-3: Ritmo cómodo, respiración controlada", icon: "🏃‍♀️" },
+    { km: "3-5", pace: "11:00 min/km", note: "KM 3-5: Si te sientes bien, mantén o acelera un poco", icon: "💪" },
+    { km: "5-7", pace: "¡Como puedas!", note: "KM 5-7: ¡Falta poco! Si tienes fuerza, acelera. Si no, camina con orgullo", icon: "🏁" }
+  ],
+  11: [
+    { km: "0-2", pace: "12:00 min/km", note: "KM 0-2: Sale MUY lento, es tu calentamiento", icon: "🐢" },
+    { km: "2-5", pace: "11:30 min/km", note: "KM 2-5: Encuentra tu ritmo base", icon: "🏃‍♀️" },
+    { km: "5-8", pace: "11:00 min/km", note: "KM 5-8: El cuerpo está caliente, es momento de mantener", icon: "💪" },
+    { km: "8-10", pace: "11:30 min/km", note: "KM 8-10: Los últimos km, usa la técnica de walk-break si necesitás", icon: "🎯" },
+    { km: "10-11", pace: "¡Dale!", note: "KM 10-11: ¡Sprint final! Lo que quede en el tanque", icon: "🏁" }
+  ]
+};
+
+const TIPS = [
+  { icon: "🎽", title: "NO uses ropa nueva", text: "Usa lo que has usado en entrenamientos. Las ampollas del día de la carrera duelen el doble." },
+  { icon: "🚽", title: "Ve al baño antes de la salida", text: "Haz fila 30 min antes. Las filas son largas y el estrés no ayuda." },
+  { icon: "🎵", title: "Música opcional", text: "Si usas auriculares, déjalos solo en un oído para escuchar indicaciones y estar alerta." },
+  { icon: "📸", title: "Disfruta el momento", text: "Haz fotos, saluda a la gente, disfruta el ambiente. Es tu primera carrera, ¡celébralo!" },
+  { icon: "🏃‍♀️", title: "No corras detrás de otros", text: "Mantén TU ritmo. Muchos salen rápido y se cansan al km 3. Tú tienes tu plan." },
+  { icon: "🎉", title: "Cruza la meta con orgullo", text: "Al cruzar, pon las manos arriba. Has completado los km. ¡Ese es un logro enorme!" }
 ];
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
+}
+
+function getDaysUntilRace(raceDate: string): number {
+  const now = new Date();
+  const race = new Date(raceDate + 'T00:00:00');
+  const diff = race.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
 
 export default function DiaCarreraPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [raceDistance, setRaceDistance] = useState(7);
+  const [raceDate, setRaceDate] = useState('2026-05-17');
+  const [raceName, setRaceName] = useState('Carrera Recreativa');
   const [checked, setChecked] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'checklist' | 'strategy' | 'tips'>('checklist');
 
-  const handleLogout = () => {
-    clearSession();
-    router.push('/login');
-  };
+  useEffect(() => {
+    const session = getSession();
+    if (!session) {
+      router.replace("/");
+      return;
+    }
+    setRaceDistance(session.raceDistance || 7);
+    setRaceDate(session.raceDate || '2026-05-17');
+    setRaceName(session.raceName || 'Carrera Recreativa');
+
+    const savedChecklist = localStorage.getItem(`dia_carrera_checklist_${session.userId}`);
+    if (savedChecklist) {
+      setChecked(JSON.parse(savedChecklist));
+    }
+    setLoading(false);
+  }, [router]);
+
+  useEffect(() => {
+    if (!loading) {
+      const session = getSession();
+      if (session) {
+        localStorage.setItem(`dia_carrera_checklist_${session.userId}`, JSON.stringify(checked));
+      }
+    }
+  }, [checked, loading]);
 
   const toggleCheck = (id: string) => {
     setChecked(prev =>
@@ -51,6 +108,20 @@ export default function DiaCarreraPage() {
   };
 
   const categories = [...new Set(CHECKLIST.map(i => i.category))];
+  const strategy = STRATEGY_BY_DISTANCE[raceDistance as 7 | 11] || STRATEGY_BY_DISTANCE[7];
+  const daysUntil = getDaysUntilRace(raceDate);
+
+  if (loading) {
+    return (
+      <main className="flex flex-1 items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+        />
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
@@ -70,15 +141,9 @@ export default function DiaCarreraPage() {
               🏁 Guía del Día de la Carrera
             </h1>
             <p className="text-base text-muted-foreground">
-              {EVENT_NAME} · {EVENT_DATE}
+              {raceName} · {raceDistance}km
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors p-2"
-          >
-            Salir
-          </button>
         </div>
 
         <motion.div
@@ -86,9 +151,11 @@ export default function DiaCarreraPage() {
           animate={{ scale: 1 }}
           className="mb-6 rounded-2xl bg-gradient-to-r from-primary via-primary/80 to-secondary p-5 text-primary-foreground text-center"
         >
-          <p className="text-base opacity-80 mb-1">Faltan para la carrera</p>
-          <p className="text-2xl sm:text-3xl font-bold">{EVENT_DATE}</p>
-          <p className="text-base mt-2 opacity-70">7 km · Domingo</p>
+          <p className="text-base opacity-80 mb-1">
+            {daysUntil > 0 ? `Faltan ${daysUntil} día${daysUntil !== 1 ? 's' : ''} para la carrera` : '¡Llegó el día!'}
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold">{formatDate(raceDate)}</p>
+          <p className="text-base mt-2 opacity-70">{raceDistance} km · {daysUntil > 0 ? 'Domingo' : '¡HOY!'}</p>
         </motion.div>
 
         <div className="flex gap-3 mb-6">
@@ -168,7 +235,7 @@ export default function DiaCarreraPage() {
 
         {activeTab === 'strategy' && (
           <div className="space-y-4">
-            {STRATEGY.map((item, i) => (
+            {strategy.map((item, i) => (
               <motion.div
                 key={item.km}
                 initial={{ opacity: 0, x: -20 }}
@@ -197,7 +264,7 @@ export default function DiaCarreraPage() {
               <p className="text-base font-semibold text-green-500 mb-2">🏆 Meta Final</p>
               <p className="text-base text-muted-foreground leading-relaxed">
                 Cruza la meta sonriendo. No importa tu tiempo, el logro es haber entrenado y llegado.
-                ¡Eres increíble! 🎉
+                ¡{raceDistance} km son un logro enorme! 🎉
               </p>
             </div>
           </div>
@@ -205,14 +272,7 @@ export default function DiaCarreraPage() {
 
         {activeTab === 'tips' && (
           <div className="space-y-4">
-            {[
-              { icon: "🎽", title: "NO uses ropa nueva", text: "Usa lo que has usado en entrenamientos. Las ampollas del día de la carrera duelen el doble." },
-              { icon: "🚽", title: "Ve al baño antes de la salida", text: "Haz fila 30 min antes. Las filas son largas y el estrés no ayuda." },
-              { icon: "🎵", title: "Música opcional", text: "Si usas auriculares, déjalos solo en un oído para escuchar indicaciones y estar alerta." },
-              { icon: "📸", title: "Disfruta el momento", text: "Haz fotos, saluda a la gente, disfruta el ambiente. Es tu primera carrera, ¡celébralo!" },
-              { icon: "🏃‍♀️", title: "No corras detrás de otros", text: "Mantén TU ritmo. Muchos salen rápido y se cansan al km 3. Tú tienes tu plan." },
-              { icon: "🎉", title: "Cruza la meta con orgullo", text: "Al cruzar, pon las manos arriba. Has completado 7 km. ¡Ese es un logro enorme!" }
-            ].map((tip, i) => (
+            {TIPS.map((tip, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}

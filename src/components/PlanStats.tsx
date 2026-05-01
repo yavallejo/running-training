@@ -16,7 +16,7 @@ export default function PlanStats({ sessions, completedCount }: PlanStatsProps) 
 
   return (
     <div className="rounded-2xl bg-surface border border-border p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2" style={{ fontFamily: "var(--font-syne)" }}>
+      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2" style={{ fontFamily: "var(--font-urbanist)" }}>
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
         </svg>
@@ -38,7 +38,7 @@ export default function PlanStats({ sessions, completedCount }: PlanStatsProps) 
             </div>
             <span className="text-xs text-muted-foreground font-medium">Sesiones</span>
           </div>
-          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {completedCount}
             <span className="text-sm font-normal text-muted-foreground ml-1">/ {totalSessions}</span>
           </p>
@@ -59,7 +59,7 @@ export default function PlanStats({ sessions, completedCount }: PlanStatsProps) 
             </div>
             <span className="text-xs text-muted-foreground font-medium">Distancia</span>
           </div>
-          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {totalDistance.toFixed(1)}
             <span className="text-sm font-normal text-muted-foreground ml-1">km</span>
           </p>
@@ -74,7 +74,7 @@ export default function PlanStats({ sessions, completedCount }: PlanStatsProps) 
       >
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs text-muted-foreground font-medium">Tasa de completion</span>
-          <span className="text-sm font-bold text-primary" style={{ fontFamily: "var(--font-syne)" }}>{completionRate}%</span>
+          <span className="text-sm font-bold text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>{completionRate}%</span>
         </div>
         <div className="h-2 w-full rounded-full bg-surface overflow-hidden">
           <motion.div

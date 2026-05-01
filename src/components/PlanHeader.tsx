@@ -69,13 +69,13 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
               </defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-base sm:text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+              <span className="text-base sm:text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                 {progress}%
               </span>
             </div>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
               ¡Hola, {userName}!
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -109,7 +109,7 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
             </div>
             <span className="text-xs text-muted-foreground font-medium">Distancia</span>
           </div>
-          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <p className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {raceDistance}<span className="text-sm text-muted-foreground font-normal ml-1">km</span>
           </p>
           <p className="text-xs text-muted-foreground mt-1">{raceName}</p>
@@ -129,7 +129,7 @@ export default function PlanHeader({ userName, sessions, completedCount, motivac
             </div>
             <span className="text-xs text-muted-foreground font-medium">Evento</span>
           </div>
-          <p className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+          <p className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {formattedRaceDate}
           </p>
           <CountdownTimer />

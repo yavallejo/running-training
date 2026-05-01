@@ -231,7 +231,7 @@ export default function SessionCard({
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               {getStateBadge()}
-              <span className="text-base sm:text-lg font-semibold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+              <span className="text-base sm:text-lg font-semibold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                 {session.dayLabel}
               </span>
             </div>

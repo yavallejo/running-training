@@ -79,7 +79,7 @@ export default function CountdownTimer() {
              className="text-center"
            >
              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center" aria-label={`${item.value} ${item.label}`}>
-               <span className="text-sm font-bold text-primary" style={{ fontFamily: "var(--font-syne)" }}>
+               <span className="text-sm font-bold text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
                  {String(item.value).padStart(2, '0')}
                </span>
              </div>

@@ -100,7 +100,7 @@ export default function WellnessTracker() {
             <span className="text-xl">💆‍♀️</span>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+            <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
               Bienestar Diario
             </h3>
             <p className="text-xs text-muted-foreground">¿Cómo te sientes hoy?</p>
@@ -212,7 +212,7 @@ export default function WellnessTracker() {
                 return (
                   <div key={metric.key} className="text-center p-2 rounded-xl bg-surface-elevated">
                     <span className="text-lg">{metric.icon}</span>
-                    <p className="text-lg font-bold text-foreground mt-1" style={{ fontFamily: "var(--font-syne)" }}>
+                    <p className="text-lg font-bold text-foreground mt-1" style={{ fontFamily: "var(--font-urbanist)" }}>
                       {value}
                     </p>
                     <p className={`text-[10px] font-medium ${status.color}`}>{status.label}</p>

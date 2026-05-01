@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/hooks/useTheme";
-import { clearSession } from "@/lib/auth";
+import { getSession, clearSession } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 
 const RESOURCES_LINKS = [
@@ -48,7 +48,7 @@ export default function Header() {
   const handleLogout = useCallback(() => {
     setMobileMenuOpen(false);
     clearSession();
-    router.push("/login");
+    router.push("/");
   }, [router]);
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function Header() {
               </div>
               <span
                 className="text-base font-bold tracking-tight text-foreground"
-                style={{ fontFamily: "var(--font-syne)" }}
+                style={{ fontFamily: "var(--font-urbanist)" }}
               >
                 RunPlan<span className="text-primary"> Pro</span>
               </span>
@@ -232,7 +232,7 @@ export default function Header() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+                    <p className="text-sm font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
                       RunPlan Pro
                     </p>
                     {userName && (

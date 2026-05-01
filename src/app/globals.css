@@ -16,8 +16,8 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-display: var(--font-syne);
-  --font-body: var(--font-manrope);
+  --font-display: var(--font-urbanist);
+  --font-body: var(--font-open-sans);
 }
 
 :root {
@@ -112,12 +112,13 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-syne), system-ui, sans-serif;
+  font-family: var(--font-urbanist), system-ui, sans-serif;
   font-weight: 600;
   line-height: 1.3;
 }
 
 p {
+  font-family: var(--font-open-sans), system-ui, sans-serif;
   line-height: 1.7;
 }
 

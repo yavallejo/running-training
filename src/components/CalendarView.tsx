@@ -85,7 +85,7 @@ export default function CalendarView({ sessions, onSessionClick }: CalendarViewP
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
         </button>
-        <h3 className="text-base font-semibold text-foreground" style={{ fontFamily: "var(--font-syne)" }}>
+        <h3 className="text-base font-semibold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
           {MONTHS[currentMonth]} {currentYear}
         </h3>
         <button
