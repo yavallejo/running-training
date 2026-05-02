@@ -1,0 +1,602 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import { getSession } from "@/lib/auth";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+interface QuizAnswers {
+  timeRunning: string;
+  weeklyKm: string;
+  goalDistance: number;
+  goalDate: string;
+  goalName: string;
+  availableDays: number;
+  minutesPerSession: string;
+  hasInjuries: boolean;
+  injuryDescription: string;
+}
+
+const TIME_RUNNING_OPTIONS = [
+  { value: "never", label: "Nunca he corrido" },
+  { value: "less-3-months", label: "Menos de 3 meses" },
+  { value: "3-6-months", label: "3 a 6 meses" },
+  { value: "6-12-months", label: "6 a 12 meses" },
+  { value: "more-1-year", label: "Más de 1 año" },
+];
+
+const WEEKLY_KM_OPTIONS = [
+  { value: "0", label: "0 km (soy principiante total)" },
+  { value: "5-10", label: "5 - 10 km" },
+  { value: "10-20", label: "10 - 20 km" },
+  { value: "20-35", label: "20 - 35 km" },
+  { value: "35+", label: "35+ km" },
+];
+
+const DISTANCES = [
+  { value: 3, label: "3K", weeks: 4 },
+  { value: 5, label: "5K", weeks: 6 },
+  { value: 7, label: "7K", weeks: 8 },
+  { value: 10, label: "10K", weeks: 10 },
+  { value: 15, label: "15K", weeks: 12 },
+  { value: 21, label: "21K", weeks: 14 },
+  { value: 42, label: "42K", weeks: 18 },
+];
+
+const AVAILABLE_DAYS_OPTIONS = [
+  { value: 2, label: "2 días" },
+  { value: 3, label: "3 días" },
+  { value: 4, label: "4 días" },
+  { value: 5, label: "5 días" },
+  { value: 6, label: "6 días" },
+];
+
+const MINUTES_OPTIONS = [
+  { value: "30", label: "30 minutos" },
+  { value: "45", label: "45 minutos" },
+  { value: "60", label: "1 hora" },
+  { value: "90+", label: "Más de 1 hora" },
+];
+
+export default function OnboardingPage() {
+  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const [answers, setAnswers] = useState<QuizAnswers>({
+    timeRunning: "",
+    weeklyKm: "",
+    goalDistance: 7,
+    goalDate: "",
+    goalName: "",
+    availableDays: 3,
+    minutesPerSession: "60",
+    hasInjuries: false,
+    injuryDescription: "",
+  });
+
+  useEffect(() => {
+    const session = getSession();
+    if (!session) {
+      router.replace("/login");
+      return;
+    }
+    setUserId(session.userId);
+  }, [router]);
+
+  const handleNext = () => {
+    setError("");
+
+    if (step === 1) {
+      if (!answers.timeRunning || !answers.weeklyKm) {
+        setError("Por favor completa todos los campos");
+        return;
+      }
+    } else if (step === 2) {
+      if (!answers.goalDate) {
+        setError("Por favor selecciona una fecha");
+        return;
+      }
+    } else if (step === 3) {
+      if (!answers.availableDays || !answers.minutesPerSession) {
+        setError("Por favor completa todos los campos");
+        return;
+      }
+    }
+
+    if (step < 5) {
+      setStep(step + 1);
+    }
+  };
+
+  const handleBack = () => {
+    setError("");
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!userId) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Calculate experience level
+      const experienceLevel = calculateExperienceLevel(answers.timeRunning, answers.weeklyKm);
+
+      // Save to user_profiles
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .upsert({
+          id: userId,
+          experience_level: experienceLevel,
+          current_weekly_km: parseWeeklyKm(answers.weeklyKm),
+          available_days_per_week: answers.availableDays,
+          minutes_per_session: parseInt(answers.minutesPerSession),
+          has_injuries: answers.hasInjuries,
+          injury_description: answers.hasInjuries ? answers.injuryDescription : null,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        setError("Error al guardar perfil");
+        setLoading(false);
+        return;
+      }
+
+      // Update users table with goal info
+      const { error: userError } = await supabase
+        .from("users")
+        .update({
+          race_distance: answers.goalDistance,
+          race_date: answers.goalDate,
+          race_name: answers.goalName || "Mi Carrera",
+        })
+        .eq("id", userId);
+
+      if (userError) {
+        console.error("User update error:", userError);
+      }
+
+      // Redirect to plan
+      router.push("/plan");
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Error inesperado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateExperienceLevel = (timeRunning: string, weeklyKm: string): string => {
+    if (timeRunning === "never" || timeRunning === "less-3-months") return "beginner";
+    if (weeklyKm === "0" || weeklyKm === "5-10") return "beginner";
+    if (weeklyKm === "35+") return "advanced";
+    if (timeRunning === "more-1-year" && (weeklyKm === "20-35")) return "advanced";
+    return "intermediate";
+  };
+
+  const parseWeeklyKm = (km: string): number => {
+    switch (km) {
+      case "0": return 0;
+      case "5-10": return 7.5;
+      case "10-20": return 15;
+      case "20-35": return 27.5;
+      case "35+": return 40;
+      default: return 0;
+    }
+  };
+
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() + 21);
+  const minDateStr = minDate.toISOString().split("T")[0];
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tl from-secondary/10 to-transparent rounded-full blur-3xl" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-lg"
+      >
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+            PERSONALIZA TU PLAN
+          </h1>
+          <p className="text-sm font-mono text-muted-foreground mt-2 tracking-wide">
+            PASO {step} DE 5
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="flex gap-2 mb-8">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <div
+              key={s}
+              className={`flex-1 h-1.5 rounded-full transition-all ${
+                s <= step ? "bg-primary" : "bg-surface"
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm">
+          <AnimatePresence mode="wait">
+            {/* Step 1: Experience */}
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Tu Experiencia Corriendo
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuánto tiempo llevas corriendo de forma regular?
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {TIME_RUNNING_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, timeRunning: option.value })}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          answers.timeRunning === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <span className="text-sm font-mono">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuántos kilómetros corres actualmente por semana?
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {WEEKLY_KM_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, weeklyKm: option.value })}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          answers.weeklyKm === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <span className="text-sm font-mono">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2: Goal */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Tu Objetivo
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Para qué distancia te estás preparando?
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DISTANCES.map((d) => (
+                      <button
+                        key={d.value}
+                        onClick={() => setAnswers({ ...answers, goalDistance: d.value })}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          answers.goalDistance === d.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div className="text-lg font-bold">{d.label}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground">{d.weeks} sem</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuándo es tu carrera?
+                  </label>
+                  <div className="w-full">
+                    <DatePicker
+                      selected={answers.goalDate ? new Date(answers.goalDate) : null}
+                      onChange={(date: Date | null) => {
+                        if (date) {
+                          const formatted = date.toISOString().split("T")[0];
+                          setAnswers({ ...answers, goalDate: formatted });
+                        }
+                      }}
+                      minDate={minDate}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="Selecciona la fecha de tu carrera"
+                      className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                      calendarClassName="bg-surface border border-border/50 rounded-xl shadow-lg"
+                      showPopperArrow={false}
+                      locale="es"
+                    />
+                  </div>
+                  <p className="text-[10px] font-mono text-muted-foreground">
+                    Mínimo 3 semanas desde hoy
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Nombre de la carrera (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={answers.goalName}
+                    onChange={(e) => setAnswers({ ...answers, goalName: e.target.value })}
+                    placeholder="Ej: Maratón de Buenos Aires"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3: Availability */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Tu Disponibilidad
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuántos días por semana puedes entrenar?
+                  </label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {AVAILABLE_DAYS_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, availableDays: option.value })}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          answers.availableDays === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div className="text-lg font-bold">{option.value}</div>
+                        <div className="text-[10px] font-mono text-muted-foreground">días</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuánto tiempo tienes disponible por sesión?
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {MINUTES_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, minutesPerSession: option.value })}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          answers.minutesPerSession === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <span className="text-sm font-mono">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 4: Physical Conditions */}
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Condiciones Físicas
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Tienes alguna lesión o condición médica que debamos conocer?
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setAnswers({ ...answers, hasInjuries: false, injuryDescription: "" })}
+                      className={`p-4 rounded-xl border text-center transition-all ${
+                        !answers.hasInjuries
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/50 bg-background/50 hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">✓</div>
+                      <div className="text-sm font-mono">No tengo lesiones</div>
+                    </button>
+                    <button
+                      onClick={() => setAnswers({ ...answers, hasInjuries: true })}
+                      className={`p-4 rounded-xl border text-center transition-all ${
+                        answers.hasInjuries
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/50 bg-background/50 hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">⚠</div>
+                      <div className="text-sm font-mono">Tengo una lesión</div>
+                    </button>
+                  </div>
+                </div>
+
+                {answers.hasInjuries && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-3"
+                  >
+                    <label className="text-sm font-medium text-foreground">
+                      Describe brevemente tu lesión o condición
+                    </label>
+                    <textarea
+                      value={answers.injuryDescription}
+                      onChange={(e) => setAnswers({ ...answers, injuryDescription: e.target.value })}
+                      placeholder="Ej: Dolor en rodilla derecha, tendinitis en aquiles..."
+                      rows={3}
+                      className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all resize-none"
+                    />
+                  </motion.div>
+                )}
+
+                <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                  <p className="text-xs font-mono text-muted-foreground">
+                    💡 Esta información nos ayuda a adaptar tu plan. Si tienes dudas, consulta con un médico antes de comenzar.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 5: Summary */}
+            {step === 5 && (
+              <motion.div
+                key="step5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Resumen de tu Plan
+                </h2>
+
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">EXPERIENCIA</div>
+                    <div className="text-sm font-medium">
+                      {TIME_RUNNING_OPTIONS.find(o => o.value === answers.timeRunning)?.label}
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">
+                      {WEEKLY_KM_OPTIONS.find(o => o.value === answers.weeklyKm)?.label}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">OBJETIVO</div>
+                    <div className="text-sm font-medium">
+                      {DISTANCES.find(d => d.value === answers.goalDistance)?.label} - {answers.goalName || "Mi Carrera"}
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">
+                      Fecha: {new Date(answers.goalDate).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">DISPONIBILIDAD</div>
+                    <div className="text-sm font-medium">
+                      {answers.availableDays} días por semana
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">
+                      {MINUTES_OPTIONS.find(o => o.value === answers.minutesPerSession)?.label} por sesión
+                    </div>
+                  </div>
+
+                  {answers.hasInjuries && (
+                    <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                      <div className="text-xs font-mono text-muted-foreground mb-1">CONDICIONES</div>
+                      <div className="text-sm font-medium">
+                        {answers.injuryDescription}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <p className="text-sm text-primary font-mono">
+                    ✓ Tu plan será generado automáticamente según tus respuestas
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 text-sm text-red-500 font-mono"
+            >
+              {error}
+            </motion.p>
+          )}
+
+          <div className="flex gap-3 mt-8">
+            {step > 1 && (
+              <button
+                onClick={handleBack}
+                className="flex-1 px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-mono tracking-wide hover:bg-background transition-all"
+              >
+                ATRÁS
+              </button>
+            )}
+            {step < 5 ? (
+              <button
+                onClick={handleNext}
+                className="flex-1 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 transition-all"
+              >
+                SIGUIENTE
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 transition-all disabled:opacity-50"
+              >
+                {loading ? "GENERANDO PLAN..." : "GENERAR MI PLAN"}
+              </button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

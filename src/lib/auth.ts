@@ -30,6 +30,7 @@ export async function validateCredentials(username: string, password: string): P
         race_distance,
         race_date,
         race_name,
+        start_date,
         role,
         plans:plan_id (
           id,
@@ -59,6 +60,14 @@ export async function validateCredentials(username: string, password: string): P
 // Crear sesión local
 export function createSession(user: any): void {
   if (typeof window === "undefined") return
+  
+  // Calculate start date (day after registration or user's start_date)
+  const startDate = user.start_date || (() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
+  })()
+  
   const session = {
     authenticated: true,
     userId: user.id,
@@ -67,12 +76,20 @@ export function createSession(user: any): void {
     planLevel: user.plans?.level,
     planName: user.plans?.name,
     raceDistance: user.race_distance || 7,
-    raceDate: user.race_date || '2026-05-17',
+    raceDate: user.race_date || getDefaultRaceDate(),
     raceName: user.race_name || 'Carrera Recreativa',
+    startDate: startDate,
     role: user.role || 'user',
     expiresAt: Date.now() + SESSION_DURATION
   }
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+}
+
+// Get default race date (8 weeks from now)
+function getDefaultRaceDate(): string {
+  const date = new Date()
+  date.setDate(date.getDate() + 56) // 8 weeks
+  return date.toISOString().split('T')[0]
 }
 
 interface Session {
@@ -85,6 +102,7 @@ interface Session {
   raceDistance: number
   raceDate: string
   raceName: string
+  startDate: string
   role: 'user' | 'admin'
   expiresAt: number
 }
@@ -112,15 +130,16 @@ export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY)
 }
 
-// Crear usuario (para uso admin)
+// Crear usuario (para uso admin o registro)
 export async function createUser(
   username: string,
   password: string,
   planLevel: 'beginner' | 'intermediate' | 'pro',
   raceDistance: number = 7,
-  raceDate: string = '2026-05-17',
+  raceDate?: string,
   raceName: string = 'Carrera Recreativa',
-  role: 'user' | 'admin' = 'user'
+  role: 'user' | 'admin' = 'user',
+  startDate?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const passwordHash = await hashPassword(password)
@@ -133,6 +152,68 @@ export async function createUser(
 
     if (!plan) return { success: false, error: 'Plan no encontrado' }
 
+    // Calculate dates
+    const effectiveStartDate = startDate || (() => {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      return tomorrow.toISOString().split('T')[0]
+    })()
+    
+    const effectiveRaceDate = raceDate || (() => {
+      const date = new Date()
+      date.setDate(date.getDate() + 56) // 8 weeks default
+      return date.toISOString().split('T')[0]
+    })()
+
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        username: username.toLowerCase(),
+        password_hash: passwordHash,
+        plan_id: plan.id,
+        race_distance: raceDistance,
+        race_date: effectiveRaceDate,
+        race_name: raceName,
+        start_date: effectiveStartDate,
+        role: role
+      })
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+// Register user (public registration)
+export async function registerUser(
+  username: string,
+  password: string,
+  raceDistance: number,
+  raceDate: string,
+  raceName: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Determine plan level based on distance
+    let planLevel: 'beginner' | 'intermediate' | 'pro' = 'beginner'
+    if (raceDistance >= 15) planLevel = 'pro'
+    else if (raceDistance >= 10) planLevel = 'intermediate'
+    
+    const passwordHash = await hashPassword(password)
+
+    const { data: plan } = await supabase
+      .from('plans')
+      .select('id')
+      .eq('level', planLevel)
+      .single()
+
+    if (!plan) return { success: false, error: 'Plan no encontrado para esta distancia' }
+
+    // Start date is tomorrow
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() + 1)
+    const startDateStr = startDate.toISOString().split('T')[0]
+
     const { error } = await supabase
       .from('users')
       .insert({
@@ -142,7 +223,8 @@ export async function createUser(
         race_distance: raceDistance,
         race_date: raceDate,
         race_name: raceName,
-        role: role
+        start_date: startDateStr,
+        role: 'user'
       })
 
     if (error) return { success: false, error: error.message }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress } from "@/lib/training-plan";
+import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, loadUserProfile } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
@@ -31,6 +31,7 @@ export default function PlanPage() {
   const [raceDistance, setRaceDistance] = useState(7);
   const [raceDate, setRaceDate] = useState("2026-05-17");
   const [raceName, setRaceName] = useState("Carrera Recreativa");
+  const [startDate, setStartDate] = useState("");
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
@@ -63,18 +64,22 @@ export default function PlanPage() {
     setRaceDistance(session.raceDistance || 7);
     setRaceDate(session.raceDate || "2026-05-17");
     setRaceName(session.raceName || "Carrera Recreativa");
+    setStartDate(session.startDate || "");
 
     const todayStr = new Date().toISOString().split("T")[0];
     setToday(todayStr);
 
-    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr);
+    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
     setLoading(false);
   }, [router]);
 
-  const loadPlan = async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string) => {
+  const loadPlan = async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
     try {
+      // Load user profile first
+      const profileData = await loadUserProfile(uId);
+      
       const [sessionsData, progressMap] = await Promise.all([
-        generateTrainingPlan(planId, rDistance, rDate),
+        generateTrainingPlan(planId, rDistance, rDate, startDate, profileData || undefined),
         loadUserProgress(uId)
       ]);
 

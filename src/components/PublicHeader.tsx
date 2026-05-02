@@ -93,6 +93,12 @@ export default function PublicHeader() {
                   {link.label}
                 </a>
               ))}
+              <Link
+                href="/register"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Registrarse
+              </Link>
               <button
                 onClick={() => setShowLogin(true)}
                 className="text-sm font-semibold px-5 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
@@ -189,7 +195,14 @@ export default function PublicHeader() {
                 </div>
               </nav>
 
-              <div className="p-4 border-t border-border">
+              <div className="p-4 border-t border-border space-y-2">
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/20 text-primary hover:bg-primary/10 transition-all font-semibold"
+                >
+                  Registrarse
+                </Link>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);

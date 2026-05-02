@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import PublicHeader from "@/components/PublicHeader";
 import LoginModal from "@/components/LoginModal";
 
@@ -13,6 +13,10 @@ export default function LandingPage() {
   const pasosRef = useRef(null);
   const ctaRef = useRef(null);
 
+  const { scrollYProgress } = useScroll();
+  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, -50]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
   const heroInView = useInView(heroRef, { once: true, margin: "-100px" });
   const problemaInView = useInView(problemaRef, { once: true, margin: "-100px" });
   const solucionInView = useInView(solucionRef, { once: true, margin: "-100px" });
@@ -22,7 +26,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <PublicHeader />
-
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} showRegisterHint />
 
       <section
@@ -31,64 +34,83 @@ export default function LandingPage() {
         className="relative min-h-screen flex items-center justify-center pt-20 px-4 overflow-hidden"
       >
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-br from-primary/20 via-primary/5 to-transparent rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tl from-secondary/10 via-transparent to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/20 via-primary/5 to-transparent rounded-full blur-3xl" />
+            <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-secondary/15 via-transparent to-transparent rounded-full blur-3xl" />
+          </div>
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+          <div className="absolute bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t from-background to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
+        <motion.div 
+          className="relative z-10 max-w-5xl mx-auto text-center"
+          style={{ y: heroY, opacity: heroOpacity }}
+        >
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={heroInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border/50">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
               </span>
-              <span className="text-sm font-medium text-muted-foreground">
-                Tu primera carrera te espera
+              <span className="text-sm font-mono tracking-tight text-muted-foreground">
+                TU PRIMERA CARRERA TE ESPERA
               </span>
             </div>
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 50 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6"
+            transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-[clamp(2.5rem,8vw,6rem)] font-black tracking-[-0.03em] leading-[0.95] mb-8"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >
-            <span className="text-primary">Querés</span> correr 7km.
-            <br />
-            <span className="text-muted-foreground">Pero cada vez que arrancás, terminás abandonando.</span>
+            <span className="block text-primary">QUERÉS</span>
+            <span className="block">CORRER 7KM.</span>
+            <span className="block text-[0.5em] text-muted-foreground mt-2 font-medium">
+              PERO CADA VEZ QUE ARRANCÁS,
+              <br className="sm:hidden" />
+              TERMINÁS ABANDONANDO.
+            </span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-mono leading-relaxed"
           >
-            No necesitás otro tutorial de YouTube. Necesitás saber exactamente qué hacer mañana,
-            pasado, y el día después — sin pensarlo.
+            <span className="text-foreground">No necesitás otro tutorial.</span> Necesitás saber exactamente qué hacer mañana, pasado, y el día después — sin pensarlo.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={heroInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-5"
           >
             <button
               onClick={() => setShowLogin(true)}
-              className="group relative w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-base overflow-hidden"
+              className="group relative px-10 py-5 rounded-2xl font-bold text-lg overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 group-hover:to-primary/90 transition-all" />
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="relative flex items-center justify-center gap-2">
-                Arrancá tu plan
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              <span className="relative flex items-center justify-center gap-3">
+                <span className="font-mono tracking-tight">ARRANCÁ TU PLAN</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </span>
@@ -98,44 +120,43 @@ export default function LandingPage() {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            className="mt-16 p-6 rounded-2xl bg-surface-elevated/50 border border-border backdrop-blur-sm"
+            transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-20 p-8 rounded-3xl bg-surface/40 border border-border/30 backdrop-blur-sm"
           >
-            <p className="text-sm text-muted-foreground mb-4">
-              No importa si nunca corriste o si ya tenés experiencia.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12">
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
-                  7km
+                <div className="text-4xl sm:text-5xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  7KM
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">Principiante</div>
+                <div className="text-xs font-mono text-muted-foreground mt-1 tracking-widest uppercase">Principiante</div>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-border" />
+              <div className="hidden sm:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
-                  11km
+                <div className="text-4xl sm:text-5xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  11KM
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">Intermedio</div>
+                <div className="text-xs font-mono text-muted-foreground mt-1 tracking-widest uppercase">Intermedio</div>
               </div>
             </div>
-            <p className="mt-4 text-sm font-semibold text-foreground/70">
-              Tu distancia · Tu fecha · Tu carrera
+            <p className="mt-6 text-sm font-mono text-muted-foreground text-center tracking-wide">
+              TU DISTANCIA · TU FECHA · TU CARRERA
             </p>
           </motion.div>
-        </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={heroInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          transition={{ duration: 1, delay: 1 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2"
         >
           <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, 12, 0], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="flex flex-col items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <span className="text-[10px] font-mono text-muted-foreground tracking-[0.3em] uppercase">Scroll</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </motion.div>
@@ -145,22 +166,29 @@ export default function LandingPage() {
       <section
         id="problema"
         ref={problemaRef}
-        className="py-20 sm:py-32 px-4 bg-surface-elevated/30"
+        className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        
+        <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={problemaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+              El Problema
+            </span>
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
-              El problema no es<span className="text-primary"> correr</span>
+              El problema no es
+              <span className="block text-primary"> correr</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               El problema es que nadie te dice qué hacer cuando estás en el km 2 y te querés morir.
             </p>
           </motion.div>
@@ -194,27 +222,35 @@ export default function LandingPage() {
       <section
         id="solucion"
         ref={solucionRef}
-        className="py-20 sm:py-32 px-4"
+        className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent rounded-full blur-3xl" />
+        </div>
+        
+        <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={solucionInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-xs font-mono tracking-widest uppercase mb-6">
+              La Solución
+            </span>
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
-              Lo que <span className="text-primary">perdés</span> cuando no tenés plan
+              Lo que <span className="text-primary">perdés</span> cuando
+              <span className="block">no tenés plan</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               Cada día sin plan estructurado es un día que podrías haber avanzado con seguridad.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <SolutionCard
               emoji="⏰"
               title="Tiempo"
@@ -225,7 +261,7 @@ export default function LandingPage() {
             <SolutionCard
               emoji="🏃"
               title="Confianza"
-              description="Saldrés a correr sabiendo exactamente qué hacer. Sin dudas, sin excusas. Solo salir y hacerlo."
+              description="Saldrás a correr sabiendo exactamente qué hacer. Sin dudas, sin excusas. Solo salir y hacerlo."
               delay={0.15}
               inView={solucionInView}
             />
@@ -250,31 +286,39 @@ export default function LandingPage() {
       <section
         id="pasos"
         ref={pasosRef}
-        className="py-20 sm:py-32 px-4 bg-surface-elevated/30"
+        className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        
+        <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={pasosInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-mono tracking-widest uppercase mb-6">
+              Cómo Funciona
+            </span>
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4"
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
-              Tres semanas. <span className="text-primary">Sin excusas.</span>
+              <span className="text-primary">Tres semanas.</span>
+              <span className="block">Sin excusas.</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               Todo el trabajo pesado está hecho. Vos solo tenés que seguir el plan.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             <StepCard
               number="01"
               title="Entrás"
-              description="Recibís tu usuario. Accedés desde el celular, la tablet o la compu. Sin instalada nada."
+              description="Recibís tu usuario. Accedés desde el celular, la tablet o la compu. Sin instalado nada."
               delay={0}
               inView={pasosInView}
             />
@@ -299,93 +343,92 @@ export default function LandingPage() {
       <section
         id="cta"
         ref={ctaRef}
-        className="py-20 sm:py-32 px-4 relative overflow-hidden"
+        className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
         <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/30 via-primary/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-br from-primary/25 via-primary/10 to-transparent rounded-full blur-3xl" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="diagonal" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 0 40 L 40 0" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#diagonal)" />
+          </svg>
         </div>
 
-        <div className="relative z-10 max-w-3xl mx-auto text-center">
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
           >
             <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6"
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-8"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
-              Cada día que pasa es <span className="text-primary">un día menos</span>
+              <span className="text-primary">Cada día</span> que pasa
+              <span className="block">es un día menos</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Tu carrera no va a esperar. Preguntarte &ldquo;y si hubiera arrancado&rdquo; no es una opción.
-              Arrancá ahora.
+            <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-xl mx-auto font-mono leading-relaxed">
+              Tu carrera no va a esperar. Preguntarte &ldquo;y si hubiera arrancado&rdquo; no es una opción. Arrancá ahora.
             </p>
             <button
               onClick={() => setShowLogin(true)}
-              className="group relative px-10 py-5 rounded-xl font-semibold text-lg overflow-hidden"
+              className="group relative px-14 py-6 rounded-2xl font-bold text-xl overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 group-hover:to-primary/90 transition-all" />
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="relative flex items-center justify-center gap-3">
-                Empezá Ahora
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              <span className="relative flex items-center justify-center gap-4">
+                <span className="font-mono tracking-tight">EMPEZÁ AHORA</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </span>
             </button>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Sin tarjeta de crédito · Sin compromiso · Accedé hoy
+            <p className="mt-6 text-sm font-mono text-muted-foreground tracking-wide">
+              SIN TARJETA · SIN COMPROMISO · ACCEDÉ HOY
             </p>
           </motion.div>
         </div>
       </section>
 
-      <footer className="py-12 px-4 border-t border-border">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+      <footer className="relative py-16 px-4 border-t border-border/50">
+        <div className="absolute inset-0 bg-gradient-to-t from-surface/30 to-transparent" />
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center glow-sm">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                   stroke="currentColor"
-                  className="w-5 h-5 text-white"
+                  className="w-6 h-6 text-white"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM12 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM15.75 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5Z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM12 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM15.75 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5Z" />
                 </svg>
               </div>
-              <span
-                className="text-lg font-bold tracking-tight"
-                style={{ fontFamily: "var(--font-urbanist)" }}
-              >
-                RunPlan<span className="text-primary"> Pro</span>
+              <span className="text-xl font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                RUNPLAN<span className="text-primary">PRO</span>
               </span>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#inicio" className="hover:text-foreground transition-colors">Inicio</a>
-              <span>·</span>
-              <a href="#problema" className="hover:text-foreground transition-colors">El Problema</a>
-              <span>·</span>
-              <a href="#solucion" className="hover:text-foreground transition-colors">Solución</a>
-              <span>·</span>
-              <a href="#pasos" className="hover:text-foreground transition-colors">Cómo Funciona</a>
+            <div className="flex items-center gap-6 text-sm font-mono text-muted-foreground">
+              <a href="#inicio" className="hover:text-foreground transition-colors tracking-wide">INICIO</a>
+              <span className="text-border">·</span>
+              <a href="#problema" className="hover:text-foreground transition-colors tracking-wide">PROBLEMA</a>
+              <span className="text-border">·</span>
+              <a href="#solucion" className="hover:text-foreground transition-colors tracking-wide">SOLUCIÓN</a>
+              <span className="text-border">·</span>
+              <a href="#pasos" className="hover:text-foreground transition-colors tracking-wide">CÓMO</a>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              © 2026 RunPlan Pro. Todos los derechos reservados.
+            <p className="text-sm font-mono text-muted-foreground">
+              © 2026 RUNPLAN PRO
             </p>
           </div>
         </div>
@@ -409,19 +452,19 @@ function PainCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay }}
-      className="p-6 sm:p-8 rounded-2xl bg-background border border-border"
+      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative p-8 rounded-3xl bg-surface/60 border border-border/50 backdrop-blur-sm overflow-hidden hover:border-primary/30 transition-all duration-500"
     >
-      <div className="text-4xl mb-4">{emoji}</div>
-      <h3
-        className="text-xl font-bold mb-3"
-        style={{ fontFamily: "var(--font-urbanist)" }}
-      >
-        {title}
-      </h3>
-      <p className="text-muted-foreground leading-relaxed">{description}</p>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="relative">
+        <div className="text-5xl mb-6">{emoji}</div>
+        <h3 className="text-xl font-bold mb-3 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+          {title}
+        </h3>
+        <p className="text-muted-foreground leading-relaxed font-mono text-sm">{description}</p>
+      </div>
     </motion.div>
   );
 }
@@ -441,21 +484,19 @@ function SolutionCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay }}
-      className="flex items-start gap-4 p-6 rounded-2xl bg-surface-elevated border border-border"
+      initial={{ opacity: 0, x: -30 }}
+      animate={inView ? { opacity: 1, x: 0 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface/40 border border-border/30 backdrop-blur-sm hover:border-secondary/30 transition-all duration-500"
     >
-      <div className="text-4xl flex-shrink-0">{emoji}</div>
+      <div className="flex-shrink-0 text-4xl">{emoji}</div>
       <div>
-        <h3
-          className="text-xl font-bold mb-2"
-          style={{ fontFamily: "var(--font-urbanist)" }}
-        >
+        <h3 className="text-2xl font-bold mb-2 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
           {title}
         </h3>
-        <p className="text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-muted-foreground leading-relaxed font-mono text-sm">{description}</p>
       </div>
+      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" />
     </motion.div>
   );
 }
@@ -475,23 +516,28 @@ function StepCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay }}
-      className="relative text-center"
+      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="relative text-center group"
     >
-      <div className="text-6xl sm:text-7xl font-bold text-primary/10 absolute -top-4 left-1/2 -translate-x-1/2" style={{ fontFamily: "var(--font-urbanist)" }}>
+      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8rem] sm:text-[10rem] font-black text-primary/[0.06] leading-none select-none" style={{ fontFamily: "var(--font-urbanist)" }}>
         {number}
       </div>
-      <div className="relative pt-12">
-        <h3
-          className="text-xl sm:text-2xl font-bold mb-4"
-          style={{ fontFamily: "var(--font-urbanist)" }}
-        >
+      <div className="relative pt-16 pb-8 px-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
+          <span className="text-2xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+            {number}
+          </span>
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
           {title}
         </h3>
-        <p className="text-muted-foreground leading-relaxed max-w-xs mx-auto">{description}</p>
+        <p className="text-muted-foreground leading-relaxed max-w-xs mx-auto font-mono text-sm">{description}</p>
       </div>
+      {number !== "03" && (
+        <div className="hidden md:block absolute top-1/2 -right-6 w-12 h-px bg-gradient-to-r from-border to-transparent" />
+      )}
     </motion.div>
   );
 }
