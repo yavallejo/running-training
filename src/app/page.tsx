@@ -77,12 +77,9 @@ export default function LandingPage() {
             className="text-[clamp(2.5rem,8vw,6rem)] font-black tracking-[-0.03em] leading-[0.95] mb-8"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >
-            <span className="block text-primary">QUERÉS</span>
-            <span className="block">CORRER 7KM.</span>
+            <span className="block text-primary">QUERÉS CORRER.</span>
             <span className="block text-[0.5em] text-muted-foreground mt-2 font-medium">
-              PERO CADA VEZ QUE ARRANCÁS,
-              <br className="sm:hidden" />
-              TERMINÁS ABANDONANDO.
+              PERO NO SABÉS CÓMO ARRANCAR.
             </span>
           </motion.h1>
 
@@ -123,19 +120,26 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="mt-20 p-8 rounded-3xl bg-surface/40 border border-primary/20 backdrop-blur-sm shadow-[0_0_40px_-12px_rgba(255,59,48,0.15)]"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
-                  7KM
+                <div className="text-3xl sm:text-4xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  3K–7K
                 </div>
                 <div className="text-xs font-mono text-muted-foreground mt-1 tracking-widest uppercase">Principiante</div>
               </div>
               <div className="hidden sm:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
-                  11KM
+                <div className="text-3xl sm:text-4xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  10K–15K
                 </div>
                 <div className="text-xs font-mono text-muted-foreground mt-1 tracking-widest uppercase">Intermedio</div>
+              </div>
+              <div className="hidden sm:block w-px h-12 bg-border" />
+              <div className="text-center">
+                <div className="text-3xl sm:text-4xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  21K–42K
+                </div>
+                <div className="text-xs font-mono text-muted-foreground mt-1 tracking-widest uppercase">Avanzado</div>
               </div>
             </div>
             <p className="mt-6 text-sm font-mono text-muted-foreground text-center tracking-wide">
@@ -306,7 +310,7 @@ export default function LandingPage() {
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
-              <span className="text-primary">Tres semanas.</span>
+              <span className="text-primary">De 4 a 18 semanas.</span>
               <span className="block">Sin excusas.</span>
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
