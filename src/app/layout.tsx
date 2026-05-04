@@ -10,29 +10,59 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
-    default: "RunPlan Pro",
+    default: "RunPlan Pro — Tu plan de entrenamiento para correr",
     template: "%s | RunPlan Pro",
   },
-  description: "Plan de entrenamiento personalizado para correr 7km o 11km - RunPlan Pro",
-  keywords: ["running", "entrenamiento", "7km", "11km", "principiante", "intermediate", "pro", "runplan", "carrera", "profesional"],
+  description: "Plan de entrenamiento personalizado para tu primera carrera. De 3K a 42K, con progresión adaptada a tu nivel, ritmo y objetivos. Sin excusas, solo seguí el plan.",
+  keywords: [
+    "plan de entrenamiento running",
+    "correr por primera vez",
+    "entrenamiento 5K",
+    "entrenamiento 10K",
+    "medio maratón",
+    "maratón",
+    "running principiante",
+    "plan de carrera personalizado",
+    "entrenamiento progresivo",
+    "correr sin lesionarse",
+    "RunPlan Pro",
+    "app running",
+    "carrera recreativa",
+  ],
   authors: [{ name: "RunPlan Pro" }],
   creator: "RunPlan Pro",
   publisher: "RunPlan Pro",
   openGraph: {
-    title: "RunPlan Pro",
-    description: "Plan de entrenamiento personalizado para 7km o 11km",
+    title: "RunPlan Pro — Tu plan de entrenamiento para correr",
+    description: "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer. Arrancá hoy.",
     type: "website",
-    locale: "es_ES",
+    locale: "es_AR",
     url: "https://runplan-pro.vercel.app",
+    siteName: "RunPlan Pro",
+    alternateLocale: ["es_ES", "es_MX", "es_CO"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "RunPlan Pro",
-    description: "Plan de entrenamiento para 7km o 11km",
+    title: "RunPlan Pro — Tu plan de entrenamiento para correr",
+    description: "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer.",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "",
+  },
+  category: "sports",
+  icons: {
+    icon: "/icon.svg",
   },
 };
 
