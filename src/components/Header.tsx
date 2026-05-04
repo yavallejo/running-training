@@ -66,11 +66,11 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border safe-area-top">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border/50 safe-area-top">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center justify-between h-14 px-4">
             <Link href="/plan" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-[0_0_16px_-4px_rgba(255,59,48,0.3)]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"

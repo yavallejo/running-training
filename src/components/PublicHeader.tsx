@@ -54,7 +54,7 @@ export default function PublicHeader() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16 sm:h-20">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-[0_0_16px_-4px_rgba(255,59,48,0.3)]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"

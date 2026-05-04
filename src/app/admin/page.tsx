@@ -363,24 +363,24 @@ export default function AdminPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-secondary/30 transition-all"
+            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-warning/40 transition-all"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-warning/8 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
             <div className="relative">
               <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Principiante</div>
-              <div className="text-3xl font-black text-secondary" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.beginner}</div>
+              <div className="text-3xl font-black text-warning" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.beginner}</div>
             </div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-accent/30 transition-all"
+            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-info/40 transition-all"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-info/8 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
             <div className="relative">
               <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Intermedio</div>
-              <div className="text-3xl font-black text-accent" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.intermediate}</div>
+              <div className="text-3xl font-black text-info" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.intermediate}</div>
             </div>
           </motion.div>
           <motion.div
@@ -535,7 +535,7 @@ export default function AdminPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className={`text-sm font-mono tracking-wide ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}
+                    className={`text-sm font-mono tracking-wide ${message.type === 'success' ? 'text-success' : 'text-danger'}`}
                   >
                     {message.text}
                   </motion.p>
@@ -572,7 +572,7 @@ export default function AdminPage() {
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 hover:bg-background/30 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_12px_-3px_rgba(255,59,48,0.15)]">
                       <span className="text-sm font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
                         {user.username.charAt(0).toUpperCase()}
                       </span>
@@ -592,7 +592,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditModal(user)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-yellow-500 bg-yellow-500/5 hover:bg-yellow-500/10 border border-yellow-500/20 transition-all"
+                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-warning bg-warning/5 hover:bg-warning/10 border border-warning/20 transition-all"
                     >
                       EDITAR
                     </button>
@@ -601,14 +601,14 @@ export default function AdminPage() {
                         setLoadingUserId(user.id);
                         loadUserProgress(user.id);
                       }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-blue-500 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20 transition-all"
+                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-all"
                       disabled={loadingUserId !== null}
                     >
                       {loadingUserId === user.id ? '...' : 'PROGRESO'}
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id, user.username)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 transition-all"
+                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-danger bg-danger/5 hover:bg-danger/10 border border-danger/20 transition-all"
                     >
                       ELIMINAR
                     </button>
@@ -653,9 +653,9 @@ export default function AdminPage() {
                     <div className="text-2xl font-black text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>{userProgress.length}</div>
                     <div className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase">SESIONES</div>
                   </div>
-                  <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20 text-center">
-                    <div className="text-2xl font-black text-green-500" style={{ fontFamily: "var(--font-urbanist)" }}>{userProgress.filter(s => s.completed).length}</div>
-                    <div className="text-[10px] font-mono text-green-500 tracking-widest uppercase">COMPLETADAS</div>
+                  <div className="p-4 rounded-xl bg-success/5 border border-success/20 text-center">
+                    <div className="text-2xl font-black text-success" style={{ fontFamily: "var(--font-urbanist)" }}>{userProgress.filter(s => s.completed).length}</div>
+                    <div className="text-[10px] font-mono text-success tracking-widest uppercase">COMPLETADAS</div>
                   </div>
                   <div className="p-4 rounded-xl bg-background/50 border border-border/30 text-center">
                     <div className="text-2xl font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
@@ -670,7 +670,7 @@ export default function AdminPage() {
                   {userProgress.map(session => (
                     <div
                       key={session.id}
-                      className={`p-4 rounded-xl border ${session.completed ? 'bg-green-500/5 border-green-500/20' : 'bg-background/30 border-border/30'}`}
+                      className={`p-4 rounded-xl border ${session.completed ? 'bg-success/5 border-success/20' : 'bg-background/30 border-border/30'}`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -681,7 +681,7 @@ export default function AdminPage() {
                             {session.date} · {session.distance}km · {session.targetPace}
                           </p>
                         </div>
-                        <span className={`shrink-0 px-2 py-1 rounded-md text-[10px] font-mono tracking-wider ${session.completed ? 'bg-green-500/10 text-green-500' : 'bg-muted/50 text-muted-foreground'}`}>
+                        <span className={`shrink-0 px-2 py-1 rounded-md text-[10px] font-mono tracking-wider ${session.completed ? 'bg-success/10 text-success' : 'bg-muted/50 text-muted-foreground'}`}>
                           {session.completed ? 'COMPLETADA' : 'PENDIENTE'}
                         </span>
                       </div>
@@ -852,8 +852,8 @@ export default function AdminPage() {
             >
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <div className="w-12 h-12 rounded-xl bg-danger/10 border border-danger/20 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
                   </div>
@@ -879,7 +879,7 @@ export default function AdminPage() {
                   </button>
                   <button
                     onClick={confirmDeleteUser}
-                    className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white text-sm font-mono font-semibold tracking-wide hover:bg-red-600 transition-all"
+                    className="flex-1 px-4 py-3 rounded-xl bg-danger text-white text-sm font-mono font-semibold tracking-wide hover:bg-danger/80 transition-all"
                   >
                     ELIMINAR
                   </button>

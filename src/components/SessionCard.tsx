@@ -78,12 +78,12 @@ export default function SessionCard({
     switch (state) {
       case 'today':
         return {
-          container: 'border-primary/50 bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/10',
-          badgeText: 'bg-primary/20 text-primary',
+          container: 'border-primary/60 bg-gradient-to-br from-primary/12 to-primary/6 shadow-lg shadow-primary/15',
+          badgeText: 'bg-primary/25 text-primary',
         };
       case 'completed':
         return {
-          container: 'border-primary/30 bg-primary/5',
+          container: 'border-success/40 bg-success/5',
           badgeText: 'bg-success/10 text-success',
         };
       case 'completed-under':
@@ -93,13 +93,13 @@ export default function SessionCard({
         };
       case 'completed-over':
         return {
-          container: 'border-success/40 bg-gradient-to-br from-success/10 to-warning/5 shadow-lg shadow-success/20',
+          container: 'border-success/50 bg-gradient-to-br from-success/12 to-warning/8 shadow-lg shadow-success/20',
           badgeText: 'bg-success/20 text-success',
         };
       case 'rescheduled':
         return {
-          container: 'border-secondary/50 bg-secondary/5',
-          badgeText: 'bg-secondary/20 text-secondary',
+          container: 'border-info/40 bg-info/5',
+          badgeText: 'bg-info/20 text-info',
         };
       case 'rescheduled-completed':
         return {
@@ -108,7 +108,7 @@ export default function SessionCard({
         };
       case 'missed':
         return {
-          container: 'border-dashed border-muted bg-surface/50',
+          container: 'border-dashed border-warning/40 bg-warning/5',
           badgeText: 'bg-warning/10 text-warning',
         };
       case 'blocked':
@@ -335,7 +335,7 @@ export default function SessionCard({
                   {session.feeling && (
                     <div className="flex items-center gap-3 text-sm sm:text-base text-muted-foreground">
                       <span className="text-muted-foreground/60">Sensación:</span>
-                      <span className="text-accent">{'\u2605'.repeat(session.feeling)}</span>
+                      <span className="text-warning">{'\u2605'.repeat(session.feeling)}</span>
                       <span className="text-muted-foreground/50">({session.feeling}/5)</span>
                     </div>
                   )}
@@ -358,7 +358,7 @@ export default function SessionCard({
               {!session.rescheduleUsed && (
                 <button
                   onClick={() => onShowDatePicker(session.id)}
-                  className="mt-3 w-full h-12 rounded-xl bg-secondary/20 hover:bg-secondary/30 border border-secondary/30 text-sm font-semibold text-secondary transition-all flex items-center justify-center gap-2"
+                  className="mt-3 w-full h-12 rounded-xl bg-info/20 hover:bg-info/30 border border-info/30 text-sm font-semibold text-info transition-all flex items-center justify-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -376,8 +376,8 @@ export default function SessionCard({
           )}
 
           {state === 'rescheduled' && (
-            <div className="mt-3 p-3 rounded-xl bg-secondary/10 border border-secondary/20">
-              <p className="text-sm sm:text-base font-semibold text-secondary flex items-center gap-2">
+            <div className="mt-3 p-3 rounded-xl bg-info/10 border border-info/20">
+              <p className="text-sm sm:text-base font-semibold text-info flex items-center gap-2">
                 <span className="text-lg">⚡</span>
                 ¡DEBE HACERSE! Sesión reprogramada
               </p>
