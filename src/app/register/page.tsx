@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { registerUser } from "@/lib/auth";
+import { registerUser, clearSession } from "@/lib/auth";
 
 const DISTANCES = [
   { value: 3, label: "3K", description: "Principiante absoluto" },
@@ -84,6 +84,8 @@ export default function RegisterPage() {
     );
 
     if (result.success) {
+      // Clear any existing session to avoid conflicts
+      clearSession();
       router.push("/login?registered=true");
     } else {
       setError(result.error || "Error al crear la cuenta");
@@ -304,7 +306,14 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-sm font-mono text-muted-foreground">
+        <p className="mt-4 text-center text-xs font-mono text-muted-foreground">
+          Al crear tu cuenta, aceptas nuestros{" "}
+          <a href="/terminos" className="text-primary hover:underline" target="_blank">
+            Términos y Condiciones
+          </a>
+        </p>
+
+        <p className="mt-4 text-center text-sm font-mono text-muted-foreground">
           ¿Ya tienes cuenta?{" "}
           <a href="/login" className="text-primary hover:underline">
             Iniciar Sesión

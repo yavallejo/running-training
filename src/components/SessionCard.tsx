@@ -238,7 +238,7 @@ export default function SessionCard({
             <div className="flex items-center gap-2">
               <span className={`rounded-full bg-surface-elevated px-3 py-1 text-sm font-semibold ${
                 completionState === 'completed-over' ? 'text-success' :
-                completionState === 'completed-under' ? 'text-warning' : 'text-secondary'
+                completionState === 'completed-under' ? 'text-warning' : 'text-foreground'
               }`}>
                 {session.actualDistance ? (
                   <span>

@@ -70,16 +70,16 @@ export default function PlanPage() {
     setToday(todayStr);
 
     loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
-    setLoading(false);
   }, [router]);
 
   const loadPlan = async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
     try {
+      setLoading(true);
       // Load user profile first
       const profileData = await loadUserProfile(uId);
       
       const [sessionsData, progressMap] = await Promise.all([
-        generateTrainingPlan(planId, rDistance, rDate, startDate, profileData || undefined),
+        generateTrainingPlan(planId, rDistance, rDate, startDate, profileData || undefined, uId),
         loadUserProgress(uId)
       ]);
 
@@ -92,31 +92,45 @@ export default function PlanPage() {
       });
 
       const withBlocked = checkBlockedSessions(sessionsWithProgress, todayStr);
-      withBlocked.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      withBlocked.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        if (dateA !== dateB) return dateA - dateB;
+        return a.sessionOrder - b.sessionOrder;
+      });
       setSessions(withBlocked);
     } catch (error) {
       console.error('Error loading plan:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const saveProgress = useCallback(async (updated: TrainingSession[]) => {
-    setSaving(true);
-    if (userId) {
-      const promises = updated.map(s =>
-        saveUserProgress(userId, s.id, {
-          completed: s.completed,
-          rescheduled: s.rescheduled,
-          rescheduledTo: (s as any).rescheduledTo,
-          actualTime: s.actualTime,
-          actualPace: s.actualPace,
-          feeling: s.feeling,
-          notes: s.notes,
-          actualDistance: s.actualDistance
-        })
-      );
-      await Promise.all(promises);
+  const saveProgress = useCallback(async (sessionId: string, sessionData: TrainingSession) => {
+    if (!userId) {
+      console.error('No userId, cannot save progress');
+      return;
     }
-    setTimeout(() => setSaving(false), 500);
+    
+    setSaving(true);
+    try {
+      console.log('Saving progress for session:', sessionId, 'completed:', sessionData.completed);
+      const result = await saveUserProgress(userId, sessionId, {
+        completed: sessionData.completed,
+        rescheduled: sessionData.rescheduled,
+        rescheduledTo: (sessionData as any).rescheduledTo,
+        actualTime: sessionData.actualTime,
+        actualPace: sessionData.actualPace,
+        feeling: sessionData.feeling,
+        notes: sessionData.notes,
+        actualDistance: sessionData.actualDistance
+      });
+      console.log('Save result:', result);
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    } finally {
+      setSaving(false);
+    }
   }, [userId]);
 
   const toggleComplete = useCallback((id: string) => {
@@ -148,7 +162,7 @@ export default function PlanPage() {
         }
       }
 
-      saveProgress(updated);
+      saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
   }, [saveProgress]);
@@ -164,7 +178,7 @@ export default function PlanPage() {
       const updated = prev.map(s =>
         s.id === id ? { ...s, ...data } : s
       );
-      saveProgress(updated);
+      saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
     setShowPostWorkout(null);
@@ -218,8 +232,13 @@ export default function PlanPage() {
         return s;
       });
 
-      updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      saveProgress(updated);
+      updated.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        if (dateA !== dateB) return dateA - dateB;
+        return a.sessionOrder - b.sessionOrder;
+      });
+      saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
     setShowDatePicker(null);

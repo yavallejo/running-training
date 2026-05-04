@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { TrainingSession } from "@/lib/training-plan";
 
 interface DatePickerModalProps {
@@ -18,28 +16,33 @@ export default function DatePickerModal({
   onConfirm,
   onCancel,
 }: DatePickerModalProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const isDateAvailable = (date: Date) => {
-    const dateStr = date.toISOString().split("T")[0];
+  const isDateAvailable = (dateStr: string) => {
     return !sessions.some((s) => s.date === dateStr);
   };
 
+  const handleConfirm = () => {
+    if (selectedDate) {
+      onConfirm(sessionId, new Date(selectedDate));
+    }
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div className="mt-3 p-3 border border-foreground/10 rounded-xl bg-background space-y-3">
-      <DatePicker
-        selected={selectedDate}
-        onChange={(date: Date | null) => setSelectedDate(date)}
-        minDate={new Date()}
-        filterDate={isDateAvailable}
-        inline
-        calendarClassName="!bg-transparent !border-0 !font-sans"
-        dayClassName={() => "!text-foreground !hover:bg-primary/10"}
+      <input
+        type="date"
+        value={selectedDate}
+        onChange={(e) => setSelectedDate(e.target.value)}
+        min={today}
+        className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
       />
       <div className="flex gap-2">
         <button
-          onClick={() => selectedDate && onConfirm(sessionId, selectedDate)}
-          disabled={!selectedDate}
+          onClick={handleConfirm}
+          disabled={!selectedDate || !isDateAvailable(selectedDate)}
           className="flex-1 text-xs bg-secondary/10 text-secondary px-3 py-1.5 rounded-lg hover:bg-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Confirmar

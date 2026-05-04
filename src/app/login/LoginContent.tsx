@@ -27,7 +27,18 @@ export default function LoginContent() {
             if (session.role === 'admin') {
               router.replace("/admin");
             } else {
-              router.replace("/plan");
+              // Check if user has completed onboarding before redirecting to plan
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('id')
+                .eq('id', session.userId)
+                .single();
+              
+              if (profile) {
+                router.replace("/plan");
+              } else {
+                router.replace("/onboarding");
+              }
             }
             return;
           }

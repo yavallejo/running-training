@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { createUser } from "@/lib/auth";
 import { getSession, clearSession } from "@/lib/auth";
+import dynamic from "next/dynamic";
+
+// @ts-ignore
+const DatePicker = dynamic(() => import("react-datepicker"), { ssr: false });
+import "react-datepicker/dist/react-datepicker.css";
 
 interface User {
   id: string;
@@ -42,6 +47,8 @@ export default function AdminPage() {
   const [editRaceDate, setEditRaceDate] = useState('');
   const [editRaceName, setEditRaceName] = useState('');
   const [editStartDate, setEditStartDate] = useState('');
+  const [editPlanId, setEditPlanId] = useState('');
+  const [editRole, setEditRole] = useState<'user' | 'admin'>('user');
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userProgress, setUserProgress] = useState<any[]>([]);
@@ -49,15 +56,18 @@ export default function AdminPage() {
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
   const loadData = async () => {
     setLoading(true);
     try {
       const [usersRes, plansRes] = await Promise.all([
         supabase.from('users').select(`
-          id, username, plan_id, race_distance, race_date, race_name, start_date, created_at,
+          id, username, plan_id, race_distance, race_date, race_name, start_date, created_at, role,
           plans:plan_id (name, level)
         `).order('created_at', { ascending: false }),
-        supabase.from('plans').select('*')
+        supabase.from('plans').select('id, name, level')
       ]);
 
       if (usersRes.data) setUsers(usersRes.data as unknown as User[]);
@@ -126,15 +136,36 @@ export default function AdminPage() {
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`¿Eliminar usuario ${userName}?`)) return;
+    setUserToDelete({ id: userId, username: userName } as User);
+    setShowDeleteModal(true);
+  };
 
-    const { error } = await supabase.from('users').delete().eq('id', userId);
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    // First delete user_progress records
+    const { error: progressError } = await supabase.from('user_progress').delete().eq('user_id', userToDelete.id);
+    if (progressError) {
+      console.error('Error deleting user progress:', progressError);
+    }
+
+    // Then delete user_profiles records
+    const { error: profileError } = await supabase.from('user_profiles').delete().eq('id', userToDelete.id);
+    if (profileError) {
+      console.error('Error deleting user profile:', profileError);
+    }
+
+    // Finally delete the user
+    const { error } = await supabase.from('users').delete().eq('id', userToDelete.id);
     if (error) {
       setMessage({ type: 'error', text: 'Error al eliminar usuario' });
     } else {
       setMessage({ type: 'success', text: 'Usuario eliminado' });
       loadData();
     }
+
+    setShowDeleteModal(false);
+    setUserToDelete(null);
   };
 
   const loadUserProgress = async (userId: string) => {
@@ -142,43 +173,19 @@ export default function AdminPage() {
     try {
       const { data: user, error: userError } = await supabase
         .from('users')
-        .select('id, username, plan_id, plans:plan_id (name)')
+        .select('id, username, plan_id, race_distance, race_date, race_name, start_date, plans:plan_id (name, level)')
         .eq('id', userId)
         .single();
 
       if (userError || !user) return;
 
-      const { data: sessions } = await supabase
-        .from('training_sessions')
-        .select('*')
-        .eq('plan_id', user.plan_id)
-        .order('session_order', { ascending: true });
-
       const { data: progress } = await supabase
         .from('user_progress')
-        .select('*')
+        .select('session_id, completed, actual_time, actual_pace, feeling, notes, actual_distance')
         .eq('user_id', userId);
 
-      const mergedProgress = (sessions || []).map((session: any) => {
-        const sessionProgress = (progress || []).find((p: any) => p.session_id === session.id);
-        return {
-          id: session.id,
-          sessionOrder: session.session_order,
-          date: session.date,
-          dayLabel: session.day_label,
-          workout: session.workout,
-          distance: session.distance,
-          targetPace: session.target_pace,
-          completed: sessionProgress?.completed || false,
-          actualTime: sessionProgress?.actual_time,
-          actualPace: sessionProgress?.actual_pace,
-          feeling: sessionProgress?.feeling,
-          notes: sessionProgress?.notes,
-        };
-      });
-
       setSelectedUser(user as unknown as User);
-      setUserProgress(mergedProgress);
+      setUserProgress(progress || []);
       setShowProgressModal(true);
     } catch (error) {
       console.error('Error loading progress:', error);
@@ -194,24 +201,89 @@ export default function AdminPage() {
     setEditRaceDate(user.race_date || '');
     setEditRaceName(user.race_name || 'Carrera Recreativa');
     setEditStartDate(user.start_date || '');
+    setEditPlanId(user.plan_id || '');
+    setEditRole((user.role as 'user' | 'admin') || 'user');
     setShowEditModal(true);
   };
 
   const handleUpdateUser = async () => {
     if (!editingUser) return;
-    const { error } = await supabase
-      .from('users')
-      .update({
+    
+    try {
+      const updateData: any = {
         race_distance: editRaceDistance,
-        race_date: editRaceDate,
+        race_date: editRaceDate || null,
         race_name: editRaceName,
-        start_date: editStartDate
-      })
-      .eq('id', editingUser.id);
-    if (!error) {
+        start_date: editStartDate || null,
+        role: editRole
+      };
+
+      // Only include plan_id if it's a valid UUID
+      if (editPlanId && editPlanId.length > 0) {
+        updateData.plan_id = editPlanId;
+      } else {
+        updateData.plan_id = null;
+      }
+
+      const { data, error } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', editingUser.id)
+        .select();
+
+      if (error) {
+        console.error('Error updating user:', JSON.stringify(error, null, 2));
+        setMessage({ type: 'error', text: `Error al actualizar: ${error.message || 'Error desconocido'}` });
+        return;
+      }
+
+      // Sync experience_level with plan level
+      if (editPlanId) {
+        const selectedPlan = plans.find(p => p.id === editPlanId);
+        if (selectedPlan) {
+          const experienceLevel = selectedPlan.level === 'pro' ? 'advanced' : 
+                                  selectedPlan.level === 'intermediate' ? 'intermediate' : 'beginner';
+          
+          // Check if profile exists
+          const { data: existingProfile } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', editingUser.id)
+            .single();
+
+          if (existingProfile) {
+            // Update only experience_level
+            await supabase
+              .from('user_profiles')
+              .update({
+                experience_level: experienceLevel,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', editingUser.id);
+          } else {
+            // Create profile with defaults
+            await supabase
+              .from('user_profiles')
+              .insert({
+                id: editingUser.id,
+                experience_level: experienceLevel,
+                current_weekly_km: 0,
+                available_days_per_week: 3,
+                minutes_per_session: 60,
+                has_injuries: false,
+                updated_at: new Date().toISOString()
+              });
+          }
+        }
+      }
+
+      setMessage({ type: 'success', text: 'Usuario actualizado correctamente' });
       setShowEditModal(false);
       setEditingUser(null);
       loadData();
+    } catch (err: any) {
+      console.error('Error:', err);
+      setMessage({ type: 'error', text: `Error inesperado: ${err.message || 'Desconocido'}` });
     }
   };
 
@@ -219,6 +291,13 @@ export default function AdminPage() {
     clearSession();
     router.push("/login");
   };
+
+  const stats = useMemo(() => ({
+    total: users.length,
+    beginner: users.filter(u => (u.plans as any)?.level === 'beginner').length,
+    intermediate: users.filter(u => (u.plans as any)?.level === 'intermediate').length,
+    pro: users.filter(u => (u.plans as any)?.level === 'pro').length,
+  }), [users]);
 
   if (loading) {
     return (
@@ -234,13 +313,6 @@ export default function AdminPage() {
       </main>
     );
   }
-
-  const stats = {
-    total: users.length,
-    beginner: users.filter(u => (u.plans as any)?.[0]?.level === 'beginner').length,
-    intermediate: users.filter(u => (u.plans as any)?.[0]?.level === 'intermediate').length,
-    pro: users.filter(u => (u.plans as any)?.[0]?.level === 'pro').length,
-  };
 
   return (
     <main className="flex-1 min-h-screen bg-background">
@@ -388,20 +460,35 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Fecha Inicio</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                <DatePicker
+                  selected={startDate ? new Date(startDate) : null}
+                  onChange={(date: Date | null) => {
+                    if (date) {
+                      setStartDate(date.toISOString().split("T")[0]);
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Seleccionar fecha"
                   className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  calendarClassName="dark-datepicker"
+                  showPopperArrow={false}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Fecha Carrera</label>
-                <input
-                  type="date"
-                  value={raceDate}
-                  onChange={(e) => setRaceDate(e.target.value)}
+                <DatePicker
+                  selected={raceDate ? new Date(raceDate) : null}
+                  onChange={(date: Date | null) => {
+                    if (date) {
+                      setRaceDate(date.toISOString().split("T")[0]);
+                    }
+                  }}
+                  minDate={new Date()}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Seleccionar fecha"
                   className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  calendarClassName="dark-datepicker"
+                  showPopperArrow={false}
                 />
               </div>
               <div className="space-y-2">
@@ -498,7 +585,7 @@ export default function AdminPage() {
                         )}
                       </div>
                       <p className="text-xs font-mono text-muted-foreground">
-                        {(user.plans as any)?.[0]?.name || 'Sin plan'} · {user.race_distance || 7}km · Inicio: {user.start_date || 'No definido'} · Carrera: {user.race_date || 'No definido'}
+                        {(user.plans as any)?.name || 'Sin plan'} · {user.race_distance || 7}km · Inicio: {user.start_date || 'No definido'} · Carrera: {user.race_date || 'No definido'}
                       </p>
                     </div>
                   </div>
@@ -553,7 +640,7 @@ export default function AdminPage() {
               <div className="px-6 py-5 border-b border-border/50 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>{selectedUser.username}</h2>
-                  <p className="text-xs font-mono text-muted-foreground tracking-wide">PLAN: {(selectedUser.plans as any)?.[0]?.name}</p>
+                  <p className="text-xs font-mono text-muted-foreground tracking-wide">PLAN: {(selectedUser.plans as any)?.name || 'Sin plan'}</p>
                 </div>
                 <button onClick={closeProgressModal} className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
                   ✕
@@ -661,21 +748,36 @@ export default function AdminPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Fecha de Inicio</label>
-                  <input
-                    type="date"
-                    value={editStartDate}
-                    onChange={(e) => setEditStartDate(e.target.value)}
+                  <DatePicker
+                    selected={editStartDate ? new Date(editStartDate) : null}
+                    onChange={(date: Date | null) => {
+                      if (date) {
+                        setEditStartDate(date.toISOString().split("T")[0]);
+                      }
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Seleccionar fecha"
                     className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                    calendarClassName="dark-datepicker"
+                    showPopperArrow={false}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Fecha de Carrera</label>
-                  <input
-                    type="date"
-                    value={editRaceDate}
-                    onChange={(e) => setEditRaceDate(e.target.value)}
+                  <DatePicker
+                    selected={editRaceDate ? new Date(editRaceDate) : null}
+                    onChange={(date: Date | null) => {
+                      if (date) {
+                        setEditRaceDate(date.toISOString().split("T")[0]);
+                      }
+                    }}
+                    minDate={new Date()}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Seleccionar fecha"
                     className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                    calendarClassName="dark-datepicker"
+                    showPopperArrow={false}
                   />
                 </div>
 
@@ -689,12 +791,99 @@ export default function AdminPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Plan</label>
+                  <select
+                    value={editPlanId}
+                    onChange={(e) => setEditPlanId(e.target.value)}
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all cursor-pointer"
+                  >
+                    <option value="">Sin plan</option>
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>{plan.name} ({plan.level})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">Rol</label>
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as 'user' | 'admin')}
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all cursor-pointer"
+                  >
+                    <option value="user">Usuario</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
                 <button
                   onClick={handleUpdateUser}
                   className="w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 transition-all mt-2"
                 >
                   GUARDAR CAMBIOS
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && userToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setUserToDelete(null);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-surface border border-border/50 rounded-2xl max-w-md w-full overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>Eliminar Usuario</h3>
+                    <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground mb-6">
+                  ¿Estás seguro de que deseas eliminar al usuario <strong className="text-foreground">{userToDelete.username}</strong>? Se eliminarán todos sus datos y progreso.
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setUserToDelete(null);
+                    }}
+                    className="flex-1 px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-mono tracking-wide hover:bg-background transition-all"
+                  >
+                    CANCELAR
+                  </button>
+                  <button
+                    onClick={confirmDeleteUser}
+                    className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white text-sm font-mono font-semibold tracking-wide hover:bg-red-600 transition-all"
+                  >
+                    ELIMINAR
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Urbanist, Open_Sans } from "next/font/google";
+import { Urbanist, Open_Sans, Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Header from "@/components/Header";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
@@ -61,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${urbanist.variable} ${openSans.variable} h-full antialiased`}>
+    <html lang="es" className={cn("h-full", "antialiased", urbanist.variable, openSans.variable, "font-sans", geist.variable)}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <ErrorBoundary>

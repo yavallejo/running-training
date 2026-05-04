@@ -5,19 +5,37 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
-import DatePicker from "react-datepicker";
+import dynamic from "next/dynamic";
+
+// @ts-ignore
+const DatePicker = dynamic(() => import("react-datepicker"), { ssr: false });
 import "react-datepicker/dist/react-datepicker.css";
 
 interface QuizAnswers {
+  // Step 1: Experience
   timeRunning: string;
   weeklyKm: string;
+  // Step 2: Goal
   goalDistance: number;
   goalDate: string;
   goalName: string;
+  // Step 3: Availability
   availableDays: number;
   minutesPerSession: string;
+  // Step 4: Physical
   hasInjuries: boolean;
   injuryDescription: string;
+  medicalClearance: boolean;
+  // Step 5: Physiology
+  age: string;
+  sex: string;
+  weight: string;
+  restingHr: string;
+  maxHr: string;
+  // Step 6: Preferences
+  preferredTerrain: string;
+  hasTreadmill: boolean;
+  progressivePace: boolean;
 }
 
 const TIME_RUNNING_OPTIONS = [
@@ -61,6 +79,20 @@ const MINUTES_OPTIONS = [
   { value: "90+", label: "Más de 1 hora" },
 ];
 
+const SEX_OPTIONS = [
+  { value: "male", label: "Masculino" },
+  { value: "female", label: "Femenino" },
+  { value: "other", label: "Prefiero no decir" },
+];
+
+const TERRAIN_OPTIONS = [
+  { value: "road", label: "Asfalto", icon: "🛣️" },
+  { value: "track", label: "Pista", icon: "🏟️" },
+  { value: "trail", label: "Trail", icon: "⛰️" },
+  { value: "treadmill", label: "Cinta", icon: "🏃" },
+  { value: "mixed", label: "Mixto", icon: "🔄" },
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -69,15 +101,30 @@ export default function OnboardingPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [answers, setAnswers] = useState<QuizAnswers>({
+    // Step 1
     timeRunning: "",
     weeklyKm: "",
+    // Step 2
     goalDistance: 7,
     goalDate: "",
     goalName: "",
+    // Step 3
     availableDays: 3,
     minutesPerSession: "60",
+    // Step 4
     hasInjuries: false,
     injuryDescription: "",
+    medicalClearance: false,
+    // Step 5
+    age: "",
+    sex: "other",
+    weight: "",
+    restingHr: "",
+    maxHr: "",
+    // Step 6
+    preferredTerrain: "road",
+    hasTreadmill: false,
+    progressivePace: true,
   });
 
   useEffect(() => {
@@ -107,9 +154,24 @@ export default function OnboardingPage() {
         setError("Por favor completa todos los campos");
         return;
       }
+    } else if (step === 4) {
+      if (!answers.medicalClearance) {
+        setError("Debes confirmar que has consultado a tu médico");
+        return;
+      }
+    } else if (step === 5) {
+      if (!answers.age) {
+        setError("Por favor ingresa tu edad");
+        return;
+      }
+      const ageNum = parseInt(answers.age);
+      if (ageNum < 16 || ageNum > 99) {
+        setError("La edad debe estar entre 16 y 99 años");
+        return;
+      }
     }
 
-    if (step < 5) {
+    if (step < 7) {
       setStep(step + 1);
     }
   };
@@ -142,6 +204,17 @@ export default function OnboardingPage() {
           minutes_per_session: parseInt(answers.minutesPerSession),
           has_injuries: answers.hasInjuries,
           injury_description: answers.hasInjuries ? answers.injuryDescription : null,
+          medical_clearance: answers.medicalClearance,
+          // New physiology fields
+          age: parseInt(answers.age) || null,
+          sex: answers.sex,
+          weight: answers.weight ? parseFloat(answers.weight) : null,
+          resting_heart_rate: answers.restingHr ? parseInt(answers.restingHr) : null,
+          max_heart_rate: answers.maxHr ? parseInt(answers.maxHr) : null,
+          // New preferences
+          preferred_terrain: answers.preferredTerrain,
+          has_treadmill: answers.hasTreadmill,
+          progressive_pace: answers.progressivePace,
           updated_at: new Date().toISOString(),
         });
 
@@ -216,13 +289,13 @@ export default function OnboardingPage() {
             PERSONALIZA TU PLAN
           </h1>
           <p className="text-sm font-mono text-muted-foreground mt-2 tracking-wide">
-            PASO {step} DE 5
+            PASO {step} DE 7
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="flex gap-2 mb-8">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((s) => (
             <div
               key={s}
               className={`flex-1 h-1.5 rounded-full transition-all ${
@@ -343,9 +416,8 @@ export default function OnboardingPage() {
                       dateFormat="dd/MM/yyyy"
                       placeholderText="Selecciona la fecha de tu carrera"
                       className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
-                      calendarClassName="bg-surface border border-border/50 rounded-xl shadow-lg"
+                      calendarClassName="dark-datepicker"
                       showPopperArrow={false}
-                      locale="es"
                     />
                   </div>
                   <p className="text-[10px] font-mono text-muted-foreground">
@@ -488,18 +560,238 @@ export default function OnboardingPage() {
                   </motion.div>
                 )}
 
-                <div className="p-4 rounded-xl bg-background/50 border border-border/30">
-                  <p className="text-xs font-mono text-muted-foreground">
-                    💡 Esta información nos ayuda a adaptar tu plan. Si tienes dudas, consulta con un médico antes de comenzar.
+                {/* Medical Disclaimer */}
+                <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-red-500 mb-1">AVISO MÉDICO</p>
+                      <p className="text-xs text-muted-foreground">
+                        Este plan es generado algorítmicamente y NO sustituye la supervisión médica. Te recomendamos consultar a tu médico antes de iniciar cualquier programa de entrenamiento.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medical Clearance Checkbox */}
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={answers.medicalClearance}
+                      onChange={(e) => setAnswers({ ...answers, medicalClearance: e.target.checked })}
+                      className="mt-1 w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary/50"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      He consultado a mi médico y estoy seguro de que puedo hacer actividad física
+                    </span>
+                  </label>
+                  <p className="text-[10px] font-mono text-muted-foreground ml-7">
+                    <a href="/terminos" target="_blank" className="text-primary hover:underline">
+                      Ver Términos y Condiciones
+                    </a>
                   </p>
                 </div>
               </motion.div>
             )}
 
-            {/* Step 5: Summary */}
+            {/* Step 5: Physiology */}
             {step === 5 && (
               <motion.div
                 key="step5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Tu Cuerpo
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Esta información nos ayuda a personalizar mejor tu plan (campos opcionales excepto la edad).
+                </p>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Cuántos años tienes? <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={answers.age}
+                    onChange={(e) => setAnswers({ ...answers, age: e.target.value })}
+                    placeholder="Ej: 28"
+                    min="16"
+                    max="99"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Sexo biológico
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {SEX_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, sex: option.value })}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          answers.sex === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <span className="text-sm font-mono">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                      Peso (kg) <span className="text-muted-foreground text-xs">opcional</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={answers.weight}
+                      onChange={(e) => setAnswers({ ...answers, weight: e.target.value })}
+                      placeholder="70"
+                      min="30"
+                      max="200"
+                      className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                      FC Reposo (lpm) <span className="text-muted-foreground text-xs">opcional</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={answers.restingHr}
+                      onChange={(e) => setAnswers({ ...answers, restingHr: e.target.value })}
+                      placeholder="60"
+                      min="30"
+                      max="120"
+                      className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    FC Máxima (lpm) <span className="text-muted-foreground text-xs">si la conoces</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={answers.maxHr}
+                    onChange={(e) => setAnswers({ ...answers, maxHr: e.target.value })}
+                    placeholder="190"
+                    min="100"
+                    max="220"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                  <p className="text-[10px] font-mono text-muted-foreground">
+                    Si no la conoces, la estimaremos automáticamente según tu edad
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 6: Preferences */}
+            {step === 6 && (
+              <motion.div
+                key="step6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-xl font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  Tus Preferencias
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Dónde corres principalmente?
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {TERRAIN_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setAnswers({ ...answers, preferredTerrain: option.value })}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          answers.preferredTerrain === option.value
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 bg-background/50 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div className="text-xl mb-1">{option.icon}</div>
+                        <div className="text-xs font-mono">{option.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    ¿Tienes acceso a treadmill/cinta para entrenar?
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setAnswers({ ...answers, hasTreadmill: true })}
+                      className={`p-4 rounded-xl border text-center transition-all ${
+                        answers.hasTreadmill
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/50 bg-background/50 hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">✓</div>
+                      <div className="text-sm font-mono">Sí</div>
+                    </button>
+                    <button
+                      onClick={() => setAnswers({ ...answers, hasTreadmill: false })}
+                      className={`p-4 rounded-xl border text-center transition-all ${
+                        !answers.hasTreadmill
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/50 bg-background/50 hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">✗</div>
+                      <div className="text-sm font-mono">No</div>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl border border-border/50 bg-background/50">
+                    <input
+                      type="checkbox"
+                      checked={answers.progressivePace}
+                      onChange={(e) => setAnswers({ ...answers, progressivePace: e.target.checked })}
+                      className="mt-1 w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary/50"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-foreground">
+                        Ritmo progresivo
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Tu ritmo mejorará gradualmente durante el plan. Si lo desactivas, mantendrás un ritmo constante.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 7: Summary */}
+            {step === 7 && (
+              <motion.div
+                key="step7"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -537,6 +829,28 @@ export default function OnboardingPage() {
                     </div>
                     <div className="text-xs font-mono text-muted-foreground mt-1">
                       {MINUTES_OPTIONS.find(o => o.value === answers.minutesPerSession)?.label} por sesión
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">FISIOLOGÍA</div>
+                    <div className="text-sm font-medium">
+                      {answers.age} años · {SEX_OPTIONS.find(o => o.value === answers.sex)?.label}
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">
+                      {answers.weight ? `${answers.weight} kg` : "Peso no especificado"} · 
+                      {answers.restingHr ? ` FC Reposo: ${answers.restingHr}` : " FC no especificada"}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/50 border border-border/30">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">PREFERENCIAS</div>
+                    <div className="text-sm font-medium">
+                      {TERRAIN_OPTIONS.find(o => o.value === answers.preferredTerrain)?.label} · 
+                      {answers.hasTreadmill ? " Con cinta" : " Sin cinta"}
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-1">
+                      {answers.progressivePace ? "Ritmo progresivo" : "Ritmo constante"}
                     </div>
                   </div>
 
@@ -578,7 +892,7 @@ export default function OnboardingPage() {
                 ATRÁS
               </button>
             )}
-            {step < 5 ? (
+            {step < 7 ? (
               <button
                 onClick={handleNext}
                 className="flex-1 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 transition-all"

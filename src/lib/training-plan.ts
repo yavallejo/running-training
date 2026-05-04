@@ -1,5 +1,17 @@
 import { supabase } from './supabase'
 
+// Generate deterministic UUID from string
+function generateDeterministicId(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  return `${hex.slice(0, 8)}-${hex.slice(0, 4)}-4${hex.slice(1, 4)}-${['8','9','a','b'][Math.abs(hash) % 4]}${hex.slice(0, 3)}-${hex}${hex.slice(0, 4)}`.slice(0, 36);
+}
+
 export interface TrainingSession {
   id: string
   sessionOrder: number
@@ -22,6 +34,9 @@ export interface TrainingSession {
   actualDistance?: number
   weekNumber?: number
   intensity?: number // 1-10 scale
+  duration?: number // minutes
+  heartRateZone?: string
+  warning?: string
 }
 
 export type WorkoutType = 
@@ -39,6 +54,18 @@ export interface UserProfile {
   available_days_per_week: number
   minutes_per_session: number
   has_injuries: boolean
+  injury_description?: string
+  // New fields
+  age?: number
+  sex?: 'male' | 'female' | 'other'
+  weight?: number
+  resting_heart_rate?: number
+  max_heart_rate?: number
+  preferred_terrain?: 'road' | 'track' | 'trail' | 'treadmill' | 'mixed'
+  goal_type?: 'compete' | 'fitness' | 'weight_loss'
+  has_treadmill?: boolean
+  progressive_pace?: boolean
+  medical_clearance?: boolean
 }
 
 export interface DistanceConfig {
@@ -116,48 +143,56 @@ export const WORKOUT_TEMPLATES: Record<WorkoutType, {
   description: string
   intensity: number
   paceMultiplier: number
+  hrZone: string
 }> = {
   easy: {
     name: 'Trote Fácil',
     description: 'Trote conversacional, ritmo cómodo',
     intensity: 4,
-    paceMultiplier: 1.2
+    paceMultiplier: 1.2,
+    hrZone: '60-70%'
   },
   steady: {
     name: 'Trote Moderado',
     description: 'Ritmo sostenido pero cómodo',
     intensity: 6,
-    paceMultiplier: 1.1
+    paceMultiplier: 1.1,
+    hrZone: '70-80%'
   },
   tempo: {
     name: 'Tempo',
     description: 'Ritmo incómodo pero mantenible',
     intensity: 7,
-    paceMultiplier: 1.0
+    paceMultiplier: 1.0,
+    hrZone: '80-85%'
   },
   intervals: {
     name: 'Intervalos',
     description: 'Repeticiones rápidas con recuperación',
     intensity: 8,
-    paceMultiplier: 0.9
+    paceMultiplier: 0.9,
+    hrZone: '85-95%'
   },
   long_run: {
     name: 'Carrera Larga',
     description: 'La carrera más larga de la semana',
     intensity: 5,
-    paceMultiplier: 1.15
+    paceMultiplier: 1.15,
+    hrZone: '70-80%'
   },
   recovery: {
     name: 'Recuperación',
     description: 'Caminata o trote muy suave',
     intensity: 2,
-    paceMultiplier: 1.4
+    paceMultiplier: 1.4,
+    hrZone: '55-65%'
   },
   cross: {
     name: 'Cross-Training',
     description: 'Ejercicios complementarios',
     intensity: 5,
-    paceMultiplier: 0
+    paceMultiplier: 0,
+    hrZone: '60-75%'
   }
 }
 
@@ -166,6 +201,22 @@ const WEEKLY_TEMPLATES: Record<string, WorkoutType[]> = {
   beginner: ['easy', 'intervals', 'long_run'],
   intermediate: ['easy', 'steady', 'intervals', 'long_run', 'recovery'],
   advanced: ['recovery', 'easy', 'tempo', 'steady', 'intervals', 'long_run']
+}
+
+// Ajustes por terreno
+const TERRAIN_MULTIPLIERS: Record<string, number> = {
+  treadmill: 0.98,  // Cinta = más eficiente
+  track: 1.0,       // Pista estándar
+  road: 1.02,       // Asfalto ligeramente más difícil
+  trail: 1.05,      // Trail = más difícil
+  mixed: 1.0        // Mixto = estándar
+}
+
+// Intensidad por objetivo
+const GOAL_INTENSITY_FACTORS: Record<string, number> = {
+  compete: 1.1,      // Más intenso para competir
+  fitness: 1.0,      // Estándar
+  weight_loss: 0.9   // Menos intenso, más volumen
 }
 
 /**
@@ -177,17 +228,29 @@ export async function generateTrainingPlan(
   raceDistance: number = 7,
   raceDate: string = "2026-05-17",
   startDate?: string,
-  profile?: UserProfile
+  profile?: UserProfile,
+  userId?: string
 ): Promise<TrainingSession[]> {
   const config = DISTANCE_CONFIGS[raceDistance] || DISTANCE_CONFIGS[7]
   
-  // Usar perfil o defaults
-  const userProfile: UserProfile = profile || {
-    experience_level: 'beginner',
-    current_weekly_km: 0,
-    available_days_per_week: config.sessionsPerWeek,
-    minutes_per_session: 60,
-    has_injuries: false
+  // Usar perfil o defaults, asegurando que no haya valores null
+  const userProfile: UserProfile = {
+    experience_level: profile?.experience_level || 'beginner',
+    current_weekly_km: profile?.current_weekly_km ?? 0,
+    available_days_per_week: profile?.available_days_per_week ?? config.sessionsPerWeek,
+    minutes_per_session: profile?.minutes_per_session ?? 60,
+    has_injuries: profile?.has_injuries ?? false,
+    injury_description: profile?.injury_description,
+    age: profile?.age,
+    sex: profile?.sex,
+    weight: profile?.weight,
+    resting_heart_rate: profile?.resting_heart_rate,
+    max_heart_rate: profile?.max_heart_rate,
+    preferred_terrain: profile?.preferred_terrain || 'road',
+    goal_type: profile?.goal_type || 'fitness',
+    has_treadmill: profile?.has_treadmill ?? false,
+    progressive_pace: profile?.progressive_pace ?? true,
+    medical_clearance: profile?.medical_clearance ?? false
   }
 
   // Calcular sesiones por semana basado en disponibilidad
@@ -206,6 +269,9 @@ export async function generateTrainingPlan(
     return tomorrow.toISOString().split('T')[0]
   })()
   
+  // Generate deterministic seed for session IDs
+  const seed = userId || planId || 'default'
+  
   // PRIORIZAR ALGORITMO cuando hay datos de perfil
   // Solo usar plantillas estáticas si NO hay perfil
   if (profile && profile.experience_level) {
@@ -215,37 +281,9 @@ export async function generateTrainingPlan(
       raceDate,
       config,
       userProfile,
-      sessionsPerWeek
+      sessionsPerWeek,
+      seed
     )
-  }
-
-  // Fallback: intentar cargar plantillas de la base de datos
-  const { data: sessionTemplates, error } = await supabase
-    .from('training_sessions')
-    .select('*')
-    .eq('plan_id', planId)
-    .eq('target_distance', raceDistance)
-    .order('session_order', { ascending: true })
-
-  if (!error && sessionTemplates && sessionTemplates.length > 0) {
-    const sessionDates = calculateSessionDates(effectiveStartDate, raceDate, sessionTemplates.length)
-    
-    return sessionTemplates.map((s, index) => ({
-      id: s.id,
-      sessionOrder: s.session_order || index + 1,
-      date: sessionDates[index] || s.date,
-      dayLabel: s.day_label || `Día ${index + 1}`,
-      workout: s.workout,
-      workoutType: mapWorkoutType(s.workout),
-      details: s.details || '',
-      distance: parseFloat(s.distance) || 0,
-      targetPace: s.target_pace || '',
-      completed: false,
-      rescheduled: false,
-      rescheduleUsed: false,
-      blocked: false,
-      weekNumber: Math.floor(index / sessionsPerWeek) + 1
-    }))
   }
 
   // Si no hay plantillas ni perfil, generar plan algorítmico con defaults
@@ -255,12 +293,59 @@ export async function generateTrainingPlan(
     raceDate,
     config,
     userProfile,
-    sessionsPerWeek
+    sessionsPerWeek,
+    seed
   )
 }
 
 /**
- * Genera un plan usando algoritmo
+ * Estima la FC máxima si no fue proporcionada
+ */
+function estimateMaxHeartRate(age: number, sex?: string): number {
+  // Fórmula de Tanaka: 208 - (0.7 × edad)
+  const baseMaxHR = 208 - (0.7 * age)
+  
+  // Ajuste por sexo (estadísticamente mujeres tienen FC ligeramente mayor)
+  if (sex === 'female') return Math.round(baseMaxHR + 3)
+  return Math.round(baseMaxHR)
+}
+
+/**
+ * Calcula zonas cardíacas basadas en FC
+ */
+function calculateHeartRateZones(
+  restingHR: number,
+  maxHR: number
+): Record<string, { min: number; max: number }> {
+  // Karvonen: FC objetivo = (FC Máx - FC Reposo) × intensidad + FC Reposo
+  const hrReserve = maxHR - restingHR
+  
+  return {
+    recovery: { 
+      min: Math.round(hrReserve * 0.50 + restingHR), 
+      max: Math.round(hrReserve * 0.60 + restingHR) 
+    },
+    easy: { 
+      min: Math.round(hrReserve * 0.60 + restingHR), 
+      max: Math.round(hrReserve * 0.70 + restingHR) 
+    },
+    steady: { 
+      min: Math.round(hrReserve * 0.70 + restingHR), 
+      max: Math.round(hrReserve * 0.80 + restingHR) 
+    },
+    tempo: { 
+      min: Math.round(hrReserve * 0.80 + restingHR), 
+      max: Math.round(hrReserve * 0.85 + restingHR) 
+    },
+    intervals: { 
+      min: Math.round(hrReserve * 0.85 + restingHR), 
+      max: Math.round(hrReserve * 0.95 + restingHR) 
+    }
+  }
+}
+
+/**
+ * Genera un plan usando algoritmo mejorado
  */
 function generateAlgorithmicPlan(
   raceDistance: number,
@@ -268,17 +353,49 @@ function generateAlgorithmicPlan(
   raceDate: string,
   config: DistanceConfig,
   profile: UserProfile,
-  sessionsPerWeek: number
+  sessionsPerWeek: number,
+  seed: string = 'default'
 ): TrainingSession[] {
   const totalWeeks = config.weeks
   const totalSessions = totalWeeks * sessionsPerWeek
   const sessionDates = calculateSessionDates(startDate, raceDate, totalSessions)
   
   // Obtener plantilla de workouts según nivel
-  const workoutTemplate = WEEKLY_TEMPLATES[profile.experience_level] || WEEKLY_TEMPLATES.beginner
+  let workoutTemplate = WEEKLY_TEMPLATES[profile.experience_level] || WEEKLY_TEMPLATES.beginner
+  
+  // Ajustar plantilla por lesiones: sustituir intervals por cross si tiene lesiones
+  if (profile.has_injuries) {
+    workoutTemplate = workoutTemplate.map(w => w === 'intervals' ? 'cross' : w)
+  }
   
   // Ajustar plantilla al número de sesiones por semana
   const adjustedTemplate = adjustTemplateToSessions(workoutTemplate, sessionsPerWeek)
+  
+  // Calcular FC máxima (estimada si no fue proporcionada)
+  const maxHR = profile.max_heart_rate || 
+    (profile.age ? estimateMaxHeartRate(profile.age, profile.sex) : 190)
+  
+  // Calcular zonas cardíacas si tiene FC reposo
+  const hrZones = profile.resting_heart_rate 
+    ? calculateHeartRateZones(profile.resting_heart_rate, maxHR)
+    : null
+  
+  // Factor de terreno
+  const terrainMultiplier = TERRAIN_MULTIPLIERS[profile.preferred_terrain || 'road'] || 1.0
+  
+  // Factor de objetivo
+  const goalFactor = GOAL_INTENSITY_FACTORS[profile.goal_type || 'fitness'] || 1.0
+  
+  // Factor de lesiones
+  const injuryMultiplier = profile.has_injuries ? 0.7 : 1.0
+  
+  // Volumen inicial basado en km semanales actuales
+  const startingVolumeFactor = profile.current_weekly_km > 0 
+    ? Math.min(profile.current_weekly_km * 0.3 / config.baseDistance, 1.0)
+    : 0.6
+  
+  // Intervalo de descarga según edad
+  const recoveryInterval = (profile.age && profile.age > 60) ? 3 : 4
   
   const sessions: TrainingSession[] = []
   
@@ -287,7 +404,12 @@ function generateAlgorithmicPlan(
     const dayInWeek = i % sessionsPerWeek
     
     // Obtener tipo de workout del template
-    const workoutType = adjustedTemplate[dayInWeek % adjustedTemplate.length]
+    let workoutType = adjustedTemplate[dayInWeek % adjustedTemplate.length]
+    
+    // Si tiene lesiones y es intervals, forzar cross
+    if (profile.has_injuries && workoutType === 'intervals') {
+      workoutType = 'cross'
+    }
     
     // Calcular distancias y ritmos según progresión
     const progression = calculateProgression(
@@ -295,21 +417,55 @@ function generateAlgorithmicPlan(
       totalWeeks,
       raceDistance,
       profile.experience_level,
-      config
+      config,
+      startingVolumeFactor,
+      injuryMultiplier,
+      recoveryInterval
     )
     
     const workout = WORKOUT_TEMPLATES[workoutType]
-    const distance = calculateWorkoutDistance(workoutType, progression, raceDistance, config)
-    const pace = calculateTargetPace(workoutType, profile.experience_level, raceDistance)
+    
+    // Calcular distancia base
+    let distance = calculateWorkoutDistance(workoutType, progression, raceDistance, config)
+    
+    // Aplicar multiplicadores
+    distance = distance * terrainMultiplier * injuryMultiplier
+    
+    // Calcular ritmo
+    let pace = calculateTargetPace(
+      workoutType, 
+      profile.experience_level, 
+      raceDistance, 
+      profile.progressive_pace !== false,
+      weekNum,
+      totalWeeks
+    )
+    
+    // Calcular duración estimada de la sesión
+    const duration = calculateSessionDuration(
+      workoutType, 
+      distance, 
+      profile.minutes_per_session || 60
+    )
+    
+    // Generar zona cardíaca si está disponible
+    const heartRateZone = hrZones && workoutType !== 'cross'
+      ? formatHeartRateZone(hrZones, workoutType)
+      : undefined
+    
+    // Generar warning si tiene lesiones
+    const warning = profile.has_injuries 
+      ? "⚠️ Plan adaptado por lesión. Consulta a tu médico."
+      : undefined
     
     sessions.push({
-      id: `gen-${i + 1}`,
+      id: generateDeterministicId(`${seed}-${i}`),
       sessionOrder: i + 1,
       date: sessionDates[i] || startDate,
       dayLabel: `Semana ${weekNum} - Día ${dayInWeek + 1}`,
       workout: workout.name,
       workoutType: workoutType,
-      details: generateWorkoutDetails(workoutType, distance, pace, weekNum),
+      details: generateWorkoutDetails(workoutType, distance, pace, weekNum, duration),
       distance: Math.round(distance * 10) / 10,
       targetPace: pace,
       completed: false,
@@ -317,7 +473,10 @@ function generateAlgorithmicPlan(
       rescheduleUsed: false,
       blocked: false,
       weekNumber: weekNum,
-      intensity: workout.intensity
+      intensity: Math.round(workout.intensity * goalFactor),
+      duration: duration,
+      heartRateZone: heartRateZone,
+      warning: warning
     })
   }
   
@@ -353,14 +512,17 @@ function adjustTemplateToSessions(template: WorkoutType[], sessionsPerWeek: numb
 }
 
 /**
- * Calcula la progresión semanal
+ * Calcula la progresión semanal con todos los factores
  */
 function calculateProgression(
   currentWeek: number,
   totalWeeks: number,
   targetDistance: number,
   level: string,
-  config: DistanceConfig
+  config: DistanceConfig,
+  startingVolumeFactor: number,
+  injuryMultiplier: number,
+  recoveryInterval: number
 ): {
   factor: number
   volume: number
@@ -368,8 +530,8 @@ function calculateProgression(
 } {
   const weekProgress = currentWeek / totalWeeks
   
-  // Factor de volumen (0.6 a 1.0)
-  const volumeFactor = 0.6 + (weekProgress * 0.4)
+  // Factor de volumen: empieza en startingVolumeFactor y crece a 1.0
+  const volumeFactor = startingVolumeFactor + ((1.0 - startingVolumeFactor) * weekProgress)
   
   // Factor de intensidad según nivel
   const intensityFactors = {
@@ -379,14 +541,14 @@ function calculateProgression(
   }
   const intensityFactor = intensityFactors[level as keyof typeof intensityFactors] || intensityFactors.beginner
   
-  // Semana de descarga (cada 3-4 semanas)
-  const isRecoveryWeek = currentWeek % 4 === 0 && currentWeek > 1 && currentWeek < totalWeeks
+  // Semana de descarga (cada recoveryInterval semanas)
+  const isRecoveryWeek = currentWeek % recoveryInterval === 0 && currentWeek > 1 && currentWeek < totalWeeks
   const recoveryMultiplier = isRecoveryWeek ? 0.7 : 1.0
   
   return {
-    factor: volumeFactor * recoveryMultiplier,
-    volume: targetDistance * volumeFactor * recoveryMultiplier,
-    intensity: intensityFactor * recoveryMultiplier
+    factor: volumeFactor * recoveryMultiplier * injuryMultiplier,
+    volume: targetDistance * volumeFactor * recoveryMultiplier * injuryMultiplier,
+    intensity: intensityFactor * recoveryMultiplier * injuryMultiplier
   }
 }
 
@@ -433,26 +595,40 @@ function calculateWorkoutDistance(
 }
 
 /**
- * Calcula el ritmo objetivo según nivel y tipo de workout
+ * Calcula el ritmo objetivo según nivel, distancia, progresión y preferencias
  */
 function calculateTargetPace(
   workoutType: WorkoutType,
   level: string,
-  targetDistance: number
+  targetDistance: number,
+  progressive: boolean,
+  currentWeek: number,
+  totalWeeks: number
 ): string {
   // Ritmos base por nivel (min/km) - representados como minutos decimales
   const basePaces = {
-    beginner: { easy: 7.5, steady: 6.75, tempo: 6.25, intervals: 5.75, long_run: 7.0, recovery: 8.5 },
-    intermediate: { easy: 6.5, steady: 6.0, tempo: 5.5, intervals: 5.0, long_run: 6.25, recovery: 7.5 },
-    advanced: { easy: 5.75, steady: 5.25, tempo: 4.75, intervals: 4.25, long_run: 5.5, recovery: 6.75 }
+    beginner: { easy: 7.5, steady: 6.75, tempo: 6.25, intervals: 5.75, long_run: 7.0, recovery: 8.5, cross: 0 },
+    intermediate: { easy: 6.5, steady: 6.0, tempo: 5.5, intervals: 5.0, long_run: 6.25, recovery: 7.5, cross: 0 },
+    advanced: { easy: 5.75, steady: 5.25, tempo: 4.75, intervals: 4.25, long_run: 5.5, recovery: 6.75, cross: 0 }
   }
   
   const paces = basePaces[level as keyof typeof basePaces] || basePaces.beginner
   const basePace = paces[workoutType as keyof typeof paces] || paces.easy
   
+  if (basePace === 0) return '' // Cross-training no tiene ritmo
+  
   // Ajustar según distancia objetivo (más lento para distancias más largas)
   const distanceMultiplier = 1 + (targetDistance - 5) * 0.02
-  const adjustedPace = basePace * distanceMultiplier
+  
+  // Ajustar según progresión semanal (si progressive = true)
+  // Semana 1: ×1.15 (más lento) → Semana final: ×1.0 (más rápido)
+  let progressiveMultiplier = 1.0
+  if (progressive) {
+    const weekProgress = currentWeek / totalWeeks
+    progressiveMultiplier = 1 + (1 - weekProgress) * 0.15
+  }
+  
+  const adjustedPace = basePace * distanceMultiplier * progressiveMultiplier
   
   const minutes = Math.floor(adjustedPace)
   const seconds = Math.round((adjustedPace - minutes) * 60)
@@ -461,22 +637,67 @@ function calculateTargetPace(
 }
 
 /**
- * Genera detalles del workout
+ * Calcula la duración estimada de la sesión
+ */
+function calculateSessionDuration(
+  workoutType: WorkoutType,
+  distance: number,
+  maxDuration: number
+): number {
+  // Duración base según tipo de workout (minutos)
+  const baseDurations: Record<WorkoutType, number> = {
+    easy: 35,
+    steady: 40,
+    tempo: 45,
+    intervals: 50,
+    long_run: 60,
+    recovery: 25,
+    cross: 45
+  }
+  
+  const baseDuration = baseDurations[workoutType] || 40
+  
+  // Ajustar según distancia (asumiendo ~6 min/km promedio para principiante)
+  const distanceBasedDuration = distance * 6
+  
+  // Usar el menor entre base y distancia, pero no exceder maxDuration
+  const estimatedDuration = Math.min(
+    Math.max(baseDuration, distanceBasedDuration),
+    maxDuration
+  )
+  
+  return Math.round(estimatedDuration)
+}
+
+/**
+ * Formatea la zona cardíaca para mostrar
+ */
+function formatHeartRateZone(
+  hrZones: Record<string, { min: number; max: number }>,
+  workoutType: WorkoutType
+): string {
+  const zone = hrZones[workoutType] || hrZones.easy
+  return `${zone.min}-${zone.max} lpm`
+}
+
+/**
+ * Genera detalles del workout con duración y FC
  */
 function generateWorkoutDetails(
   workoutType: WorkoutType,
   distance: number,
   pace: string,
-  weekNumber: number
+  weekNumber: number,
+  duration: number
 ): string {
   const details: Record<WorkoutType, string> = {
-    easy: `Trote suave y conversacional. Deberías poder hablar sin dificultad.`,
-    steady: `Ritmo constante y cómodo. Mantén un pace consistente.`,
-    tempo: `Ritmo comfortably hard. Deberías poder decir frases cortas.`,
-    intervals: `Series rápidas con recuperación. Ej: 4x400m o 6x200m.`,
-    long_run: `La carrera más larga de la semana. Ritmo cómodo.`,
-    recovery: `Caminata o trote muy suave. Enfócate en recuperar.`,
-    cross: `Actividad complementaria: natación, ciclismo, yoga, etc.`
+    easy: `Trote suave por ${duration} min. Ritmo conversacional, deberías poder hablar sin dificultad.`,
+    steady: `Ritmo constante por ${duration} min. Mantén un pace consistente de ${pace}.`,
+    tempo: `Ritmo comfortably hard por ${duration} min. Deberías poder decir frases cortas.`,
+    intervals: `Series rápidas por ${duration} min. Ej: 4x400m o 6x200m con recuperación.`,
+    long_run: `Carrera larga por ${duration} min. Ritmo cómodo, ${pace}.`,
+    recovery: `Caminata o trote muy suave por ${duration} min. Enfócate en recuperar.`,
+    cross: `Cross-training por ${duration} min. Natación, ciclismo, yoga, o ejercicios complementarios.`
   }
   
   return details[workoutType] || 'Sesión de entrenamiento.'
@@ -494,33 +715,24 @@ function calculateSessionDates(startDate: string, raceDate: string, totalSession
   
   if (diffDays <= 0 || totalSessions <= 0) return []
   
-  // Calcular intervalo entre sesiones (en días)
-  const interval = Math.max(1, Math.floor(diffDays / totalSessions))
-  
+  // Always return exactly totalSessions dates
   const dates: string[] = []
-  let currentDate = new Date(start)
   
-  for (let i = 0; i < totalSessions && currentDate < race; i++) {
+  if (totalSessions === 1) {
+    dates.push(startDate)
+    return dates
+  }
+  
+  // Calculate interval to distribute sessions evenly
+  const interval = diffDays / (totalSessions - 1)
+  
+  for (let i = 0; i < totalSessions; i++) {
+    const currentDate = new Date(start)
+    currentDate.setDate(currentDate.getDate() + Math.round(i * interval))
     dates.push(currentDate.toISOString().split('T')[0])
-    currentDate.setDate(currentDate.getDate() + interval)
   }
   
   return dates
-}
-
-/**
- * Mapea string de workout a WorkoutType
- */
-function mapWorkoutType(workout: string): WorkoutType {
-  const lower = workout.toLowerCase()
-  if (lower.includes('fácil') || lower.includes('easy')) return 'easy'
-  if (lower.includes('moderado') || lower.includes('steady')) return 'steady'
-  if (lower.includes('tempo')) return 'tempo'
-  if (lower.includes('intervalo') || lower.includes('interval')) return 'intervals'
-  if (lower.includes('larga') || lower.includes('long')) return 'long_run'
-  if (lower.includes('recuperación') || lower.includes('recovery')) return 'recovery'
-  if (lower.includes('cross') || lower.includes('complementario')) return 'cross'
-  return 'easy'
 }
 
 /**
@@ -529,7 +741,7 @@ function mapWorkoutType(workout: string): WorkoutType {
 export async function loadUserProgress(userId: string): Promise<Map<string, any>> {
   const { data, error } = await supabase
     .from('user_progress')
-    .select('*')
+    .select('session_id, completed, completed_at, rescheduled, rescheduled_to, actual_time, actual_pace, feeling, notes, actual_distance')
     .eq('user_id', userId)
 
   if (error || !data) return new Map()
@@ -568,26 +780,36 @@ export async function saveUserProgress(
     actualDistance?: number
   }
 ) {
-  const { error } = await supabase
-    .from('user_progress')
-    .upsert({
-      user_id: userId,
-      session_id: sessionId,
-      completed: progress.completed,
-      rescheduled: progress.rescheduled,
-      rescheduled_to: progress.rescheduledTo,
-      actual_time: progress.actualTime,
-      actual_pace: progress.actualPace,
-      feeling: progress.feeling,
-      notes: progress.notes,
-      actual_distance: progress.actualDistance,
-      completed_at: progress.completed ? new Date().toISOString() : null
-    }, {
-      onConflict: 'user_id,session_id'
-    })
+  try {
+    const { data, error, status, statusText } = await supabase
+      .from('user_progress')
+      .upsert({
+        user_id: userId,
+        session_id: sessionId,
+        completed: progress.completed || false,
+        rescheduled: progress.rescheduled || false,
+        rescheduled_to: progress.rescheduledTo || null,
+        actual_time: progress.actualTime || null,
+        actual_pace: progress.actualPace || null,
+        feeling: progress.feeling || null,
+        notes: progress.notes || null,
+        actual_distance: progress.actualDistance || null,
+        completed_at: progress.completed ? new Date().toISOString() : null
+      }, {
+        onConflict: 'user_id,session_id'
+      })
 
-  if (error) {
-    console.error('Error saving progress:', error)
+    console.log('Supabase response:', { data, error, status, statusText })
+
+    if (error) {
+      console.error('Error saving progress:', JSON.stringify(error, null, 2))
+      return { success: false, error }
+    }
+    
+    return { success: true, data }
+  } catch (err) {
+    console.error('Exception saving progress:', err)
+    return { success: false, error: err }
   }
 }
 
@@ -597,7 +819,7 @@ export async function saveUserProgress(
 export async function loadUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('*')
+    .select('experience_level, current_weekly_km, available_days_per_week, minutes_per_session, has_injuries, injury_description, age, sex, weight, resting_heart_rate, max_heart_rate, preferred_terrain, goal_type, has_treadmill, progressive_pace, medical_clearance')
     .eq('id', userId)
     .single()
 
@@ -608,7 +830,18 @@ export async function loadUserProfile(userId: string): Promise<UserProfile | nul
     current_weekly_km: data.current_weekly_km,
     available_days_per_week: data.available_days_per_week,
     minutes_per_session: data.minutes_per_session,
-    has_injuries: data.has_injuries
+    has_injuries: data.has_injuries,
+    injury_description: data.injury_description,
+    age: data.age,
+    sex: data.sex,
+    weight: data.weight,
+    resting_heart_rate: data.resting_heart_rate,
+    max_heart_rate: data.max_heart_rate,
+    preferred_terrain: data.preferred_terrain,
+    goal_type: data.goal_type,
+    has_treadmill: data.has_treadmill,
+    progressive_pace: data.progressive_pace,
+    medical_clearance: data.medical_clearance
   }
 }
 

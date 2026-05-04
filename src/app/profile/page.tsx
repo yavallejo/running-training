@@ -19,15 +19,18 @@ interface UserProfile {
   minutes_per_session: number;
   has_injuries: boolean;
   injury_description: string;
+  // New fields
+  age: number | null;
+  sex: string;
+  weight: number | null;
+  resting_heart_rate: number | null;
+  max_heart_rate: number | null;
+  preferred_terrain: string;
+  goal_type: string;
+  has_treadmill: boolean;
+  progressive_pace: boolean;
+  medical_clearance: boolean;
 }
-
-const TIME_RUNNING_OPTIONS = [
-  { value: "never", label: "Nunca he corrido" },
-  { value: "less-3-months", label: "Menos de 3 meses" },
-  { value: "3-6-months", label: "3 a 6 meses" },
-  { value: "6-12-months", label: "6 a 12 meses" },
-  { value: "more-1-year", label: "Más de 1 año" },
-];
 
 const DISTANCES = [
   { value: 3, label: "3K" },
@@ -37,6 +40,26 @@ const DISTANCES = [
   { value: 15, label: "15K" },
   { value: 21, label: "21K" },
   { value: 42, label: "42K" },
+];
+
+const SEX_OPTIONS = [
+  { value: "male", label: "Masculino" },
+  { value: "female", label: "Femenino" },
+  { value: "other", label: "Prefiero no decir" },
+];
+
+const TERRAIN_OPTIONS = [
+  { value: "road", label: "Asfalto" },
+  { value: "track", label: "Pista" },
+  { value: "trail", label: "Trail" },
+  { value: "treadmill", label: "Cinta" },
+  { value: "mixed", label: "Mixto" },
+];
+
+const GOAL_OPTIONS = [
+  { value: "compete", label: "Competir" },
+  { value: "fitness", label: "Fitness general" },
+  { value: "weight_loss", label: "Perder peso" },
 ];
 
 export default function ProfilePage() {
@@ -75,7 +98,17 @@ export default function ProfilePage() {
             available_days_per_week,
             minutes_per_session,
             has_injuries,
-            injury_description
+            injury_description,
+            age,
+            sex,
+            weight,
+            resting_heart_rate,
+            max_heart_rate,
+            preferred_terrain,
+            goal_type,
+            has_treadmill,
+            progressive_pace,
+            medical_clearance
           )
         `)
         .eq("id", session.userId)
@@ -102,6 +135,17 @@ export default function ProfilePage() {
         minutes_per_session: profileData.minutes_per_session || 60,
         has_injuries: profileData.has_injuries || false,
         injury_description: profileData.injury_description || "",
+        // New fields
+        age: profileData.age || null,
+        sex: profileData.sex || "other",
+        weight: profileData.weight || null,
+        resting_heart_rate: profileData.resting_heart_rate || null,
+        max_heart_rate: profileData.max_heart_rate || null,
+        preferred_terrain: profileData.preferred_terrain || "road",
+        goal_type: profileData.goal_type || "fitness",
+        has_treadmill: profileData.has_treadmill || false,
+        progressive_pace: profileData.progressive_pace !== false,
+        medical_clearance: profileData.medical_clearance || false,
       });
     } catch (err) {
       console.error("Error:", err);
@@ -129,6 +173,17 @@ export default function ProfilePage() {
           minutes_per_session: profile.minutes_per_session,
           has_injuries: profile.has_injuries,
           injury_description: profile.has_injuries ? profile.injury_description : null,
+          // New fields
+          age: profile.age,
+          sex: profile.sex,
+          weight: profile.weight,
+          resting_heart_rate: profile.resting_heart_rate,
+          max_heart_rate: profile.max_heart_rate,
+          preferred_terrain: profile.preferred_terrain,
+          goal_type: profile.goal_type,
+          has_treadmill: profile.has_treadmill,
+          progressive_pace: profile.progressive_pace,
+          medical_clearance: profile.medical_clearance,
           updated_at: new Date().toISOString(),
         });
 
@@ -470,11 +525,234 @@ export default function ProfilePage() {
           )}
         </motion.div>
 
-        {/* Actions */}
+        {/* Physiology */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
+        >
+          <h2 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-urbanist)" }}>
+            Tu Cuerpo
+          </h2>
+
+          {editMode ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                    Edad
+                  </label>
+                  <input
+                    type="number"
+                    value={profile.age || ""}
+                    onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || null })}
+                    placeholder="28"
+                    min="16"
+                    max="99"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                    Sexo
+                  </label>
+                  <select
+                    value={profile.sex}
+                    onChange={(e) => setProfile({ ...profile, sex: e.target.value })}
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  >
+                    {SEX_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                    Peso (kg)
+                  </label>
+                  <input
+                    type="number"
+                    value={profile.weight || ""}
+                    onChange={(e) => setProfile({ ...profile, weight: parseFloat(e.target.value) || null })}
+                    placeholder="70"
+                    min="30"
+                    max="200"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                    FC Reposo (lpm)
+                  </label>
+                  <input
+                    type="number"
+                    value={profile.resting_heart_rate || ""}
+                    onChange={(e) => setProfile({ ...profile, resting_heart_rate: parseInt(e.target.value) || null })}
+                    placeholder="60"
+                    min="30"
+                    max="120"
+                    className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                  FC Máxima (lpm)
+                </label>
+                <input
+                  type="number"
+                  value={profile.max_heart_rate || ""}
+                  onChange={(e) => setProfile({ ...profile, max_heart_rate: parseInt(e.target.value) || null })}
+                  placeholder="190"
+                  min="100"
+                  max="220"
+                  className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                />
+                <p className="text-[10px] font-mono text-muted-foreground">
+                  Si no la conoces, la estimaremos según tu edad
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Edad</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.age ? `${profile.age} años` : "No especificada"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Sexo</span>
+                <span className="text-sm font-mono font-medium">
+                  {SEX_OPTIONS.find(o => o.value === profile.sex)?.label || "No especificado"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Peso</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.weight ? `${profile.weight} kg` : "No especificado"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">FC Reposo</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.resting_heart_rate ? `${profile.resting_heart_rate} lpm` : "No especificada"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">FC Máxima</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.max_heart_rate ? `${profile.max_heart_rate} lpm` : "Estimada por edad"}
+                </span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Preferences */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
+        >
+          <h2 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-urbanist)" }}>
+            Tus Preferencias
+          </h2>
+
+          {editMode ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                  Terreno Preferido
+                </label>
+                <select
+                  value={profile.preferred_terrain}
+                  onChange={(e) => setProfile({ ...profile, preferred_terrain: e.target.value })}
+                  className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                >
+                  {TERRAIN_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                  Objetivo Principal
+                </label>
+                <select
+                  value={profile.goal_type}
+                  onChange={(e) => setProfile({ ...profile, goal_type: e.target.value })}
+                  className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
+                >
+                  {GOAL_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profile.has_treadmill}
+                    onChange={(e) => setProfile({ ...profile, has_treadmill: e.target.checked })}
+                    className="w-5 h-5 rounded border-border/50 text-primary focus:ring-primary/50"
+                  />
+                  <span className="text-sm font-medium">Tengo acceso a treadmill/cinta</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profile.progressive_pace}
+                    onChange={(e) => setProfile({ ...profile, progressive_pace: e.target.checked })}
+                    className="w-5 h-5 rounded border-border/50 text-primary focus:ring-primary/50"
+                  />
+                  <span className="text-sm font-medium">Ritmo progresivo (mejora semanal)</span>
+                </label>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Terreno</span>
+                <span className="text-sm font-mono font-medium">
+                  {TERRAIN_OPTIONS.find(o => o.value === profile.preferred_terrain)?.label || "No especificado"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Objetivo</span>
+                <span className="text-sm font-mono font-medium">
+                  {GOAL_OPTIONS.find(o => o.value === profile.goal_type)?.label || "No especificado"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Cinta</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.has_treadmill ? "Sí" : "No"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                <span className="text-sm text-muted-foreground">Ritmo</span>
+                <span className="text-sm font-mono font-medium">
+                  {profile.progressive_pace ? "Progresivo" : "Constante"}
+                </span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
           className="flex gap-3"
         >
           {editMode ? (
@@ -511,7 +789,7 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.6 }}
           className="mt-6 text-center"
         >
           <a
