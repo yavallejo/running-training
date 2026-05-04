@@ -253,7 +253,7 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      Evento: 17 de mayo de 2026
+                      Planes desde 3K hasta 42K
                     </span>
                   </div>
                 </div>
