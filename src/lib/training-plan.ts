@@ -356,9 +356,33 @@ function generateAlgorithmicPlan(
   sessionsPerWeek: number,
   seed: string = 'default'
 ): TrainingSession[] {
-  const totalWeeks = config.weeks
-  const totalSessions = totalWeeks * sessionsPerWeek
-  const sessionDates = calculateSessionDates(startDate, raceDate, totalSessions)
+  // Calculate actual available days and adapt plan to real time window
+  const startMs = new Date(startDate + 'T00:00:00').getTime()
+  const raceMs = new Date(raceDate + 'T00:00:00').getTime()
+  const availableDays = Math.floor((raceMs - startMs) / (1000 * 60 * 60 * 24))
+
+  if (availableDays <= 0) return []
+
+  // Adapt number of weeks to real available time (capped at config.weeks)
+  const availableFullWeeks = Math.floor(availableDays / 7)
+  const hasUsablePartialWeek = (availableDays % 7) >= Math.ceil(7 / sessionsPerWeek)
+  const totalWeeks = Math.min(
+    config.weeks,
+    Math.max(1, availableFullWeeks + (hasUsablePartialWeek ? 1 : 0))
+  )
+
+  // Count sessions that fit using weekly rhythm: session i falls on day floor(i * 7 / sessionsPerWeek)
+  // Reserve 2 days before race as a pre-race buffer
+  const trainingDays = Math.max(0, availableDays - 2)
+  let totalSessions = 0
+  for (let i = 0; i < totalWeeks * sessionsPerWeek; i++) {
+    if (Math.floor(i * 7 / sessionsPerWeek) <= trainingDays) totalSessions = i + 1
+    else break
+  }
+
+  if (totalSessions === 0) return []
+
+  const sessionDates = calculateRealSessionDates(startDate, totalSessions, sessionsPerWeek)
   
   // Obtener plantilla de workouts según nivel
   let workoutTemplate = WEEKLY_TEMPLATES[profile.experience_level] || WEEKLY_TEMPLATES.beginner
@@ -428,8 +452,8 @@ function generateAlgorithmicPlan(
     // Calcular distancia base
     let distance = calculateWorkoutDistance(workoutType, progression, raceDistance, config)
     
-    // Aplicar multiplicadores
-    distance = distance * terrainMultiplier * injuryMultiplier
+    // Aplicar multiplicador de terreno (injuryMultiplier ya está en progression.factor)
+    distance = distance * terrainMultiplier
     
     // Calcular ritmo
     let pace = calculateTargetPace(
@@ -553,45 +577,31 @@ function calculateProgression(
 }
 
 /**
- * Calcula la distancia para un tipo de workout específico
+ * Calcula la distancia para un tipo de workout como porcentaje de la distancia objetivo.
+ * Progresa de start% a peak% según el factor de progresión semanal.
  */
 function calculateWorkoutDistance(
   workoutType: WorkoutType,
   progression: { factor: number; volume: number; intensity: number },
   targetDistance: number,
-  config: DistanceConfig
+  _config: DistanceConfig
 ): number {
-  const baseDistance = config.baseDistance
-  
-  switch (workoutType) {
-    case 'easy':
-      return baseDistance * progression.factor * 0.8
-      
-    case 'steady':
-      return baseDistance * progression.factor * 0.9
-      
-    case 'tempo':
-      return baseDistance * progression.factor * 0.85
-      
-    case 'intervals':
-      // Intervalos: distancia total incluyendo calentamiento y enfriamiento
-      return baseDistance * progression.factor * 0.7
-      
-    case 'long_run':
-      // Carrera larga: progresión gradual hasta el % máximo
-      const maxLongRun = targetDistance * config.maxLongRun
-      const longRunDistance = baseDistance + (maxLongRun - baseDistance) * progression.factor
-      return Math.min(longRunDistance, maxLongRun)
-      
-    case 'recovery':
-      return baseDistance * 0.5
-      
-    case 'cross':
-      return 0 // Cross-training no tiene distancia
-      
-    default:
-      return baseDistance * progression.factor
+  // Rangos de distancia como fracción de la distancia de carrera (start → peak)
+  const ratios: Record<WorkoutType, { start: number; peak: number }> = {
+    easy:      { start: 0.35, peak: 0.60 },
+    steady:    { start: 0.40, peak: 0.65 },
+    tempo:     { start: 0.30, peak: 0.50 },
+    intervals: { start: 0.25, peak: 0.45 },
+    long_run:  { start: 0.55, peak: 0.85 },
+    recovery:  { start: 0.20, peak: 0.30 },
+    cross:     { start: 0,    peak: 0 }
   }
+
+  const ratio = ratios[workoutType]
+  if (!ratio || ratio.peak === 0) return 0
+
+  const effectiveRatio = ratio.start + (ratio.peak - ratio.start) * progression.factor
+  return targetDistance * effectiveRatio
 }
 
 /**
@@ -704,34 +714,25 @@ function generateWorkoutDetails(
 }
 
 /**
- * Calcula fechas de sesiones entre inicio y carrera
+ * Asigna fechas reales a las sesiones usando ritmo semanal.
+ * Sesión i cae en el día floor(i * 7 / sessionsPerWeek) desde el inicio,
+ * garantizando exactamente sessionsPerWeek sesiones por semana con descanso entre ellas.
  */
-function calculateSessionDates(startDate: string, raceDate: string, totalSessions: number): string[] {
+function calculateRealSessionDates(
+  startDate: string,
+  totalSessions: number,
+  sessionsPerWeek: number
+): string[] {
   const start = new Date(startDate + 'T00:00:00')
-  const race = new Date(raceDate + 'T00:00:00')
-  
-  const diffTime = race.getTime() - start.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
-  if (diffDays <= 0 || totalSessions <= 0) return []
-  
-  // Always return exactly totalSessions dates
   const dates: string[] = []
-  
-  if (totalSessions === 1) {
-    dates.push(startDate)
-    return dates
-  }
-  
-  // Calculate interval to distribute sessions evenly
-  const interval = diffDays / (totalSessions - 1)
-  
+
   for (let i = 0; i < totalSessions; i++) {
-    const currentDate = new Date(start)
-    currentDate.setDate(currentDate.getDate() + Math.round(i * interval))
-    dates.push(currentDate.toISOString().split('T')[0])
+    const dayOffset = Math.floor(i * 7 / sessionsPerWeek)
+    const date = new Date(start)
+    date.setDate(date.getDate() + dayOffset)
+    dates.push(date.toISOString().split('T')[0])
   }
-  
+
   return dates
 }
 
