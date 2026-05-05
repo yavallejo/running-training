@@ -192,18 +192,37 @@ export default function SessionCard({
 
   const styles = getStateStyles();
 
+  const handleCardClick = () => {
+    if (state === 'blocked') return;
+    if (session.completed) {
+      onShowPostWorkout(session.id);
+    } else {
+      onShowPostWorkout(session.id);
+    }
+  };
+
   return (
     <motion.div
       key={session.id}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.4, ease: "easeOut" }}
-      className={`rounded-2xl border p-4 transition-all ${styles.container}`}
+      onClick={handleCardClick}
+      className={`rounded-2xl border p-4 transition-all select-none ${styles.container} ${
+        state !== 'blocked' ? 'cursor-pointer hover:brightness-[1.03] active:scale-[0.995]' : ''
+      }`}
     >
       <div className="flex items-start gap-3">
         <motion.button
           whileTap={{ scale: 0.9 }}
-          onClick={() => onToggleComplete(session.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (session.completed) {
+              onToggleComplete(session.id); // unmark
+            } else if (state !== 'blocked') {
+              onShowPostWorkout(session.id); // open modal to complete
+            }
+          }}
           disabled={state === 'blocked'}
           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
             session.completed
@@ -274,7 +293,7 @@ export default function SessionCard({
 
           {shouldShowMore && (
             <button
-              onClick={() => setExpanded(!expanded)}
+              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
               className="mt-3 w-full sm:w-auto sm:min-w-[140px] h-12 rounded-xl bg-surface-elevated hover:bg-muted border border-border text-sm font-medium text-foreground transition-all flex items-center justify-center gap-2"
             >
               {expanded ? (
@@ -345,6 +364,16 @@ export default function SessionCard({
                     </p>
                   )}
                 </div>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); onShowPostWorkout(session.id); }}
+                  className="mt-4 w-full h-11 rounded-xl border border-border bg-surface-elevated hover:bg-muted text-sm font-medium text-foreground transition-all flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                  </svg>
+                  Editar datos del entrenamiento
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -357,7 +386,7 @@ export default function SessionCard({
               </p>
               {!session.rescheduleUsed && (
                 <button
-                  onClick={() => onShowDatePicker(session.id)}
+                  onClick={(e) => { e.stopPropagation(); onShowDatePicker(session.id); }}
                   className="mt-3 w-full h-12 rounded-xl bg-info/20 hover:bg-info/30 border border-info/30 text-sm font-semibold text-info transition-all flex items-center justify-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -386,7 +415,7 @@ export default function SessionCard({
 
           {session.completed && (
             <button
-              onClick={() => onShowShare(session.id)}
+              onClick={(e) => { e.stopPropagation(); onShowShare(session.id); }}
               className="mt-3 flex items-center gap-2 text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors font-medium"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -394,6 +423,15 @@ export default function SessionCard({
               </svg>
               Compartir logro
             </button>
+          )}
+
+          {(state === 'today' || state === 'rescheduled') && !session.completed && (
+            <p className="mt-3 text-xs text-muted-foreground/50 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5" />
+              </svg>
+              Toca la tarjeta para marcar como completado
+            </p>
           )}
         </div>
       </div>

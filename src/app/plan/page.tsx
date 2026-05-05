@@ -133,40 +133,29 @@ export default function PlanPage() {
     }
   }, [userId]);
 
+  const checkAndSetAchievements = useCallback((updatedSessions: TrainingSession[]) => {
+    const stored = localStorage.getItem("runplan-pro_achievements");
+    const currentAchievements = stored ? JSON.parse(stored) : [];
+    const { newBadges } = checkAchievements(updatedSessions, currentAchievements);
+    if (newBadges.length > 0) {
+      saveAchievements(newBadges.map(b => b.id));
+      const badge = newBadges[0];
+      setNewBadge({ icon: badge.icon, name: badge.name, description: badge.description });
+    }
+  }, []);
+
+  // Only unchecks a completed session — never marks as complete
   const toggleComplete = useCallback((id: string) => {
     setSessions(prev => {
-      const session = prev.find(s => s.id === id);
-      const willComplete = !session?.completed;
-
-      if (willComplete) {
-        setShowPostWorkout(id);
-      }
-
       const updated = prev.map(s =>
-        s.id === id ? { ...s, completed: !s.completed } : s
+        s.id === id ? { ...s, completed: false, actualTime: undefined, actualPace: undefined, feeling: undefined, notes: undefined, actualDistance: undefined } : s
       );
-
-      if (willComplete) {
-        const stored = localStorage.getItem("runplan-pro_achievements");
-        const currentAchievements = stored ? JSON.parse(stored) : [];
-        const { newBadges } = checkAchievements(updated, currentAchievements);
-
-        if (newBadges.length > 0) {
-          saveAchievements(newBadges.map(b => b.id));
-          const badge = newBadges[0];
-          setNewBadge({
-            icon: badge.icon,
-            name: badge.name,
-            description: badge.description,
-          });
-        }
-      }
-
       saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
   }, [saveProgress]);
 
+  // Marks complete + saves workout data (called from modal "Guardar sesión")
   const handlePostWorkoutSave = useCallback((id: string, data: {
     actualTime: string;
     actualPace: string;
@@ -176,15 +165,31 @@ export default function PlanPage() {
   }) => {
     setSessions(prev => {
       const updated = prev.map(s =>
-        s.id === id ? { ...s, ...data } : s
+        s.id === id ? { ...s, completed: true, ...data } : s
       );
+      checkAndSetAchievements(updated);
       saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
     setShowPostWorkout(null);
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 4000);
-  }, [saveProgress]);
+  }, [saveProgress, checkAndSetAchievements]);
+
+  // Marks complete without data (called from modal "Marcar sin registrar")
+  const handleQuickComplete = useCallback((id: string) => {
+    setSessions(prev => {
+      const updated = prev.map(s =>
+        s.id === id ? { ...s, completed: true } : s
+      );
+      checkAndSetAchievements(updated);
+      saveProgress(id, updated.find(s => s.id === id)!);
+      return updated;
+    });
+    setShowPostWorkout(null);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 4000);
+  }, [saveProgress, checkAndSetAchievements]);
 
   const getCardState = useCallback((session: TrainingSession): string => {
     if (session.completed && session.rescheduled) return 'rescheduled-completed';
@@ -378,6 +383,7 @@ export default function PlanPage() {
         <PostWorkoutModal
           session={sessions.find(s => s.id === showPostWorkout)!}
           onSave={(data) => handlePostWorkoutSave(showPostWorkout, data)}
+          onQuickComplete={() => handleQuickComplete(showPostWorkout)}
           onClose={() => setShowPostWorkout(null)}
         />
       )}

@@ -9,6 +9,7 @@ interface PostWorkoutModalProps {
     workout: string;
     distance: number;
     dayLabel: string;
+    completed?: boolean;
     actualTime?: string;
     feeling?: number;
     notes?: string;
@@ -21,6 +22,7 @@ interface PostWorkoutModalProps {
     notes: string;
     actualDistance: number;
   }) => void;
+  onQuickComplete?: () => void;
   onClose: () => void;
 }
 
@@ -32,7 +34,8 @@ const FEELINGS = [
   { value: 5, emoji: "🔥", label: "Excelente" },
 ];
 
-export default function PostWorkoutModal({ session, onSave, onClose }: PostWorkoutModalProps) {
+export default function PostWorkoutModal({ session, onSave, onQuickComplete, onClose }: PostWorkoutModalProps) {
+  const isEditing = !!session.completed;
   const [time, setTime] = useState(session.actualTime || "");
   const [feeling, setFeeling] = useState(session.feeling || 0);
   const [notes, setNotes] = useState(session.notes || "");
@@ -108,14 +111,24 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 400, delay: 0.05 }}
-            className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-[0_8px_20px_-4px_rgba(255,59,48,0.35)]"
+            className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl shadow-[0_8px_20px_-4px_rgba(255,59,48,0.35)] ${
+              isEditing
+                ? "bg-gradient-to-br from-info to-info/70"
+                : "bg-gradient-to-br from-primary to-primary/70"
+            }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            {isEditing ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
           </motion.div>
           <h3 className="text-lg font-black text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
-            ¡Sesión Completada!
+            {isEditing ? "Editar entrenamiento" : "¿Cómo fue tu sesión?"}
           </h3>
           <p className="text-xs font-mono text-muted-foreground mt-1 tracking-wide">
             {session.dayLabel} · {session.workout}
@@ -234,22 +247,50 @@ export default function PostWorkoutModal({ session, onSave, onClose }: PostWorko
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2.5 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-11 rounded-xl border border-border/50 bg-background/50 text-sm font-mono text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
-            >
-              Omitir
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="flex-[2] h-11 rounded-xl bg-gradient-to-r from-primary to-primary/85 text-sm font-bold text-white hover:opacity-92 transition-all shadow-[0_4px_14px_-3px_rgba(255,59,48,0.35)]"
-            >
-              Guardar sesión
-            </button>
-          </div>
+          {isEditing ? (
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 h-11 rounded-xl border border-border/50 bg-background/50 text-sm font-mono text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="flex-[2] h-11 rounded-xl bg-gradient-to-r from-info to-info/85 text-sm font-bold text-white hover:opacity-90 transition-all"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleSave}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-primary/85 text-sm font-bold text-white hover:opacity-92 transition-all shadow-[0_4px_14px_-3px_rgba(255,59,48,0.35)]"
+              >
+                Guardar y marcar como completado
+              </button>
+              {onQuickComplete && (
+                <button
+                  type="button"
+                  onClick={onQuickComplete}
+                  className="w-full h-10 rounded-xl border border-border/50 bg-background/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
+                >
+                  Marcar como completado sin registrar
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full text-xs text-muted-foreground/50 hover:text-muted-foreground py-1 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
