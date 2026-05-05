@@ -239,6 +239,20 @@ export default function OnboardingPage() {
         console.error("User update error:", userError);
       }
 
+      // Refresh localStorage session with updated race data so plan page reads real values
+      const stored = localStorage.getItem("running_session");
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          session.raceDistance = answers.goalDistance;
+          session.raceDate = answers.goalDate;
+          session.raceName = answers.goalName || "Mi Carrera";
+          localStorage.setItem("running_session", JSON.stringify(session));
+        } catch {
+          // ignore parse errors
+        }
+      }
+
       // Redirect to plan
       router.push("/plan");
     } catch (err) {

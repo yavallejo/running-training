@@ -185,31 +185,22 @@ export async function createUser(
   }
 }
 
-// Register user (public registration)
+// Register user (public registration — race details configured during onboarding)
 export async function registerUser(
   username: string,
-  password: string,
-  raceDistance: number,
-  raceDate: string,
-  raceName: string
+  password: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Determine plan level based on distance
-    let planLevel: 'beginner' | 'intermediate' | 'pro' = 'beginner'
-    if (raceDistance >= 15) planLevel = 'pro'
-    else if (raceDistance >= 10) planLevel = 'intermediate'
-    
     const passwordHash = await hashPassword(password)
 
     const { data: plan } = await supabase
       .from('plans')
       .select('id')
-      .eq('level', planLevel)
+      .eq('level', 'beginner')
       .single()
 
-    if (!plan) return { success: false, error: 'Plan no encontrado para esta distancia' }
+    if (!plan) return { success: false, error: 'Plan no encontrado' }
 
-    // Start date is tomorrow
     const startDate = new Date()
     startDate.setDate(startDate.getDate() + 1)
     const startDateStr = startDate.toISOString().split('T')[0]
@@ -220,9 +211,9 @@ export async function registerUser(
         username: username.toLowerCase(),
         password_hash: passwordHash,
         plan_id: plan.id,
-        race_distance: raceDistance,
-        race_date: raceDate,
-        race_name: raceName,
+        race_distance: null,
+        race_date: null,
+        race_name: null,
         start_date: startDateStr,
         role: 'user'
       })
