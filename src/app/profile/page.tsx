@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -253,6 +253,14 @@ export default function ProfilePage() {
     }
   };
 
+  const daysUntilRace = useMemo(() => {
+    if (!profile?.race_date) return null;
+    const race = new Date(profile.race_date + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.max(0, Math.ceil((race.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  }, [profile?.race_date]);
+
   if (loading) {
     return (
       <main className="flex flex-1 items-center justify-center bg-background">
@@ -276,24 +284,81 @@ export default function ProfilePage() {
   return (
     <main className="flex-1 min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
+
+        {/* Hero Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="relative p-5 rounded-3xl overflow-hidden mb-6 bg-gradient-to-br from-primary/12 via-primary/5 to-transparent border border-primary/20"
         >
-          <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
-            MI PERFIL
-          </h1>
-          <p className="text-sm font-mono text-muted-foreground mt-1">
-            @{profile.username}
-          </p>
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/65 flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(255,59,48,0.35)] flex-shrink-0">
+              <span className="text-2xl font-black text-white" style={{ fontFamily: "var(--font-urbanist)" }}>
+                {profile.username.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase">Corredor</p>
+                  <h1 className="text-xl font-black tracking-tight truncate" style={{ fontFamily: "var(--font-urbanist)" }}>
+                    {profile.username}
+                  </h1>
+                </div>
+                {!editMode && (
+                  <button
+                    onClick={() => setEditMode(true)}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-mono text-primary bg-primary/8 hover:bg-primary/15 border border-primary/25 transition-all"
+                  >
+                    EDITAR
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-lg font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
+                  {profile.race_distance}K
+                </span>
+                <span className="text-border text-sm">·</span>
+                <span className="text-sm text-muted-foreground truncate">{profile.race_name || "Mi Carrera"}</span>
+              </div>
+            </div>
+          </div>
+
+          {profile.race_date && (
+            <div className="relative mt-4 pt-4 border-t border-primary/12 grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase mb-1">DÍAS PARA LA CARRERA</p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-4xl font-black text-primary leading-none" style={{ fontFamily: "var(--font-urbanist)" }}>
+                    {daysUntilRace !== null ? (daysUntilRace > 0 ? daysUntilRace : "¡Hoy!") : "—"}
+                  </span>
+                  {daysUntilRace !== null && daysUntilRace > 0 && (
+                    <span className="text-xs font-mono text-muted-foreground">días</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase mb-1">FECHA DE CARRERA</p>
+                <p className="text-sm font-semibold">
+                  {new Date(profile.race_date + "T00:00:00").toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </p>
+                <p className="text-[10px] font-mono text-muted-foreground">
+                  {new Date(profile.race_date + "T00:00:00").getFullYear()}
+                </p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {error && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-mono"
+            className="mb-4 p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-sm font-mono"
           >
             {error}
           </motion.div>
@@ -303,7 +368,7 @@ export default function ProfilePage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mb-4 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-mono"
+            className="mb-4 p-4 rounded-xl bg-success/10 border border-success/20 text-success text-sm font-mono"
           >
             {success}
           </motion.div>
@@ -316,18 +381,15 @@ export default function ProfilePage() {
           transition={{ delay: 0.1 }}
           className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
+              </svg>
+            </div>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
               Tu Carrera
             </h2>
-            {!editMode && (
-              <button
-                onClick={() => setEditMode(true)}
-                className="text-xs font-mono text-primary hover:underline"
-              >
-                EDITAR
-              </button>
-            )}
           </div>
 
           {editMode ? (
@@ -373,25 +435,37 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-background/50">
+                <span className="text-4xl font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
                   {profile.race_distance}K
                 </span>
-                <span className="text-sm text-muted-foreground font-mono">
-                  {profile.race_name || "Mi Carrera"}
-                </span>
+                <div>
+                  <p className="text-sm font-semibold">{profile.race_name || "Mi Carrera"}</p>
+                  <p className="text-xs font-mono text-muted-foreground">
+                    {profile.race_date
+                      ? new Date(profile.race_date + "T00:00:00").toLocaleDateString("es-ES", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "Fecha no definida"}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs font-mono text-muted-foreground">
-                {profile.race_date
-                  ? new Date(profile.race_date).toLocaleDateString("es-ES", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
+              {profile.start_date && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-background/50">
+                  <span className="text-sm text-muted-foreground">Inicio del plan</span>
+                  <span className="text-sm font-mono font-medium">
+                    {new Date(profile.start_date + "T00:00:00").toLocaleDateString("es-ES", {
                       day: "numeric",
-                    })
-                  : "Fecha no definida"}
-              </p>
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -403,9 +477,16 @@ export default function ProfilePage() {
           transition={{ delay: 0.2 }}
           className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
         >
-          <h2 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-urbanist)" }}>
-            Tu Perfil de Entrenamiento
-          </h2>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-info/10 border border-info/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              </svg>
+            </div>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+              Tu Perfil de Entrenamiento
+            </h2>
+          </div>
 
           {editMode ? (
             <div className="space-y-4">
@@ -532,9 +613,16 @@ export default function ProfilePage() {
           transition={{ delay: 0.3 }}
           className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
         >
-          <h2 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-urbanist)" }}>
-            Tu Cuerpo
-          </h2>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+            </div>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+              Tu Cuerpo
+            </h2>
+          </div>
 
           {editMode ? (
             <div className="space-y-4">
@@ -661,9 +749,17 @@ export default function ProfilePage() {
           transition={{ delay: 0.4 }}
           className="p-6 rounded-2xl bg-surface/80 border border-border/50 backdrop-blur-sm mb-4"
         >
-          <h2 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-urbanist)" }}>
-            Tus Preferencias
-          </h2>
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-urbanist)" }}>
+              Tus Preferencias
+            </h2>
+          </div>
 
           {editMode ? (
             <div className="space-y-4">

@@ -344,6 +344,118 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="relative py-32 sm:py-40 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+              Todo Incluido
+            </span>
+            <h2
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
+              style={{ fontFamily: "var(--font-urbanist)" }}
+            >
+              Tu entrenador personal,
+              <span className="block text-primary">en tu bolsillo</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
+              Todo lo que necesitás para llegar a la línea de largada. Sin excusas.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                ),
+                title: "Plan Diario",
+                description: "Cada día sabés exactamente qué hacer. Distancia, ritmo, tipo de sesión. Sin adivinar.",
+                iconClass: "w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                title: "Cuenta Regresiva",
+                description: "¿Cuántos días para la carrera? Siempre a la vista. La urgencia que necesitás para salir.",
+                iconClass: "w-11 h-11 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                  </svg>
+                ),
+                title: "Seguimiento de Progreso",
+                description: "Marcá cada sesión completada. Registrá tiempo real, ritmo y cómo te sentiste.",
+                iconClass: "w-11 h-11 rounded-xl bg-info/10 border border-info/20 flex items-center justify-center text-info mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                  </svg>
+                ),
+                title: "Logros y Badges",
+                description: "Desbloqueá medallas por cada hito: primera carrera, semana perfecta, 50km acumulados.",
+                iconClass: "w-11 h-11 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                  </svg>
+                ),
+                title: "Recursos y Guías",
+                description: "Calentamiento, técnica, nutrición, día de carrera. Todo el conocimiento cuando lo necesitás.",
+                iconClass: "w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+              {
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                  </svg>
+                ),
+                title: "Desde Cualquier Dispositivo",
+                description: "Celular, tablet o compu. Sin instalación. Abrís el navegador y tu plan está ahí.",
+                iconClass: "w-11 h-11 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground mb-4 group-hover:scale-110 transition-transform duration-300",
+              },
+            ].map(({ icon, title, description, iconClass }, i) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative p-6 rounded-2xl bg-surface/60 border border-border/50 hover:border-primary/30 hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.1)] transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative">
+                  <div className={iconClass}>{icon}</div>
+                  <h3 className="text-lg font-bold mb-2 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                    {title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm font-mono leading-relaxed">{description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section
         id="cta"
         ref={ctaRef}

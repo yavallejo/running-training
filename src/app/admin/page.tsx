@@ -347,54 +347,99 @@ export default function AdminPage() {
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-primary/30 transition-all"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative">
-              <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Total</div>
-              <div className="text-3xl font-black text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.total}</div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-warning/40 transition-all"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-warning/8 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative">
-              <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Principiante</div>
-              <div className="text-3xl font-black text-warning" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.beginner}</div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-info/40 transition-all"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-info/8 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative">
-              <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Intermedio</div>
-              <div className="text-3xl font-black text-info" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.intermediate}</div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="relative p-5 rounded-2xl bg-surface border border-border/50 overflow-hidden group hover:border-primary/30 transition-all"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative">
-              <div className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-2">Pro</div>
-              <div className="text-3xl font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>{stats.pro}</div>
-            </div>
-          </motion.div>
+          {([
+            {
+              label: "Total Usuarios",
+              value: stats.total,
+              valueClass: "text-foreground",
+              borderClass: "border-border/50 hover:border-border",
+              accentClass: "bg-foreground/8 text-foreground",
+              barClass: "bg-foreground/60",
+              pctClass: "text-muted-foreground",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+              ),
+              delay: 0.1,
+            },
+            {
+              label: "Principiantes",
+              value: stats.beginner,
+              valueClass: "text-warning",
+              borderClass: "border-border/50 hover:border-warning/40",
+              accentClass: "bg-warning/10 text-warning",
+              barClass: "bg-warning",
+              pctClass: "text-warning/70",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                </svg>
+              ),
+              delay: 0.15,
+            },
+            {
+              label: "Intermedios",
+              value: stats.intermediate,
+              valueClass: "text-info",
+              borderClass: "border-border/50 hover:border-info/40",
+              accentClass: "bg-info/10 text-info",
+              barClass: "bg-info",
+              pctClass: "text-info/70",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+              ),
+              delay: 0.2,
+            },
+            {
+              label: "Pro",
+              value: stats.pro,
+              valueClass: "text-primary",
+              borderClass: "border-border/50 hover:border-primary/30",
+              accentClass: "bg-primary/10 text-primary",
+              barClass: "bg-primary",
+              pctClass: "text-primary/70",
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                </svg>
+              ),
+              delay: 0.25,
+            },
+          ] as const).map(({ label, value, valueClass, borderClass, accentClass, barClass, pctClass, icon, delay }) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay }}
+              className={`relative p-5 rounded-2xl bg-surface border ${borderClass} overflow-hidden transition-all`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 rounded-xl ${accentClass} flex items-center justify-center`}>
+                  {icon}
+                </div>
+                {stats.total > 0 && value > 0 && (
+                  <span className={`text-xs font-mono ${pctClass}`}>
+                    {Math.round((value / stats.total) * 100)}%
+                  </span>
+                )}
+              </div>
+              <div className={`text-3xl font-black ${valueClass}`} style={{ fontFamily: "var(--font-urbanist)" }}>
+                {value}
+              </div>
+              <div className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase mt-1">{label}</div>
+              {stats.total > 0 && (
+                <div className="mt-3 h-1 rounded-full bg-border/40 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${barClass} transition-all duration-700`}
+                    style={{ width: `${Math.round((value / stats.total) * 100)}%` }}
+                  />
+                </div>
+              )}
+            </motion.div>
+          ))}
         </div>
 
         <motion.div
@@ -571,46 +616,75 @@ export default function AdminPage() {
                   transition={{ delay: index * 0.03 }}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 hover:bg-background/30 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_12px_-3px_rgba(255,59,48,0.15)]">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/25 flex items-center justify-center flex-shrink-0">
                       <span className="text-sm font-black text-primary" style={{ fontFamily: "var(--font-urbanist)" }}>
                         {user.username.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold">{user.username}</p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold truncate">{user.username}</p>
                         {user.role === 'admin' && (
-                          <span className="px-2 py-0.5 rounded-md bg-accent/10 text-accent text-[10px] font-mono tracking-wider">ADMIN</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[9px] font-mono tracking-wider border border-primary/20">ADMIN</span>
+                        )}
+                        {(user.plans as any)?.level && (
+                          <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-mono tracking-wider border ${
+                            (user.plans as any).level === 'pro'
+                              ? 'bg-primary/8 text-primary border-primary/20'
+                              : (user.plans as any).level === 'intermediate'
+                              ? 'bg-info/8 text-info border-info/20'
+                              : 'bg-warning/8 text-warning border-warning/20'
+                          }`}>
+                            {(user.plans as any).level === 'pro' ? 'PRO' : (user.plans as any).level === 'intermediate' ? 'INTER' : 'INICIO'}
+                          </span>
+                        )}
+                        {user.race_distance && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-surface-elevated text-muted-foreground text-[9px] font-mono tracking-wider border border-border/50">
+                            {user.race_distance}K
+                          </span>
                         )}
                       </div>
-                      <p className="text-xs font-mono text-muted-foreground">
-                        {(user.plans as any)?.name || 'Sin plan'} · {user.race_distance || 7}km · Inicio: {user.start_date || 'No definido'} · Carrera: {user.race_date || 'No definido'}
+                      <p className="text-xs font-mono text-muted-foreground mt-0.5 truncate">
+                        {user.race_name || 'Sin carrera'} · {user.race_date ? new Date(user.race_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin fecha'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => openEditModal(user)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-warning bg-warning/5 hover:bg-warning/10 border border-warning/20 transition-all"
+                      className="w-8 h-8 rounded-lg text-warning bg-warning/5 hover:bg-warning/12 border border-warning/20 flex items-center justify-center transition-all"
+                      title="Editar"
                     >
-                      EDITAR
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                      </svg>
                     </button>
                     <button
                       onClick={() => {
                         setLoadingUserId(user.id);
                         loadUserProgress(user.id);
                       }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-all"
+                      className="w-8 h-8 rounded-lg text-primary bg-primary/5 hover:bg-primary/12 border border-primary/20 flex items-center justify-center transition-all"
                       disabled={loadingUserId !== null}
+                      title="Ver progreso"
                     >
-                      {loadingUserId === user.id ? '...' : 'PROGRESO'}
+                      {loadingUserId === user.id ? (
+                        <motion.span animate={{ rotate: 360 }} transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }} className="block w-3 h-3 border border-primary border-t-transparent rounded-full" />
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                      )}
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id, user.username)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wide text-danger bg-danger/5 hover:bg-danger/10 border border-danger/20 transition-all"
+                      className="w-8 h-8 rounded-lg text-danger bg-danger/5 hover:bg-danger/12 border border-danger/20 flex items-center justify-center transition-all"
+                      title="Eliminar"
                     >
-                      ELIMINAR
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
                     </button>
                   </div>
                 </motion.div>
