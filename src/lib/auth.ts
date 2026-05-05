@@ -139,7 +139,8 @@ export async function createUser(
   raceDate?: string,
   raceName: string = 'Carrera Recreativa',
   role: 'user' | 'admin' = 'user',
-  startDate?: string
+  startDate?: string,
+  email?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const passwordHash = await hashPassword(password)
@@ -169,6 +170,7 @@ export async function createUser(
       .from('users')
       .insert({
         username: username.toLowerCase(),
+        email: email?.toLowerCase() || null,
         password_hash: passwordHash,
         plan_id: plan.id,
         race_distance: raceDistance,
@@ -188,6 +190,7 @@ export async function createUser(
 // Register user (public registration — race details configured during onboarding)
 export async function registerUser(
   username: string,
+  email: string,
   password: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -205,15 +208,19 @@ export async function registerUser(
     startDate.setDate(startDate.getDate() + 1)
     const startDateStr = startDate.toISOString().split('T')[0]
 
+    // Default values — overwritten by onboarding once user configures their plan
+    const defaultRaceDate = getDefaultRaceDate()
+
     const { error } = await supabase
       .from('users')
       .insert({
         username: username.toLowerCase(),
+        email: email.toLowerCase(),
         password_hash: passwordHash,
         plan_id: plan.id,
-        race_distance: null,
-        race_date: null,
-        race_name: null,
+        race_distance: 7,
+        race_date: defaultRaceDate,
+        race_name: 'Mi Carrera',
         start_date: startDateStr,
         role: 'user'
       })

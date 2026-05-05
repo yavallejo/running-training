@@ -11,12 +11,17 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
 
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async () => {
     if (!username.trim()) {
       setError("Ingresa un nombre de usuario");
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Ingresa un email válido");
       return;
     }
     if (password.length < 6) {
@@ -31,7 +36,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
-    const result = await registerUser(username.trim(), password);
+    const result = await registerUser(username.trim(), email.trim(), password);
 
     if (result.success) {
       clearSession();
@@ -83,6 +88,20 @@ export default function RegisterPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="tu.nombre.usuario"
+                autoComplete="username"
+                className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                autoComplete="email"
                 className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
               />
             </div>
