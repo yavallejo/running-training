@@ -562,7 +562,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-4">
               <button
                 type="submit"
-                className="group relative px-6 py-3 rounded-xl font-mono text-sm font-semibold tracking-wide overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                className="group relative px-6 py-3 rounded-xl font-mono text-sm font-semibold tracking-wide text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80" />
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity" />

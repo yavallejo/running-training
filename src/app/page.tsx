@@ -100,7 +100,7 @@ export default function LandingPage() {
           >
             <button
               onClick={() => setShowLogin(true)}
-              className="group relative px-10 py-5 rounded-2xl font-bold text-lg overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative px-10 py-5 rounded-2xl font-bold text-lg text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
               <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -118,7 +118,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-20 p-8 rounded-3xl bg-surface/40 border border-primary/20 backdrop-blur-sm shadow-[0_0_40px_-12px_rgba(255,59,48,0.15)]"
+            className="mt-20 p-8 rounded-3xl bg-surface border border-primary/30 backdrop-blur-sm shadow-[0_2px_16px_-4px_rgba(0,0,0,0.07),0_0_40px_-12px_rgba(255,59,48,0.2)]"
           >
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
               <div className="text-center">
@@ -440,7 +440,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative p-6 rounded-2xl bg-surface/60 border border-border/50 hover:border-primary/30 hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.1)] transition-all duration-500 overflow-hidden"
+                className="group relative p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 shadow-[0_1px_6px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative">
@@ -491,7 +491,7 @@ export default function LandingPage() {
             </p>
             <button
               onClick={() => setShowLogin(true)}
-              className="group relative px-14 py-6 rounded-2xl font-bold text-xl overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
+              className="group relative px-14 py-6 rounded-2xl font-bold text-xl text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
               <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -571,7 +571,7 @@ function PainCard({
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
       animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative p-8 rounded-3xl bg-surface/60 border border-border/50 backdrop-blur-sm overflow-hidden hover:border-primary/40 hover:shadow-[0_0_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500"
+      className="group relative p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm overflow-hidden hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_0_30px_-8px_rgba(255,59,48,0.14)] transition-all duration-500"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative">
@@ -603,7 +603,7 @@ function SolutionCard({
       initial={{ opacity: 0, x: -30 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface/40 border border-border/30 backdrop-blur-sm hover:border-primary/30 transition-all duration-500"
+      className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_-8px_rgba(255,59,48,0.1)] transition-all duration-500"
     >
       <div className="flex-shrink-0 text-4xl">{emoji}</div>
       <div>

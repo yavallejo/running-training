@@ -118,8 +118,8 @@ export default function SessionCard({
         };
       default:
         return {
-          container: 'border-border bg-surface',
-          badgeText: 'bg-surface text-muted-foreground',
+          container: 'border-border bg-surface shadow-[0_2px_8px_-3px_rgba(0,0,0,0.08)]',
+          badgeText: 'bg-surface-elevated text-muted-foreground',
         };
     }
   };
@@ -228,8 +228,8 @@ export default function SessionCard({
             session.completed
               ? "border-success bg-success"
               : state === 'blocked'
-              ? "border-muted opacity-30 cursor-not-allowed"
-              : "border-muted hover:border-primary"
+              ? "border-border opacity-30 cursor-not-allowed"
+              : "border-border hover:border-primary"
           }`}
           aria-label={session.completed ? "Marcar incompleto" : "Marcar completado"}
         >
