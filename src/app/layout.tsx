@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Urbanist, Open_Sans, Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import Header from "@/components/Header";
+import ConditionalHeader from "@/components/ConditionalHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { cn } from "@/lib/utils";
 
@@ -98,6 +98,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <ErrorBoundary>
+            <ConditionalHeader />
             <main className="flex-1 flex flex-col">{children}</main>
           </ErrorBoundary>
         </Providers>
