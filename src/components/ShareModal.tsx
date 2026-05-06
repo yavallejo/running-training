@@ -83,6 +83,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
             </h3>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="w-8 h-8 rounded-lg bg-surface-elevated flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

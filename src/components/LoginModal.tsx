@@ -83,6 +83,7 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
               <div className="relative p-6">
                 <button
                   onClick={onClose}
+                  aria-label="Cerrar"
                   className="absolute right-4 top-4 w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -172,6 +173,7 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                         tabIndex={-1}
                       >
@@ -220,7 +222,7 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Entrando...
+                        Entrando…
                       </span>
                     ) : (
                       <span className="relative flex items-center justify-center gap-2">

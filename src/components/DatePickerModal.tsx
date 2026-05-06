@@ -34,8 +34,10 @@ export default function DatePickerModal({
     <div className="mt-3 p-3 border border-foreground/10 rounded-xl bg-background space-y-3">
       <input
         type="date"
+        name="reschedule-date"
         value={selectedDate}
         onChange={(e) => setSelectedDate(e.target.value)}
+        aria-label="Nueva fecha"
         min={today}
         className="w-full rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm font-mono focus:border-primary/50 focus:bg-background transition-all"
       />

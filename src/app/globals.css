@@ -105,6 +105,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --surface: #18181b;
@@ -327,6 +328,19 @@ a {
 
 .animate-fade-in {
   animation: fade-in 0.4s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-glow,
+  .animate-float,
+  .animate-shimmer,
+  .animate-gradient,
+  .animate-scale-in,
+  .animate-slide-up,
+  .animate-fade-in {
+    animation: none;
+    transition: none;
+  }
 }
 
 .glass {

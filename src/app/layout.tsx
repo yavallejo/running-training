@@ -83,8 +83,6 @@ const openSans = Open_Sans({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: "#0D0D0F",
 };
 

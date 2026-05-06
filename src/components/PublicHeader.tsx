@@ -148,7 +148,7 @@ export default function PublicHeader() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden"
+              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden overscroll-contain"
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">

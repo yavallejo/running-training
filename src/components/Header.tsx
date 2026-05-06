@@ -110,6 +110,8 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => setResourcesOpen(!resourcesOpen)}
+                  aria-expanded={resourcesOpen}
+                  aria-haspopup="true"
                   className="flex items-center gap-1 h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface transition-all"
                 >
                   Recursos
@@ -221,7 +223,7 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden"
+              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden overscroll-contain"
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">
@@ -277,6 +279,8 @@ export default function Header() {
                 <div className="mt-6">
                   <button
                     onClick={() => setResourcesOpen(!resourcesOpen)}
+                    aria-expanded={resourcesOpen}
+                    aria-haspopup="true"
                     className="w-full flex items-center justify-between p-4 rounded-xl bg-surface hover:bg-surface-elevated transition-colors"
                   >
                     <div className="flex items-center gap-3">

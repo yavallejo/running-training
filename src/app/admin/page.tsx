@@ -716,7 +716,7 @@ export default function AdminPage() {
                   <h2 className="text-lg font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>{selectedUser.username}</h2>
                   <p className="text-xs font-mono text-muted-foreground tracking-wide">PLAN: {(selectedUser.plans as any)?.name || 'Sin plan'}</p>
                 </div>
-                <button onClick={closeProgressModal} className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
+                <button onClick={closeProgressModal} aria-label="Cerrar" className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
                   ✕
                 </button>
               </div>
@@ -797,7 +797,7 @@ export default function AdminPage() {
                   <h2 className="text-lg font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>EDITAR USUARIO</h2>
                   <p className="text-xs font-mono text-muted-foreground tracking-wide">{editingUser.username}</p>
                 </div>
-                <button onClick={closeEditModal} className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
+                <button onClick={closeEditModal} aria-label="Cerrar" className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
                   ✕
                 </button>
               </div>

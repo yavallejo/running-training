@@ -100,6 +100,7 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
         <div className="relative px-5 pt-4 pb-5 text-center">
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="absolute right-4 top-4 w-8 h-8 rounded-lg bg-background/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -144,6 +145,7 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
               </label>
               <input
                 type="text"
+                name="actualTime"
                 placeholder="32:45"
                 value={time}
                 onChange={(e) => {
@@ -159,6 +161,7 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
               </label>
               <input
                 type="number"
+                name="kmCompleted"
                 step="0.1"
                 min="0"
                 placeholder={session.distance.toString()}
