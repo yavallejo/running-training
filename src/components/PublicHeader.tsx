@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/hooks/useTheme";
+import ThemeToggle from "./ThemeToggle";
 import LoginModal from "./LoginModal";
 
 const NAV_LINKS = [
@@ -16,6 +18,7 @@ export default function PublicHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -99,6 +102,7 @@ export default function PublicHeader() {
               >
                 Registrarse
               </Link>
+              <ThemeToggle />
               <button
                 onClick={() => setShowLogin(true)}
                 className="text-sm font-semibold px-5 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
@@ -218,6 +222,11 @@ export default function PublicHeader() {
               </nav>
 
               <div className="p-4 border-t border-border space-y-2">
+                <ThemeToggle className="w-full p-4 rounded-xl bg-surface hover:bg-surface-elevated">
+                  <span className="text-sm font-medium">
+                    {resolvedTheme === "dark" ? "Modo claro" : "Modo oscuro"}
+                  </span>
+                </ThemeToggle>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}

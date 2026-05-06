@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, useInView, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import PublicHeader from "@/components/PublicHeader";
 import LoginModal from "@/components/LoginModal";
 
@@ -22,6 +22,7 @@ const organizationJsonLd = {
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
+  const shouldReduceMotion = !!useReducedMotion();
   const heroRef = useRef(null);
   const problemaRef = useRef(null);
   const solucionRef = useRef(null);
@@ -37,6 +38,9 @@ export default function LandingPage() {
   const solucionInView = useInView(solucionRef, { once: true, margin: "-100px" });
   const pasosInView = useInView(pasosRef, { once: true, margin: "-100px" });
   const ctaInView = useInView(ctaRef, { once: true, margin: "-100px" });
+
+  const springTransition = { type: "spring" as const, stiffness: 200, damping: 24 };
+  const springBouncy = { type: "spring" as const, stiffness: 300, damping: 20 };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -54,8 +58,24 @@ export default function LandingPage() {
       >
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full">
-            <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/25 via-primary/8 to-transparent rounded-full blur-3xl" />
-            <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-primary/10 via-transparent to-transparent rounded-full blur-3xl" />
+            <motion.div
+              animate={shouldReduceMotion ? {} : { 
+                x: [0, 30, -20, 10, 0],
+                y: [0, -20, 10, -15, 0],
+                scale: [1, 1.05, 0.98, 1.02, 1],
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/25 via-primary/8 to-transparent rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={shouldReduceMotion ? {} : { 
+                x: [0, -25, 15, -10, 0],
+                y: [0, 15, -25, 10, 0],
+                scale: [1, 0.98, 1.04, 0.97, 1],
+              }}
+              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-primary/10 via-transparent to-transparent rounded-full blur-3xl"
+            />
           </div>
           <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -70,12 +90,12 @@ export default function LandingPage() {
 
         <motion.div 
           className="relative z-10 max-w-5xl mx-auto text-center"
-          style={{ y: heroY, opacity: heroOpacity, willChange: "transform, opacity" }}
+          style={shouldReduceMotion ? {} : { y: heroY, opacity: heroOpacity, willChange: "transform, opacity" }}
         >
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40, scale: 0.95 }}
             animate={heroInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ ...springTransition, delay: 0 }}
             className="mb-8"
           >
             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border/50">
@@ -90,9 +110,9 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 50 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 50 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ ...springTransition, delay: 0.1 }}
             className="text-[clamp(2.5rem,8vw,6rem)] font-black tracking-[-0.03em] leading-[0.95] mb-8"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >
@@ -103,18 +123,18 @@ export default function LandingPage() {
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ ...springTransition, delay: 0.2 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-mono leading-relaxed"
           >
             <span className="text-foreground">No necesitás otro tutorial.</span> Necesitás saber exactamente qué hacer mañana, pasado, y el día después — sin pensarlo.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.95 }}
             animate={heroInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ ...springBouncy, delay: 0.35 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-5"
           >
             <button
@@ -134,9 +154,9 @@ export default function LandingPage() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ ...springTransition, delay: 0.5 }}
             className="mt-20 p-8 rounded-3xl bg-surface border border-primary/30 backdrop-blur-sm shadow-[0_2px_16px_-4px_rgba(0,0,0,0.07),0_0_40px_-12px_rgba(255,59,48,0.2)]"
           >
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
@@ -174,7 +194,7 @@ export default function LandingPage() {
           className="absolute bottom-10 left-1/2 -translate-x-1/2"
         >
           <motion.div
-            animate={{ y: [0, 12, 0], opacity: [0.5, 1, 0.5] }}
+            animate={shouldReduceMotion ? {} : { y: [0, 12, 0], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             className="flex flex-col items-center gap-2"
           >
@@ -196,9 +216,9 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             animate={problemaInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={springTransition}
             className="text-center mb-20"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
@@ -223,6 +243,7 @@ export default function LandingPage() {
               description="Te comprás zapatillas nuevas, descargás una app, seguís 3 influencers de running. Todo bien hasta el día 4."
               delay={0}
               inView={problemaInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <PainCard
               emoji="🌀"
@@ -230,6 +251,7 @@ export default function LandingPage() {
               description="'¿Cuánto correr el primer día?', '¿Es normal que me duelan las rodillas?', '¿Cuánto descanso entre sesiones?'"
               delay={0.1}
               inView={problemaInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <PainCard
               emoji="😞"
@@ -237,6 +259,7 @@ export default function LandingPage() {
               description="Sin un plan claro, cada duda te frena. Una semana se convierte en un mes. Y la carrera sigue ahí, esperándote."
               delay={0.2}
               inView={problemaInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
           </div>
         </div>
@@ -253,9 +276,9 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             animate={solucionInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={springTransition}
             className="text-center mb-20"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
@@ -280,6 +303,7 @@ export default function LandingPage() {
               description="Horas buscando información, armando rutinas, preguntando en foros. Con un plan, ese tiempo lo recuperás."
               delay={0}
               inView={solucionInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <SolutionCard
               emoji="🏃"
@@ -287,6 +311,7 @@ export default function LandingPage() {
               description="Saldrás a correr sabiendo exactamente qué hacer. Sin dudas, sin excusas. Solo salir y hacerlo."
               delay={0.15}
               inView={solucionInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <SolutionCard
               emoji="❤️"
@@ -294,6 +319,7 @@ export default function LandingPage() {
               description="Un plan progresivo te prepara sin lesionarte. Las rodillas te lo van a agradecer."
               delay={0.3}
               inView={solucionInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <SolutionCard
               emoji="🏁"
@@ -301,6 +327,7 @@ export default function LandingPage() {
               description="Vas a cruzar la meta sabiendo que hiciste todo bien. Eso no tiene precio."
               delay={0.45}
               inView={solucionInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
           </div>
         </div>
@@ -317,9 +344,9 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             animate={pasosInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={springTransition}
             className="text-center mb-20"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
@@ -344,6 +371,7 @@ export default function LandingPage() {
               description="Recibís tu usuario. Accedés desde el celular, la tablet o la compu. Sin instalado nada."
               delay={0}
               inView={pasosInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <StepCard
               number="02"
@@ -351,6 +379,7 @@ export default function LandingPage() {
               description="Cada día te dice exactamente qué hacer. Marcás completed cuando lo terminás. Seguís al siguiente."
               delay={0.15}
               inView={pasosInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
             <StepCard
               number="03"
@@ -358,6 +387,7 @@ export default function LandingPage() {
               description="Te plantás en la línea de largada de TU carrera. Hiciste todo lo que tenías que hacer. Ahora solo disfrutá."
               delay={0.3}
               inView={pasosInView}
+              shouldReduceMotion={shouldReduceMotion}
             />
           </div>
         </div>
@@ -369,10 +399,10 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8 }}
+            transition={springTransition}
             className="text-center mb-16"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
@@ -455,10 +485,10 @@ export default function LandingPage() {
             ].map(({ icon, title, description, iconClass }, i) => (
               <motion.div
                 key={title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ type: "spring", stiffness: 200, damping: 24, delay: i * 0.08 }}
                 className="group relative p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 shadow-[0_1px_6px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -494,9 +524,9 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={springTransition}
           >
             <h2
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-8"
@@ -578,18 +608,20 @@ function PainCard({
   description,
   delay,
   inView,
+  shouldReduceMotion,
 }: {
   emoji: string;
   title: string;
   description: string;
   delay: number;
   inView: boolean;
+  shouldReduceMotion: boolean;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 50, scale: 0.95 }}
       animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ type: "spring", stiffness: 200, damping: 24, delay }}
       className="group relative p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm overflow-hidden hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_0_30px_-8px_rgba(255,59,48,0.14)] transition-all duration-500"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -610,18 +642,20 @@ function SolutionCard({
   description,
   delay,
   inView,
+  shouldReduceMotion,
 }: {
   emoji: string;
   title: string;
   description: string;
   delay: number;
   inView: boolean;
+  shouldReduceMotion: boolean;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -30 }}
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -30 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ type: "spring", stiffness: 200, damping: 24, delay }}
       className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_-8px_rgba(255,59,48,0.1)] transition-all duration-500"
     >
       <div className="flex-shrink-0 text-4xl">{emoji}</div>
@@ -642,18 +676,20 @@ function StepCard({
   description,
   delay,
   inView,
+  shouldReduceMotion,
 }: {
   number: string;
   title: string;
   description: string;
   delay: number;
   inView: boolean;
+  shouldReduceMotion: boolean;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50, scale: 0.95 }}
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 50, scale: 0.95 }}
       animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ type: "spring", stiffness: 200, damping: 24, delay }}
       className="relative text-center group"
     >
       <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8rem] sm:text-[10rem] font-black text-primary/[0.06] leading-none select-none" style={{ fontFamily: "var(--font-urbanist)" }}>
