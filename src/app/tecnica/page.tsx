@@ -103,6 +103,18 @@ const TECHNIQUE_SECTIONS = [
   }
 ];
 
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Guía de Técnica de Carrera — Mejorá tu Forma de Correr",
+  description:
+    "Mejorá tu técnica de carrera: postura correcta, zancada, cadencia, respiración y errores comunes. Corré más eficiente y sin lesiones.",
+  publisher: {
+    "@type": "Organization",
+    name: "RunPlan Pro",
+  },
+};
+
 export default function TecnicaPage() {
   const router = useRouter();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -114,6 +126,10 @@ export default function TecnicaPage() {
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -156,9 +172,9 @@ export default function TecnicaPage() {
               >
                 <span className="text-3xl flex-shrink-0">{section.icon}</span>
                 <div className="flex-1 text-left">
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">
                     {section.title}
-                  </h3>
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     {expanded === section.id ? 'Toca para ocultar' : 'Toca para ver técnica'}
                   </p>

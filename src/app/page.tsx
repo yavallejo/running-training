@@ -5,6 +5,21 @@ import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import PublicHeader from "@/components/PublicHeader";
 import LoginModal from "@/components/LoginModal";
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "RunPlan Pro",
+  url: "https://runplan-pro.vercel.app",
+  logo: "https://runplan-pro.vercel.app/icon.svg",
+  description:
+    "Plan de entrenamiento personalizado para correr. De 3K a 42K, con progresión adaptada a tu nivel.",
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+  },
+  sameAs: [],
+};
+
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const heroRef = useRef(null);
@@ -25,6 +40,10 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       <PublicHeader />
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} showRegisterHint />
 

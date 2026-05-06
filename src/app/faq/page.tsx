@@ -68,6 +68,19 @@ const FAQ_ITEMS = [
   }
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+    "@type": "Question",
+    name: q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: a,
+    },
+  })),
+};
+
 export default function FAQPage() {
   const router = useRouter();
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -79,6 +92,10 @@ export default function FAQPage() {
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -125,9 +142,9 @@ export default function FAQPage() {
               >
                 <span className="text-2xl flex-shrink-0 mt-0.5">{item.icon}</span>
                 <div className="flex-1">
-                  <h3 className="text-base font-medium text-foreground text-left">
+                  <h2 className="text-base font-medium text-foreground text-left">
                     {item.q}
-                  </h3>
+                  </h2>
                   {expanded === index && (
                     <motion.p
                       initial={{ opacity: 0 }}

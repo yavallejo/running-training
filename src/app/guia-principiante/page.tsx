@@ -153,6 +153,19 @@ const SECTIONS = [
   }
 ];
 
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline:
+    "Guía del Runner Principiante — Cómo Empezar a Correr desde Cero",
+  description:
+    "Guía completa para empezar a correr desde cero: cómo elegir zapatillas, primeros pasos, ropa, hidratación y errores comunes a evitar.",
+  publisher: {
+    "@type": "Organization",
+    name: "RunPlan Pro",
+  },
+};
+
 export default function GuiaPrincipiantePage() {
   const router = useRouter();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -164,6 +177,10 @@ export default function GuiaPrincipiantePage() {
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -206,9 +223,9 @@ export default function GuiaPrincipiantePage() {
               >
                 <span className="text-3xl flex-shrink-0">{section.icon}</span>
                 <div className="flex-1 text-left">
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">
                     {section.title}
-                  </h3>
+                  </h2>
                   <p className="text-sm text-muted-foreground">
                     {expandedSection === section.id ? 'Toca para ocultar' : 'Toca para ver más'}
                   </p>

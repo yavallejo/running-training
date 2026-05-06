@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans',display:'swap'});
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://runplan-pro.vercel.app"),
   title: {
     default: "RunPlan Pro — Tu plan de entrenamiento para correr",
     template: "%s | RunPlan Pro",
   },
-  description: "Plan de entrenamiento personalizado para tu primera carrera. De 3K a 42K, con progresión adaptada a tu nivel, ritmo y objetivos. Sin excusas, solo seguí el plan.",
+  description:
+    "Plan de entrenamiento personalizado para tu primera carrera. De 3K a 42K, con progresión adaptada a tu nivel, ritmo y objetivos. Sin excusas, solo seguí el plan.",
   keywords: [
     "plan de entrenamiento running",
     "correr por primera vez",
@@ -34,7 +36,8 @@ export const metadata: Metadata = {
   publisher: "RunPlan Pro",
   openGraph: {
     title: "RunPlan Pro — Tu plan de entrenamiento para correr",
-    description: "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer. Arrancá hoy.",
+    description:
+      "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer. Arrancá hoy.",
     type: "website",
     locale: "es_AR",
     url: "https://runplan-pro.vercel.app",
@@ -44,7 +47,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RunPlan Pro — Tu plan de entrenamiento para correr",
-    description: "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer.",
+    description:
+      "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer.",
   },
   robots: {
     index: true,
@@ -57,13 +61,12 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "",
-  },
   category: "sports",
   icons: {
     icon: "/icon.svg",
+    apple: "/icon.svg",
   },
+  manifest: "/site.webmanifest",
 };
 
 const urbanist = Urbanist({

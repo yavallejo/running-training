@@ -167,6 +167,18 @@ const COOLDOWN = [
   }
 ];
 
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Guía de Calentamiento y Enfriamiento para Runners",
+  description:
+    "Rutinas de calentamiento y enfriamiento para antes y después de correr. Activación muscular, movilidad articular y estiramientos según temperatura.",
+  publisher: {
+    "@type": "Organization",
+    name: "RunPlan Pro",
+  },
+};
+
 export default function CalentamientoPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'warmup' | 'cooldown'>('warmup');
@@ -182,6 +194,10 @@ export default function CalentamientoPage() {
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -257,9 +273,9 @@ export default function CalentamientoPage() {
                 <div className="flex-1">
                   <div className="flex items-center flex-wrap gap-2 mb-2">
                     <span className="text-2xl">{item.icon}</span>
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h2 className="text-lg font-semibold text-foreground">
                       {item.title}
-                    </h3>
+                    </h2>
                     <span className={`text-sm px-3 py-1 rounded-full ${
                       activeTab === 'warmup' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500'
                     }`}>

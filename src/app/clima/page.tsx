@@ -119,7 +119,7 @@ export default function ClimaPage() {
         </div>
 
         <div className="mb-6 rounded-2xl border border-border bg-surface p-5">
-          <h3 className="text-base font-semibold text-foreground mb-4">🌡️ Calculadora de clima</h3>
+          <h2 className="text-base font-semibold text-foreground mb-4">🌡️ Calculadora de clima</h2>
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <label className="text-sm text-muted-foreground block mb-2">Temperatura actual (°C)</label>
@@ -169,9 +169,9 @@ export default function ClimaPage() {
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-3xl">{condition.icon}</span>
-                  <h3 className="text-lg font-semibold text-foreground">
+                  <h2 className="text-lg font-semibold text-foreground">
                     {condition.label}
-                  </h3>
+                  </h2>
                 </div>
                 <div className="space-y-3 ml-11">
                   {condition.tips.map((tip, i) => (

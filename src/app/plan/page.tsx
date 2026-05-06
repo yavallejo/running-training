@@ -281,6 +281,7 @@ export default function PlanPage() {
 
   return (
     <main className="flex-1 px-3 py-6 sm:px-4 sm:py-8 relative">
+      <h1 className="sr-only">Mi Plan de Entrenamiento</h1>
       {showConfetti && (
         <Confetti
           width={windowSize.width}

@@ -66,6 +66,18 @@ function getDaysUntilRace(raceDate: string): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Guía del Día de la Carrera — Checklist y Estrategia",
+  description:
+    "Todo lo que necesitás para el día de tu carrera: checklist completo, estrategia de ritmo por distancia y consejos para llegar preparado.",
+  publisher: {
+    "@type": "Organization",
+    name: "RunPlan Pro",
+  },
+};
+
 export default function DiaCarreraPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -125,6 +137,10 @@ export default function DiaCarreraPage() {
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -192,9 +208,9 @@ export default function DiaCarreraPage() {
 
             {categories.map(cat => (
               <div key={cat}>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                   {cat}
-                </h3>
+                </h2>
                 <div className="space-y-2">
                   {CHECKLIST.filter(i => i.category === cat).map(item => (
                     <motion.div
