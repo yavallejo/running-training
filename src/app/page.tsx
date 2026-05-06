@@ -51,7 +51,7 @@ export default function LandingPage() {
 
         <motion.div 
           className="relative z-10 max-w-5xl mx-auto text-center"
-          style={{ y: heroY, opacity: heroOpacity }}
+          style={{ y: heroY, opacity: heroOpacity, willChange: "transform, opacity" }}
         >
           <motion.div
             initial={{ opacity: 0, y: 40, scale: 0.95 }}

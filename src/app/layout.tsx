@@ -6,7 +6,7 @@ import ConditionalHeader from "@/components/ConditionalHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({subsets:['latin'],variable:'--font-sans',display:'swap'});
 
 export const metadata: Metadata = {
   title: {
@@ -93,6 +93,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={cn("h-full", "antialiased", urbanist.variable, openSans.variable, "font-sans", geist.variable)}>
+      <head>
+        <link rel="preconnect" href="https://cqlmrkjovxsvctcaysdf.supabase.co" />
+        <link rel="dns-prefetch" href="https://cqlmrkjovxsvctcaysdf.supabase.co" />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <ErrorBoundary>
