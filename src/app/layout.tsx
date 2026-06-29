@@ -136,10 +136,16 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <a
+          href="#main-content"
+          className="skip-link"
+        >
+          Saltar al contenido principal
+        </a>
         <Providers>
           <ErrorBoundary>
             <ConditionalHeader />
-            <main className="flex-1 flex flex-col">{children}</main>
+            <main id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>{children}</main>
           </ErrorBoundary>
         </Providers>
       </body>

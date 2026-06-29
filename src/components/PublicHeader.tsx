@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useTheme } from "@/hooks/useTheme";
 import ThemeToggle from "./ThemeToggle";
 
@@ -17,6 +17,7 @@ export default function PublicHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     setMounted(true);
@@ -41,6 +42,44 @@ export default function PublicHeader() {
     };
   }, [mobileMenuOpen]);
 
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleMobileMenuKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!mobileMenuOpen || !mobileMenuRef.current) return;
+
+    const focusableElements = mobileMenuRef.current.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    if (e.key === "Tab") {
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    if (e.key === "Escape") {
+      setMobileMenuOpen(false);
+    }
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleMobileMenuKeyDown);
+    return () => document.removeEventListener("keydown", handleMobileMenuKeyDown);
+  }, [handleMobileMenuKeyDown]);
+
+  useEffect(() => {
+    if (mobileMenuOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [mobileMenuOpen]);
+
   if (!mounted) return null;
 
   return (
@@ -63,6 +102,7 @@ export default function PublicHeader() {
                   strokeWidth={2}
                   stroke="currentColor"
                   className="w-5 h-5 text-white"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -111,7 +151,7 @@ export default function PublicHeader() {
               </button>
             </nav>
 
-            <button
+<button
               onClick={() => setMobileMenuOpen(true)}
               className="md:hidden w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-foreground hover:bg-surface-elevated transition-colors"
               aria-label="Abrir menú"
@@ -123,6 +163,7 @@ export default function PublicHeader() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -142,16 +183,21 @@ export default function PublicHeader() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
               className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
               onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
             />
 
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              ref={mobileMenuRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menú de navegación"
+              initial={shouldReduceMotion ? { opacity: 0 } : { x: "100%" }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { x: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { x: "100%" }}
+              transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", damping: 30, stiffness: 300 }}
               className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background flex flex-col shadow-2xl md:hidden overscroll-contain"
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
@@ -164,6 +210,7 @@ export default function PublicHeader() {
                       strokeWidth={2}
                       stroke="currentColor"
                       className="w-5 h-5 text-white"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -185,6 +232,7 @@ export default function PublicHeader() {
                   </span>
                 </div>
                 <button
+                  ref={closeButtonRef}
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-foreground hover:bg-surface-elevated transition-colors"
                   aria-label="Cerrar menú"
@@ -249,6 +297,7 @@ export default function PublicHeader() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"

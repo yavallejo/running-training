@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { TrainingSession } from "@/lib/training-plan";
 
 interface PlanStatsProps {
@@ -12,6 +12,7 @@ export default function PlanStats({
   sessions,
   completedCount,
 }: PlanStatsProps) {
+  const shouldReduceMotion = useReducedMotion();
   const totalSessions = sessions.length;
   const totalDistance = sessions
     .filter((s) => s.completed)
@@ -33,6 +34,7 @@ export default function PlanStats({
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -45,9 +47,9 @@ export default function PlanStats({
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1 }}
           className="rounded-xl bg-surface-elevated border border-border p-4"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -59,6 +61,7 @@ export default function PlanStats({
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -74,6 +77,7 @@ export default function PlanStats({
           <p
             className="text-2xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-urbanist)" }}
+            aria-label={`${completedCount} de ${totalSessions} sesiones completadas`}
           >
             {completedCount}
             <span className="text-sm font-normal text-muted-foreground ml-1">
@@ -83,9 +87,9 @@ export default function PlanStats({
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.15 }}
           className="rounded-xl bg-surface-elevated border border-border p-4"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -97,6 +101,7 @@ export default function PlanStats({
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -117,6 +122,7 @@ export default function PlanStats({
           <p
             className="text-2xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-urbanist)" }}
+            aria-label={`${totalDistance.toFixed(1)} kilómetros completados`}
           >
             {totalDistance.toFixed(1)}
             <span className="text-sm font-normal text-muted-foreground ml-1">
@@ -127,29 +133,36 @@ export default function PlanStats({
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.2 }}
         className="rounded-xl bg-surface-elevated border border-border p-4"
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs text-muted-foreground font-medium">
-            {" "}
+          <span className="text-xs text-muted-foreground font-medium" id="progress-label">
             Progreso del plan
           </span>
           <span
             className="text-sm font-bold text-primary"
             style={{ fontFamily: "var(--font-urbanist)" }}
+            aria-hidden="true"
           >
             {completionRate}%
           </span>
         </div>
-        <div className="h-2 w-full rounded-full bg-surface overflow-hidden">
+        <div
+          className="h-2 w-full rounded-full bg-surface overflow-hidden"
+          role="progressbar"
+          aria-valuenow={completionRate}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-labelledby="progress-label"
+        >
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60"
             initial={{ width: 0 }}
             animate={{ width: `${completionRate}%` }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: "easeOut", delay: 0.3 }}
           />
         </div>
         <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">

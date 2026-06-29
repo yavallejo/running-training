@@ -35,10 +35,10 @@ export default function LandingPage() {
       >
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full">
-            <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/25 via-primary/8 to-transparent rounded-full blur-3xl" />
-            <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-primary/10 via-transparent to-transparent rounded-full blur-3xl" />
+            <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/25 via-primary/8 to-transparent rounded-full blur-3xl" aria-hidden="true" />
+            <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-primary/10 via-transparent to-transparent rounded-full blur-3xl" aria-hidden="true" />
           </div>
-          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
                 <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="0.5"/>
@@ -46,12 +46,12 @@ export default function LandingPage() {
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
-          <div className="absolute bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t from-background to-transparent" aria-hidden="true" />
         </div>
 
         <HeroContent />
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2" aria-hidden="true">
           <div className="flex flex-col items-center gap-2">
             <span className="text-[10px] font-mono text-muted-foreground tracking-[0.3em] uppercase">Scroll</span>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -76,6 +76,7 @@ export default function LandingPage() {
                   strokeWidth={2}
                   stroke="currentColor"
                   className="w-6 h-6 text-white"
+                  aria-hidden="true"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.249 8.249 0 0 1 12 21 8.249 8.249 0 0 1 5.75 5.214 8.25 8.25 0 0 1 15.362 5.214Z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM12 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5ZM15.75 12.75a.75.75 0 0 0 0 1.5.75.75 0 0 0 0-1.5Z" />
@@ -86,15 +87,17 @@ export default function LandingPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-6 text-sm font-mono text-muted-foreground">
-              <a href="#inicio" className="hover:text-foreground transition-colors tracking-wide">INICIO</a>
-              <span className="text-border">·</span>
-              <a href="#problema" className="hover:text-foreground transition-colors tracking-wide">PROBLEMA</a>
-              <span className="text-border">·</span>
-              <a href="#solucion" className="hover:text-foreground transition-colors tracking-wide">SOLUCIÓN</a>
-              <span className="text-border">·</span>
-              <a href="#pasos" className="hover:text-foreground transition-colors tracking-wide">CÓMO</a>
-            </div>
+            <nav aria-label="Navegación del footer">
+              <div className="flex items-center gap-6 text-sm font-mono text-muted-foreground">
+                <a href="#inicio" className="hover:text-foreground transition-colors tracking-wide">INICIO</a>
+                <span className="text-border" aria-hidden="true">·</span>
+                <a href="#problema" className="hover:text-foreground transition-colors tracking-wide">PROBLEMA</a>
+                <span className="text-border" aria-hidden="true">·</span>
+                <a href="#solucion" className="hover:text-foreground transition-colors tracking-wide">SOLUCIÓN</a>
+                <span className="text-border" aria-hidden="true">·</span>
+                <a href="#pasos" className="hover:text-foreground transition-colors tracking-wide">CÓMO</a>
+              </div>
+            </nav>
 
             <p className="text-sm font-mono text-muted-foreground">
               © 2026 RUNPLAN PRO
