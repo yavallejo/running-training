@@ -27,6 +27,26 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -75,6 +95,9 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="login-modal-title"
           >
             <div
               className="w-full max-w-sm bg-surface-elevated border border-border rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
@@ -114,6 +137,7 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
                     </svg>
                   </div>
                   <h2
+                    id="login-modal-title"
                     className="text-xl font-bold tracking-tight"
                     style={{ fontFamily: "var(--font-urbanist)" }}
                   >

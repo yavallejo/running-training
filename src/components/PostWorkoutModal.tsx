@@ -68,8 +68,8 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
   const kmDiff = parseFloat(kmCompleted || "0") - session.distance;
@@ -82,6 +82,9 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="post-workout-modal-title"
     >
       <motion.div
         initial={{ scale: 0.96, opacity: 0, y: 30 }}
@@ -128,7 +131,7 @@ export default function PostWorkoutModal({ session, onSave, onQuickComplete, onC
               </svg>
             )}
           </motion.div>
-          <h3 className="text-lg font-black text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
+          <h3 id="post-workout-modal-title" className="text-lg font-black text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
             {isEditing ? "Editar entrenamiento" : "¿Cómo fue tu sesión?"}
           </h3>
           <p className="text-xs font-mono text-muted-foreground mt-1 tracking-wide">

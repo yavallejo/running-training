@@ -67,6 +67,9 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-modal-title"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -78,7 +81,7 @@ export default function ShareModal({ session, planProgress, onClose }: ShareModa
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
+            <h3 id="share-modal-title" className="text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-urbanist)" }}>
               Compartir Progreso
             </h3>
             <button
