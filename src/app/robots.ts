@@ -10,5 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: "https://runplan-pro.vercel.app/sitemap.xml",
+    host: "https://runplan-pro.vercel.app",
   };
 }

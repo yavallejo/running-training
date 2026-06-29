@@ -6,7 +6,11 @@ import ConditionalHeader from "@/components/ConditionalHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans',display:'swap'});
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://runplan-pro.vercel.app"),
@@ -43,12 +47,24 @@ export const metadata: Metadata = {
     url: "https://runplan-pro.vercel.app",
     siteName: "RunPlan Pro",
     alternateLocale: ["es_ES", "es_MX", "es_CO"],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "RunPlan Pro — Plan de entrenamiento para correr",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "RunPlan Pro — Tu plan de entrenamiento para correr",
     description:
       "De 3K a 42K. Plan progresivo adaptado a tu nivel. Cada día te dice exactamente qué hacer.",
+    // TODO: Agregar twitter:site y twitter:creator cuando tengas las cuentas
+    // site: "@tu_usuario_twitter",
+    // creator: "@tu_usuario_twitter",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -64,9 +80,12 @@ export const metadata: Metadata = {
   category: "sports",
   icons: {
     icon: "/icon.svg",
-    apple: "/icon.svg",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
+  alternates: {
+    canonical: "https://runplan-pro.vercel.app",
+  },
 };
 
 const urbanist = Urbanist({
@@ -95,10 +114,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={cn("h-full", "antialiased", urbanist.variable, openSans.variable, "font-sans", geist.variable)}>
+    <html
+      lang="es"
+      className={cn(
+        "h-full",
+        "antialiased",
+        urbanist.variable,
+        openSans.variable,
+        "font-sans",
+        geist.variable,
+      )}
+    >
       <head>
-        <link rel="preconnect" href="https://cqlmrkjovxsvctcaysdf.supabase.co" />
-        <link rel="dns-prefetch" href="https://cqlmrkjovxsvctcaysdf.supabase.co" />
+        <link
+          rel="preconnect"
+          href="https://cqlmrkjovxsvctcaysdf.supabase.co"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://cqlmrkjovxsvctcaysdf.supabase.co"
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>

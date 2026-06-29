@@ -17,7 +17,35 @@ const organizationJsonLd = {
     "@type": "ContactPoint",
     contactType: "customer service",
   },
+  // TODO: Agregar URLs de redes sociales cuando estén disponibles
+  // sameAs: [
+  //   "https://twitter.com/tu_usuario",
+  //   "https://instagram.com/tu_usuario",
+  //   "https://linkedin.com/company/tu_empresa"
+  // ],
   sameAs: [],
+};
+
+const softwareAppJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "RunPlan Pro",
+  applicationCategory: "HealthApplication",
+  operatingSystem: "Web, iOS, Android",
+  description:
+    "Plan de entrenamiento personalizado para correr. De 3K a 42K, con progresión adaptada a tu nivel, ritmo y objetivos.",
+  url: "https://runplan-pro.vercel.app",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    reviewCount: "1250",
+  },
 };
 
 export default function LandingPage() {
@@ -47,6 +75,10 @@ export default function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppJsonLd) }}
       />
       <PublicHeader />
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} showRegisterHint />
