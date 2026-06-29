@@ -73,12 +73,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
     const session = getSession();
     if (!session) {
-      router.replace("/login");
+      router.replace("/iniciar-sesion");
       return;
     }
 
@@ -211,7 +212,7 @@ export default function ProfilePage() {
 
       setSuccess("Perfil actualizado correctamente");
       setEditMode(false);
-    } catch (err) {
+    } catch {
       setError("Error inesperado");
     } finally {
       setSaving(false);
@@ -246,7 +247,7 @@ export default function ProfilePage() {
         });
         setSuccess("Plan recalculado desde mañana");
       }
-    } catch (err) {
+    } catch {
       setError("Error inesperado");
     } finally {
       setSaving(false);

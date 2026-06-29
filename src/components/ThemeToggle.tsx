@@ -34,7 +34,9 @@ export default function ThemeToggle({ className, children }: ThemeToggleProps) {
 
   useEffect(() => {
     return () => {
-      flashTimers.current.forEach(clearTimeout);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const timers = flashTimers.current;
+      timers.forEach(clearTimeout);
     };
   }, []);
 

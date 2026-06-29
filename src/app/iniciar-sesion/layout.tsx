@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Iniciar Sesión",
   description:
     "Accedé a tu cuenta de RunPlan Pro para ver tu plan de entrenamiento personalizado.",
-  alternates: { canonical: "/login" },
+  alternates: { canonical: "/iniciar-sesion" },
   robots: { index: false, follow: false },
 };
 

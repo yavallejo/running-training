@@ -17,8 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/playlist", priority: 0.7, changefreq: "monthly" as const },
     { path: "/clima", priority: 0.7, changefreq: "monthly" as const },
     { path: "/terminos", priority: 0.3, changefreq: "yearly" as const },
-    { path: "/login", priority: 0.3, changefreq: "monthly" as const },
-    { path: "/register", priority: 0.3, changefreq: "monthly" as const },
+    { path: "/iniciar-sesion", priority: 0.3, changefreq: "monthly" as const },
+    { path: "/registro", priority: 0.3, changefreq: "monthly" as const },
     { path: "/onboarding", priority: 0.4, changefreq: "monthly" as const },
   ];
 

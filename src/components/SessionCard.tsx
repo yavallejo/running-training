@@ -360,7 +360,7 @@ export default function SessionCard({
                   )}
                   {session.notes && (
                     <p className="text-sm sm:text-base text-muted-foreground/70 italic pl-5">
-                      "{session.notes}"
+                      &quot;{session.notes}&quot;
                     </p>
                   )}
                 </div>

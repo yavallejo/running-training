@@ -13,7 +13,7 @@ interface PlanHeaderProps {
   raceName?: string;
 }
 
-export default function PlanHeader({ userName, sessions, completedCount, motivacionalMessage, raceDistance = 7, raceDate = "2026-05-17", raceName = "Carrera Recreativa" }: PlanHeaderProps) {
+export default function PlanHeader({ userName, sessions, completedCount, motivacionalMessage, raceDistance = 7, raceDate: _raceDate = "2026-05-17", raceName = "Carrera Recreativa" }: PlanHeaderProps) {
   const totalSessions = sessions.length;
   const progress = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
   const circumference = 2 * Math.PI * 44;

@@ -63,7 +63,7 @@ export default function PlaylistPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   return (
@@ -170,7 +170,7 @@ export default function PlaylistPage() {
             🎧 ¿Usas Spotify?
           </p>
           <p className="text-base text-muted-foreground mb-4">
-            Busca: "Running Hits 130 BPM" o "Workout Pop Rising"
+            Busca: &quot;Running Hits 130 BPM&quot; o &quot;Workout Pop Rising&quot;
           </p>
           <a
             href={SPOTIFY_PLAYLIST}

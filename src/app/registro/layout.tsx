@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Registrarse",
   description:
     "Creá tu cuenta gratuita en RunPlan Pro y empezá tu plan de entrenamiento para correr.",
-  alternates: { canonical: "/register" },
+  alternates: { canonical: "/registro" },
   robots: { index: false, follow: false },
 };
 

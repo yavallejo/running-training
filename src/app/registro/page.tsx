@@ -40,7 +40,7 @@ export default function RegisterPage() {
 
     if (result.success) {
       clearSession();
-      router.push("/login?registered=true");
+      router.push("/iniciar-sesion?registered=true");
     } else {
       setError(result.error || "Error al crear la cuenta");
       setLoading(false);
@@ -161,7 +161,7 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-sm font-mono text-muted-foreground">
           ¿Ya tienes cuenta?{" "}
-          <a href="/login" className="text-primary hover:underline">
+          <a href="/iniciar-sesion" className="text-primary hover:underline">
             Iniciar Sesión
           </a>
         </p>

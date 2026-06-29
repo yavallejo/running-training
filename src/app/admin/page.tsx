@@ -8,7 +8,7 @@ import { createUser } from "@/lib/auth";
 import { getSession, clearSession } from "@/lib/auth";
 import dynamic from "next/dynamic";
 
-// @ts-ignore
+// @ts-expect-error - dynamic import ssr false
 const DatePicker = dynamic(() => import("react-datepicker"), { ssr: false });
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -52,7 +52,7 @@ export default function AdminPage() {
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userProgress, setUserProgress] = useState<any[]>([]);
-  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [_loadingProgress, setLoadingProgress] = useState(false);
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
@@ -93,7 +93,7 @@ export default function AdminPage() {
   useEffect(() => {
     const session = getSession();
     if (!session) {
-      router.replace("/login");
+      router.replace("/iniciar-sesion");
       return;
     }
     if (session.role !== 'admin') {
@@ -225,7 +225,7 @@ export default function AdminPage() {
         updateData.plan_id = null;
       }
 
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('users')
         .update(updateData)
         .eq('id', editingUser.id)
@@ -289,7 +289,7 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push("/login");
+    router.push("/iniciar-sesion");
   };
 
   const stats = useMemo(() => ({

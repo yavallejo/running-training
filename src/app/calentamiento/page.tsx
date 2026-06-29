@@ -185,7 +185,7 @@ export default function CalentamientoPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   const data = activeTab === 'warmup' ? WARMUP : COOLDOWN;

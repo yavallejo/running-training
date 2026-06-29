@@ -172,7 +172,7 @@ export default function GuiaPrincipiantePage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   return (

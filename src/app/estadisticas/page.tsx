@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TrainingSession, EVENT_DATE, EVENT_DISTANCE, generateTrainingPlan, loadUserProgress } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
-import { BADGES, checkAchievements } from "@/lib/achievements";
+import { BADGES } from "@/lib/achievements";
 import { loadWellnessData, WellnessData } from "@/components/WellnessTracker";
 import { loadWeightEffortData, WeightEffortData } from "@/components/WeightEffortTracker";
 
@@ -24,7 +24,7 @@ export default function EstadisticasPage() {
       try {
         const session = getSession();
         if (!session) {
-          router.replace("/login");
+          router.replace("/iniciar-sesion");
           return;
         }
 
@@ -63,7 +63,7 @@ export default function EstadisticasPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push("/login");
+    router.push("/iniciar-sesion");
   };
 
   if (loading) {
@@ -82,7 +82,7 @@ export default function EstadisticasPage() {
   const totalSessions = sessions.length;
   const completionRate = totalSessions > 0 ? Math.round((completedSessions.length / totalSessions) * 100) : 0;
   const totalDistance = completedSessions.reduce((sum, s) => sum + s.distance, 0);
-  const totalPlannedDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
+  const _totalPlannedDistance = sessions.reduce((sum, s) => sum + s.distance, 0);
   const nextSession = sessions.find(s => !s.completed);
 
   const avgSleep = wellnessData.length > 0

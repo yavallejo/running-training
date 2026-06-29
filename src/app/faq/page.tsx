@@ -87,7 +87,7 @@ export default function FAQPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   return (

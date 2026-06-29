@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { TrainingSession, EVENT_NAME, EVENT_DATE } from "@/lib/training-plan";
-import { getSession, clearSession } from "@/lib/auth";
+import { EVENT_NAME, EVENT_DATE } from "@/lib/training-plan";
+import { clearSession } from "@/lib/auth";
 
 const FEATURES = [
   {
@@ -103,7 +103,7 @@ export default function FuncionalidadesPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push("/login");
+    router.push("/iniciar-sesion");
   };
 
   return (

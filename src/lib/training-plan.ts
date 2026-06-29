@@ -347,7 +347,7 @@ function calculateRealisticPace(
   raceDistance: number,
   weekNum: number,
   totalWeeks: number,
-  config: DistanceConfig
+  _config: DistanceConfig
 ): { pace: number; rhythm: string } {
   const level = profile.experience_level
   const goalType = profile.goal_type || 'fitness'
@@ -366,7 +366,7 @@ function calculateRealisticPace(
     default: workoutPaceRatio = 1.0
   }
 
-  let distancePaceAdjust = 1 + (raceDistance - 7) * 0.008
+  const distancePaceAdjust = 1 + (raceDistance - 7) * 0.008
 
   let progressiveMultiplier = 1.0
   if (profile.progressive_pace !== false) {
@@ -519,7 +519,7 @@ function generateAlgorithmicPlan(
   if (profile.age && profile.age > 65 && profile.has_injuries) recoveryInterval = 2
 
   const raceWeek = totalWeeks - 1
-  const preRaceWeek = totalWeeks - 2
+  const _preRaceWeek = totalWeeks - 2
 
   const targetRaceTime = estimateTargetRaceTime(profile, raceDistance)
 
@@ -628,8 +628,8 @@ function buildWeeklyStructure(
   level: string,
   sessionsPerWeek: number,
   goalType?: string,
-  hasInjuries?: boolean,
-  totalWeeks?: number
+  _hasInjuries?: boolean,
+  _totalWeeks?: number
 ): WorkoutType[] {
   const goal = goalType || 'fitness'
 
@@ -693,10 +693,10 @@ function calculateWeeklyProgression(
     ? Math.pow(buildUpProgress, 1.5)
     : 1.0
 
-  const weekProgress = currentWeek / totalWeeks
+  const _weekProgress = currentWeek / totalWeeks
   const volumeFactor = startingVolumeFactor + ((1.0 - startingVolumeFactor) * effectiveBuildUp)
 
-  const intensityLevels = {
+  const _intensityLevels = {
     beginner: { start: 0.6, peak: 0.85 },
     intermediate: { start: 0.65, peak: 0.9 },
     advanced: { start: 0.7, peak: 0.95 }

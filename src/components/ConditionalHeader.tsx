@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/onboarding", "/terminos", "/admin"];
+const PUBLIC_PATHS = ["/", "/iniciar-sesion", "/registro", "/onboarding", "/terminos", "/admin"];
 
 export default function ConditionalHeader() {
   const pathname = usePathname();

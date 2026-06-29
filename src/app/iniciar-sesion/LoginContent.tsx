@@ -329,7 +329,7 @@ export default function LoginContent() {
           >
             <p className="text-sm text-muted-foreground">
               ¿No tienes cuenta?{" "}
-              <a href="/register" className="text-primary font-semibold hover:underline">
+              <a href="/registro" className="text-primary font-semibold hover:underline">
                 Regístrate aquí
               </a>
             </p>

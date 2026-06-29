@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/hooks/useTheme";
 import ThemeToggle from "./ThemeToggle";
-import LoginModal from "./LoginModal";
 
 const NAV_LINKS = [
   { href: "#problema", label: "El Problema" },
@@ -16,7 +15,6 @@ const NAV_LINKS = [
 export default function PublicHeader() {
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
 
@@ -97,14 +95,16 @@ export default function PublicHeader() {
                 </a>
               ))}
               <Link
-                href="/register"
+                href="/registro"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Registrarse
               </Link>
               <ThemeToggle />
               <button
-                onClick={() => setShowLogin(true)}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("open-login-modal"));
+                }}
                 className="text-sm font-semibold px-5 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
               >
                 Iniciar Sesión
@@ -228,7 +228,7 @@ export default function PublicHeader() {
                   </span>
                 </ThemeToggle>
                 <Link
-                  href="/register"
+                  href="/registro"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-primary/20 text-primary hover:bg-primary/10 transition-all font-semibold"
                 >
@@ -237,7 +237,7 @@ export default function PublicHeader() {
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    setShowLogin(true);
+                    window.dispatchEvent(new CustomEvent("open-login-modal"));
                   }}
                   className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all font-semibold"
                 >
@@ -262,12 +262,6 @@ export default function PublicHeader() {
           </>
         )}
       </AnimatePresence>
-
-      <LoginModal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        showRegisterHint
-      />
     </>
   );
 }

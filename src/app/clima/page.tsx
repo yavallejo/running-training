@@ -73,12 +73,11 @@ const WEATHER_TIPS = {
 
 export default function ClimaPage() {
   const router = useRouter();
-  const [weather, setWeather] = useState<string | null>(null);
   const [customTemp, setCustomTemp] = useState<string>("");
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   const getTempRecommendation = (temp: number) => {

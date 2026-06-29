@@ -117,7 +117,7 @@ export default function NutricionPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   return (

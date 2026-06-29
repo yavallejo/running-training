@@ -222,7 +222,7 @@ export default function WellnessTracker() {
             </div>
             {todaysData.notes && (
               <p className="text-xs text-muted-foreground/70 italic bg-surface-elevated p-2 rounded-lg">
-                "{todaysData.notes}"
+                &quot;{todaysData.notes}&quot;
               </p>
             )}
             <button

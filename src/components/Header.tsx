@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/hooks/useTheme";
 import ThemeToggle from "./ThemeToggle";
-import { getSession, clearSession } from "@/lib/auth";
+import { clearSession } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 
 const RESOURCES_LINKS = [

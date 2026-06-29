@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/login", "/register", "/onboarding"],
+        disallow: ["/admin/", "/api/", "/iniciar-sesion", "/registro", "/onboarding"],
       },
     ],
     sitemap: "https://runplan-pro.vercel.app/sitemap.xml",

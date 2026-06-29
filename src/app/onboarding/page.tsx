@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
 import dynamic from "next/dynamic";
 
-// @ts-ignore
+// @ts-expect-error - dynamic import ssr false
 const DatePicker = dynamic(() => import("react-datepicker"), { ssr: false });
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     const session = getSession();
     if (!session) {
-      router.replace("/login");
+      router.replace("/iniciar-sesion");
       return;
     }
     setUserId(session.userId);
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 21);
-  const minDateStr = minDate.toISOString().split("T")[0];
+  const _minDateStr = minDate.toISOString().split("T")[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">

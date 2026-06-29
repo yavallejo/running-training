@@ -121,7 +121,7 @@ export default function TecnicaPage() {
 
   const handleLogout = () => {
     clearSession();
-    router.push('/login');
+    router.push('/iniciar-sesion');
   };
 
   return (

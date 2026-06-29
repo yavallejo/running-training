@@ -23,7 +23,7 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 export default function PlanPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const [saving, setSaving] = useState(false);
+  const [_saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
@@ -31,7 +31,7 @@ export default function PlanPage() {
   const [raceDistance, setRaceDistance] = useState(7);
   const [raceDate, setRaceDate] = useState("2026-05-17");
   const [raceName, setRaceName] = useState("Carrera Recreativa");
-  const [startDate, setStartDate] = useState("");
+  const [_startDate, setStartDate] = useState("");
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
@@ -43,41 +43,11 @@ export default function PlanPage() {
   const [today, setToday] = useState("");
   const [motivationalMessage, setMotivationalMessage] = useState<{ text: string; icon: string } | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-      const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, []);
-
-  useEffect(() => {
-    const session = getSession();
-    if (!session) {
-      router.replace("/login");
-      return;
-    }
-    setUserName(session.username || "");
-    setUserId(session.userId);
-    setPlanName(session.planName || "");
-    setRaceDistance(session.raceDistance || 7);
-    setRaceDate(session.raceDate || "2026-05-17");
-    setRaceName(session.raceName || "Carrera Recreativa");
-    setStartDate(session.startDate || "");
-
-    const todayStr = new Date().toISOString().split("T")[0];
-    setToday(todayStr);
-
-    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
-  }, [router]);
-
-  const loadPlan = async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
+  const loadPlan = useCallback(async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
     try {
       setLoading(true);
-      // Load user profile first
       const profileData = await loadUserProfile(uId);
-      
+
       const [sessionsData, progressMap] = await Promise.all([
         generateTrainingPlan(planId, rDistance, rDate, startDate, profileData || undefined, uId),
         loadUserProgress(uId)
@@ -104,7 +74,36 @@ export default function PlanPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+      const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
+
+  useEffect(() => {
+    const session = getSession();
+    if (!session) {
+      router.replace("/iniciar-sesion");
+      return;
+    }
+    setUserName(session.username || "");
+    setUserId(session.userId);
+    setPlanName(session.planName || "");
+    setRaceDistance(session.raceDistance || 7);
+    setRaceDate(session.raceDate || "2026-05-17");
+    setRaceName(session.raceName || "Carrera Recreativa");
+    setStartDate(session.startDate || "");
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    setToday(todayStr);
+
+    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
+  }, [router, loadPlan]);
 
   const saveProgress = useCallback(async (sessionId: string, sessionData: TrainingSession) => {
     if (!userId) {
@@ -259,9 +258,9 @@ export default function PlanPage() {
     }
   }, [sessions, today]);
 
-  const handleLogout = useCallback(() => {
+  const _handleLogout = useCallback(() => {
     clearSession();
-    router.push("/login");
+    router.push("/iniciar-sesion");
   }, [router]);
 
   if (loading) {
