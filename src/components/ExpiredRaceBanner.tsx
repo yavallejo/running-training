@@ -112,17 +112,17 @@ export default function ExpiredRaceBanner({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onRegisterResult}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
             >
-              <span>🏁</span>
+              <span aria-hidden="true">🏁</span>
               Registrar mi resultado
             </button>
 
             <button
               onClick={() => router.push("/onboarding")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border/50 text-sm font-semibold hover:bg-background transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border/50 text-sm font-semibold hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
             >
-              <span>📅</span>
+              <span aria-hidden="true">📅</span>
               Planea nueva carrera
             </button>
           </div>

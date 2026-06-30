@@ -129,8 +129,32 @@ export default function RankingsPage() {
     if (session?.userId) {
       setCurrentUserId(session.userId);
     }
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sort = params.get("sort");
+      if (sort === "distance" || sort === "pace" || sort === "achievements") {
+        setSortBy(sort);
+      }
+      const dist = params.get("distance");
+      if (dist && dist !== "all") {
+        const parsed = parseInt(dist, 10);
+        if (!isNaN(parsed)) setFilterDistance(parsed);
+      }
+    }
+
     loadRankings();
   }, [loadRankings]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (sortBy !== "achievements") params.set("sort", sortBy);
+    if (filterDistance !== "all") params.set("distance", String(filterDistance));
+    const qs = params.toString();
+    const url = qs ? `?${qs}` : window.location.pathname;
+    window.history.replaceState(null, "", url);
+  }, [sortBy, filterDistance]);
 
   const sortedUsers = useMemo(() => {
     let filtered = users;
@@ -194,7 +218,11 @@ export default function RankingsPage() {
             transition={{ delay: 0.1 }}
             className="mb-4 space-y-3"
           >
-            <div className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/30">
+            <div
+              className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/30"
+              role="tablist"
+              aria-label="Ordenar por"
+            >
               {[
                 { value: "achievements" as const, label: "Trofeos", icon: "🏆" },
                 { value: "distance" as const, label: "Km", icon: "📏" },
@@ -202,24 +230,27 @@ export default function RankingsPage() {
               ].map((opt) => (
                 <button
                   key={opt.value}
+                  role="tab"
+                  aria-selected={sortBy === opt.value}
                   onClick={() => setSortBy(opt.value)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     sortBy === opt.value
                       ? "bg-background shadow-sm text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <span>{opt.icon}</span>
+                  <span aria-hidden="true">{opt.icon}</span>
                   {opt.label}
                 </button>
               ))}
             </div>
 
             {distances.length > 1 && (
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por distancia">
                 <button
+                  aria-pressed={filterDistance === "all"}
                   onClick={() => setFilterDistance("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     filterDistance === "all"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted/30 text-muted-foreground hover:text-foreground border border-border/30"
@@ -230,8 +261,9 @@ export default function RankingsPage() {
                 {distances.map((d) => (
                   <button
                     key={d}
+                    aria-pressed={filterDistance === d}
                     onClick={() => setFilterDistance(d)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                       filterDistance === d
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted/30 text-muted-foreground hover:text-foreground border border-border/30"

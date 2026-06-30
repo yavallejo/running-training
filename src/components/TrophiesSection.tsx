@@ -90,12 +90,13 @@ export default function TrophiesSection() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12" role="status" aria-live="polite">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
         />
+        <span className="sr-only">Cargando logros…</span>
       </div>
     );
   }

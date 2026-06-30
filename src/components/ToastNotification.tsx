@@ -57,6 +57,8 @@ export default function ToastNotification({
           exit={{ opacity: 0, y: -50, scale: 0.95 }}
           transition={{ duration: 0.2 }}
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] max-w-md w-full px-4"
+          role="status"
+          aria-live="polite"
         >
           <div
             className={`${bgColor} border rounded-2xl p-4 shadow-lg backdrop-blur-sm`}
@@ -64,6 +66,7 @@ export default function ToastNotification({
             <div className="flex items-start gap-3">
               <div
                 className={`w-10 h-10 rounded-xl ${iconBgColor} flex items-center justify-center text-xl shrink-0`}
+                aria-hidden="true"
               >
                 {icon}
               </div>
@@ -79,7 +82,7 @@ export default function ToastNotification({
                 {action && (
                   <button
                     onClick={action.onClick}
-                    className="mt-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    className="mt-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
                   >
                     {action.label} →
                   </button>
@@ -88,7 +91,8 @@ export default function ToastNotification({
 
               <button
                 onClick={onClose}
-                className="w-6 h-6 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all shrink-0"
+                aria-label="Cerrar notificación"
+                className="w-6 h-6 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -97,6 +101,7 @@ export default function ToastNotification({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"

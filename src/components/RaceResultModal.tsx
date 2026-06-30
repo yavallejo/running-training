@@ -179,16 +179,20 @@ export default function RaceResultModal({
             </p>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+              <label htmlFor="race-time" className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
                 Tiempo Final
               </label>
               <input
+                id="race-time"
                 type="text"
+                inputMode="numeric"
                 value={raceTime}
                 onChange={(e) => setRaceTime(formatTimeInput(e.target.value))}
-                placeholder="01:30:00"
+                placeholder="01:30:00…"
                 maxLength={8}
-                className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-center text-xl font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background transition-all"
+                autoComplete="off"
+                spellCheck={false}
+                className="w-full rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-center text-xl font-mono placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
               />
               <p className="text-[10px] text-muted-foreground text-center">
                 Formato: HH:MM:SS
@@ -196,22 +200,24 @@ export default function RaceResultModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
+              <span className="text-xs font-mono text-muted-foreground tracking-wide uppercase">
                 ¿Cómo te sentiste?
-              </label>
-              <div className="flex justify-center gap-2">
+              </span>
+              <div className="flex justify-center gap-2" role="radiogroup" aria-label="Cómo te sentiste">
                 {FEELING_OPTIONS.map((option) => (
                   <button
                     key={option.value}
+                    role="radio"
+                    aria-checked={feeling === option.value}
+                    aria-label={option.label}
                     onClick={() => setFeeling(option.value)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                       feeling === option.value
                         ? "bg-primary/20 border-2 border-primary scale-110"
                         : "bg-background/50 border border-border/50 hover:border-primary/30"
                     }`}
-                    title={option.label}
                   >
-                    <span className="text-2xl">{option.emoji}</span>
+                    <span className="text-2xl" aria-hidden="true">{option.emoji}</span>
                     <span className="text-[9px] font-mono text-muted-foreground">
                       {option.label}
                     </span>
@@ -224,6 +230,8 @@ export default function RaceResultModal({
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
+                role="alert"
+                aria-live="assertive"
                 className="text-sm text-danger text-center font-mono"
               >
                 {error}
@@ -233,16 +241,16 @@ export default function RaceResultModal({
             <div className="flex gap-3">
               <button
                 onClick={handleSkip}
-                className="flex-1 px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-mono tracking-wide hover:bg-background transition-all"
+                className="flex-1 px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-mono tracking-wide hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
               >
                 Omitir
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 transition-all disabled:opacity-50"
+                className="flex-1 px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold tracking-wide hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all disabled:opacity-50"
               >
-                {saving ? "Guardando..." : "Guardar"}
+                {saving ? "Guardando…" : "Guardar"}
               </button>
             </div>
           </div>
