@@ -4,14 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
-
-interface Achievement {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  icon: string;
-}
+import { evaluateBadges } from "@/lib/achievements";
+import type { TrainingSession } from "@/lib/training-plan";
 
 interface UserAchievement {
   achievement_id: string;
@@ -19,12 +13,12 @@ interface UserAchievement {
 }
 
 export default function TrophiesSection() {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+  const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadAchievements = async () => {
+    const load = async () => {
       try {
         const session = getSession();
         if (!session?.userId) {
@@ -32,16 +26,44 @@ export default function TrophiesSection() {
           return;
         }
 
-        const [achievementsRes, userAchRes] = await Promise.all([
-          supabase.from("achievements").select("*").order("requirement_value", { ascending: true }),
-          supabase.from("user_achievements").select("achievement_id, unlocked_at").eq("user_id", session.userId)
+        const [userAchRes, progressRes] = await Promise.all([
+          supabase
+            .from("user_achievements")
+            .select("achievement_id, unlocked_at")
+            .eq("user_id", session.userId),
+          supabase
+            .from("user_progress")
+            .select("*")
+            .eq("user_id", session.userId),
         ]);
 
-        if (achievementsRes.data) {
-          setAchievements(achievementsRes.data);
-        }
         if (userAchRes.data) {
           setUserAchievements(userAchRes.data);
+        }
+        if (progressRes.data) {
+          const map = new Map(progressRes.data.map((p) => [p.session_id, p]));
+          setSessions(
+            Array.from(map.entries()).map(([id, p]) => ({
+              id,
+              sessionOrder: 0,
+              date: "",
+              dayLabel: "",
+              workout: "",
+              workoutType: "easy" as const,
+              details: "",
+              distance: 0,
+              targetPace: "",
+              completed: !!p.completed,
+              rescheduled: !!p.rescheduled,
+              rescheduleUsed: false,
+              blocked: false,
+              actualDistance: p.actual_distance ?? undefined,
+              actualTime: p.actual_time ?? undefined,
+              actualPace: p.actual_pace ?? undefined,
+              feeling: p.feeling ?? undefined,
+              notes: p.notes ?? undefined,
+            }))
+          );
         }
       } catch (error) {
         console.error("Error loading achievements:", error);
@@ -50,20 +72,19 @@ export default function TrophiesSection() {
       }
     };
 
-    loadAchievements();
+    load();
   }, []);
 
-  const isUnlocked = (achievementId: string) => {
-    return userAchievements.some(ua => ua.achievement_id === achievementId);
-  };
+  const unlockedSet = new Set(userAchievements.map((ua) => ua.achievement_id));
+  const badges = evaluateBadges(sessions, unlockedSet);
 
   const getUnlockedDate = (achievementId: string) => {
-    const ua = userAchievements.find(ua => ua.achievement_id === achievementId);
+    const ua = userAchievements.find((u) => u.achievement_id === achievementId);
     if (!ua) return null;
     return new Date(ua.unlocked_at).toLocaleDateString("es-ES", {
       day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -79,8 +100,8 @@ export default function TrophiesSection() {
     );
   }
 
-  const unlockedCount = userAchievements.length;
-  const totalCount = achievements.length;
+  const unlockedCount = unlockedSet.size;
+  const totalCount = badges.length;
 
   return (
     <div className="space-y-6">
@@ -106,13 +127,13 @@ export default function TrophiesSection() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        {achievements.map((achievement, index) => {
-          const unlocked = isUnlocked(achievement.id);
-          const unlockedDate = getUnlockedDate(achievement.id);
+        {badges.map((badge, index) => {
+          const unlocked = unlockedSet.has(badge.id) || (badge as { unlocked?: boolean }).unlocked;
+          const unlockedDate = getUnlockedDate(badge.id);
 
           return (
             <motion.div
-              key={achievement.id}
+              key={badge.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
@@ -123,13 +144,13 @@ export default function TrophiesSection() {
               }`}
             >
               <div className={`text-3xl mb-2 ${!unlocked && "grayscale"}`}>
-                {achievement.icon}
+                {badge.icon}
               </div>
               <p className={`text-xs font-semibold mb-1 ${unlocked ? "text-foreground" : "text-muted-foreground"}`}>
-                {achievement.name}
+                {badge.name}
               </p>
               <p className="text-[10px] text-muted-foreground leading-tight">
-                {achievement.description}
+                {badge.description}
               </p>
               {unlocked && unlockedDate && (
                 <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success flex items-center justify-center">

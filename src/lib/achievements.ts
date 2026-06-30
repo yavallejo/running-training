@@ -1,12 +1,32 @@
 import { TrainingSession } from "./training-plan";
+import { supabase } from "./supabase";
+import { getSession } from "./auth";
 
 export interface Badge {
   id: string;
   name: string;
   icon: string;
   description: string;
-  condition: (sessions: TrainingSession[], achievements: string[]) => boolean;
+  condition: (sessions: TrainingSession[], unlockedIds: Set<string>) => boolean;
 }
+
+const computeStreak = (sessions: TrainingSession[]): number => {
+  const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date));
+  let max = 0;
+  let current = 0;
+  for (const s of sorted) {
+    if (s.completed) {
+      current++;
+      if (current > max) max = current;
+    } else {
+      current = 0;
+    }
+  }
+  return max;
+};
+
+const completedCount = (sessions: TrainingSession[]): number =>
+  sessions.filter((s) => s.completed).length;
 
 export const BADGES: Badge[] = [
   {
@@ -14,40 +34,48 @@ export const BADGES: Badge[] = [
     name: "Primera Carrera",
     icon: "🎯",
     description: "Completaste tu primera sesión de entrenamiento",
-    condition: (sessions) => sessions.some(s => s.id === "session-1" && s.completed),
+    condition: (sessions) => completedCount(sessions) >= 1,
   },
   {
     id: "streak-3",
     name: "Racha de 3",
     icon: "🔥",
     description: "3 sesiones completadas una tras otra",
-    condition: (sessions) => {
-      const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date));
-      let streak = 0;
-      for (const s of sorted) {
-        if (s.completed) {
-          streak++;
-          if (streak >= 3) return true;
-        } else {
-          streak = 0;
-        }
-      }
-      return false;
-    },
+    condition: (sessions) => computeStreak(sessions) >= 3,
+  },
+  {
+    id: "streak-7",
+    name: "En llamas",
+    icon: "🔥🔥",
+    description: "7 sesiones seguidas completadas",
+    condition: (sessions) => computeStreak(sessions) >= 7,
   },
   {
     id: "5k-complete",
     name: "Meta 5K",
     icon: "🏃",
-    description: "Completaste los 5 km de la sesión 7",
-    condition: (sessions) => sessions.some(s => s.id === "session-7" && s.completed),
+    description: "Acumulaste 5 km de distancia real",
+    condition: (sessions) =>
+      sessions
+        .filter((s) => s.completed)
+        .reduce((sum, s) => sum + (s.actualDistance ?? s.distance), 0) >= 5,
+  },
+  {
+    id: "10k-complete",
+    name: "Doble dígito",
+    icon: "🚀",
+    description: "Acumulaste 10 km de distancia real",
+    condition: (sessions) =>
+      sessions
+        .filter((s) => s.completed)
+        .reduce((sum, s) => sum + (s.actualDistance ?? s.distance), 0) >= 10,
   },
   {
     id: "rescheduler",
     name: "Reprogramadora",
     icon: "⚡",
     description: "Usaste la reprogramación por primera vez",
-    condition: (sessions) => sessions.some(s => s.rescheduled),
+    condition: (sessions) => sessions.some((s) => s.rescheduled),
   },
   {
     id: "halfway",
@@ -55,8 +83,8 @@ export const BADGES: Badge[] = [
     icon: "💪",
     description: "50% de las sesiones completadas",
     condition: (sessions) => {
-      const completed = sessions.filter(s => s.completed).length;
-      return completed >= sessions.length / 2;
+      const total = sessions.length;
+      return total > 0 && completedCount(sessions) >= total / 2;
     },
   },
   {
@@ -65,8 +93,18 @@ export const BADGES: Badge[] = [
     icon: "🎉",
     description: "80% de las sesiones completadas",
     condition: (sessions) => {
-      const completed = sessions.filter(s => s.completed).length;
-      return completed >= sessions.length * 0.8;
+      const total = sessions.length;
+      return total > 0 && completedCount(sessions) >= total * 0.8;
+    },
+  },
+  {
+    id: "finish",
+    name: "Meta Cumplida",
+    icon: "🏆",
+    description: "100% de las sesiones completadas",
+    condition: (sessions) => {
+      const total = sessions.length;
+      return total > 0 && completedCount(sessions) === total;
     },
   },
   {
@@ -74,42 +112,77 @@ export const BADGES: Badge[] = [
     name: "Súper 7K",
     icon: "⚡",
     description: "¡Completaste el evento de 7 km!",
-    condition: (_, achievements) => achievements.includes("event-7k"),
+    condition: (_, unlocked) => unlocked.has("event-7k"),
   },
 ];
 
-export function checkAchievements(
-  sessions: TrainingSession[], 
-  savedAchievements: string[] = []
-): { newBadges: Badge[]; allBadges: Badge[] } {
-  const newBadges: Badge[] = [];
-  
-  const allBadges = BADGES.map(badge => {
-    const isUnlocked = badge.condition(sessions, savedAchievements);
-    const wasUnlocked = savedAchievements.includes(badge.id);
-    
-    if (isUnlocked && !wasUnlocked) {
-      newBadges.push(badge);
+export async function loadUnlockedAchievements(): Promise<Set<string>> {
+  try {
+    const session = getSession();
+    if (!session?.userId) return new Set();
+    const { data, error } = await supabase
+      .from("user_achievements")
+      .select("achievement_id")
+      .eq("user_id", session.userId);
+    if (error) {
+      console.error("Error loading achievements:", error);
+      return new Set();
     }
-    
-    return {
-      ...badge,
-      unlocked: isUnlocked,
-    };
-  });
-
-    return { newBadges, allBadges };
+    return new Set((data || []).map((r) => r.achievement_id));
+  } catch (err) {
+    console.error("Error:", err);
+    return new Set();
+  }
 }
 
-export function saveAchievements(newBadgeIds: string[]) {
-  try {
-    const stored = localStorage.getItem("runplan-pro_achievements");
-    const current = stored ? JSON.parse(stored) : [];
-    const updated = [...new Set([...current, ...newBadgeIds])];
-    localStorage.setItem("runplan-pro_achievements", JSON.stringify(updated));
-    return updated;
-  } catch (error) {
-    console.error('Error saving achievements:', error);
-    return newBadgeIds;
+export async function persistUnlockedAchievements(
+  newlyUnlockedIds: string[]
+): Promise<Set<string>> {
+  if (newlyUnlockedIds.length === 0) return await loadUnlockedAchievements();
+  const session = getSession();
+  if (!session?.userId) return new Set();
+
+  const rows = newlyUnlockedIds.map((achievement_id) => ({
+    user_id: session.userId,
+    achievement_id,
+  }));
+
+  const { error } = await supabase
+    .from("user_achievements")
+    .upsert(rows, { onConflict: "user_id,achievement_id", ignoreDuplicates: true });
+
+  if (error) {
+    console.error("Error saving achievements:", error);
   }
+  return await loadUnlockedAchievements();
+}
+
+export async function checkAndPersistAchievements(
+  sessions: TrainingSession[]
+): Promise<Badge[]> {
+  const unlocked = await loadUnlockedAchievements();
+  const newlyUnlocked: Badge[] = [];
+
+  for (const badge of BADGES) {
+    if (unlocked.has(badge.id)) continue;
+    if (badge.condition(sessions, unlocked)) {
+      newlyUnlocked.push(badge);
+    }
+  }
+
+  if (newlyUnlocked.length > 0) {
+    await persistUnlockedAchievements(newlyUnlocked.map((b) => b.id));
+  }
+
+  return newlyUnlocked;
+}
+
+export function evaluateBadges(
+  sessions: TrainingSession[],
+  unlockedIds: Set<string>
+): Badge[] {
+  return BADGES.map((badge) => ({
+    ...badge,
+    unlocked: unlockedIds.has(badge.id) || badge.condition(sessions, unlockedIds),
+  }));
 }

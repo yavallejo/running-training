@@ -16,7 +16,7 @@ import PlanHeader from "@/components/PlanHeader";
 import PlanStats from "@/components/PlanStats";
 import SessionCard from "@/components/SessionCard";
 import { checkBlockedSessions, getRaceDeadline } from "@/lib/date-utils";
-import { checkAchievements, saveAchievements } from "@/lib/achievements";
+import { checkAndPersistAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
 import ExpiredRaceBanner from "@/components/ExpiredRaceBanner";
 import RaceResultModal from "@/components/RaceResultModal";
@@ -131,12 +131,12 @@ export default function PlanPage() {
 
       const { data: existingResult } = await supabase
         .from("race_results")
-        .select("id")
+        .select("id, skipped, completed")
         .eq("user_id", session.userId)
         .eq("plan_id", session.planId)
         .single();
 
-      if (!existingResult) {
+      if (!existingResult || (!existingResult.completed && !existingResult.skipped)) {
         setHasPendingResult(true);
 
         const deadline = getRaceDeadline(raceDate);
@@ -144,9 +144,13 @@ export default function PlanPage() {
         if (deadline > today) {
           const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           if (daysUntilDeadline <= 3) {
-            setPendingDeadline(deadline.toLocaleDateString("es-ES", { day: "numeric", month: "short" }));
-            setPendingRaceName(raceName);
-            setShowDeadlineToast(true);
+            const toastKey = `runplan-pro_toast_shown_${session.planId}_${raceDate}`;
+            if (typeof window !== "undefined" && !sessionStorage.getItem(toastKey)) {
+              sessionStorage.setItem(toastKey, "1");
+              setPendingDeadline(deadline.toLocaleDateString("es-ES", { day: "numeric", month: "short" }));
+              setPendingRaceName(raceName);
+              setShowDeadlineToast(true);
+            }
           }
         }
       }
@@ -190,12 +194,9 @@ export default function PlanPage() {
     }
   }, [userId]);
 
-  const checkAndSetAchievements = useCallback((updatedSessions: TrainingSession[]) => {
-    const stored = localStorage.getItem("runplan-pro_achievements");
-    const currentAchievements = stored ? JSON.parse(stored) : [];
-    const { newBadges } = checkAchievements(updatedSessions, currentAchievements);
+  const checkAndSetAchievements = useCallback(async (updatedSessions: TrainingSession[]) => {
+    const newBadges = await checkAndPersistAchievements(updatedSessions);
     if (newBadges.length > 0) {
-      saveAchievements(newBadges.map(b => b.id));
       const badge = newBadges[0];
       setNewBadge({ icon: badge.icon, name: badge.name, description: badge.description });
     }
@@ -224,7 +225,7 @@ export default function PlanPage() {
       const updated = prev.map(s =>
         s.id === id ? { ...s, completed: true, ...data } : s
       );
-      checkAndSetAchievements(updated);
+      void checkAndSetAchievements(updated);
       saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });
@@ -239,7 +240,7 @@ export default function PlanPage() {
       const updated = prev.map(s =>
         s.id === id ? { ...s, completed: true } : s
       );
-      checkAndSetAchievements(updated);
+      void checkAndSetAchievements(updated);
       saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
     });

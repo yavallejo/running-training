@@ -110,7 +110,28 @@ export default function RaceResultModal({
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    const session = getSession();
+    if (!session?.userId) {
+      onClose();
+      return;
+    }
+
+    try {
+      await supabase.from("race_results").upsert(
+        {
+          user_id: session.userId,
+          plan_id: planId,
+          race_date: raceDate,
+          skipped: true,
+          completed: false,
+          deadline_at: getRaceDeadline(raceDate).toISOString(),
+        },
+        { onConflict: "user_id,plan_id" }
+      );
+    } catch (err) {
+      console.error("Error saving skip:", err);
+    }
     onClose();
   };
 
