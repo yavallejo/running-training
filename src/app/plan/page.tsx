@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, loadUserProfile } from "@/lib/training-plan";
 import { getSession, clearSession } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
 import BadgeNotification from "@/components/BadgeNotification";
@@ -17,6 +18,9 @@ import SessionCard from "@/components/SessionCard";
 import { checkBlockedSessions } from "@/lib/date-utils";
 import { checkAchievements, saveAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
+import ExpiredRaceBanner from "@/components/ExpiredRaceBanner";
+import RaceResultModal from "@/components/RaceResultModal";
+import ToastNotification from "@/components/ToastNotification";
 
 const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 
@@ -28,6 +32,7 @@ export default function PlanPage() {
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
   const [planName, setPlanName] = useState("");
+  const [planId, setPlanId] = useState("");
   const [raceDistance, setRaceDistance] = useState(7);
   const [raceDate, setRaceDate] = useState("2026-05-17");
   const [raceName, setRaceName] = useState("Carrera Recreativa");
@@ -42,6 +47,13 @@ export default function PlanPage() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [today, setToday] = useState("");
   const [motivationalMessage, setMotivationalMessage] = useState<{ text: string; icon: string } | null>(null);
+
+  const [showRaceResultModal, setShowRaceResultModal] = useState(false);
+  const [raceHasExpired, setRaceHasExpired] = useState(false);
+  const [_hasPendingResult, setHasPendingResult] = useState(false);
+  const [showDeadlineToast, setShowDeadlineToast] = useState(false);
+  const [pendingDeadline, setPendingDeadline] = useState<string | null>(null);
+  const [pendingRaceName, setPendingRaceName] = useState<string | null>(null);
 
   const loadPlan = useCallback(async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
     try {
@@ -94,6 +106,7 @@ export default function PlanPage() {
     setUserName(session.username || "");
     setUserId(session.userId);
     setPlanName(session.planName || "");
+    setPlanId(session.planId || "");
     setRaceDistance(session.raceDistance || 7);
     setRaceDate(session.raceDate || "2026-05-17");
     setRaceName(session.raceName || "Carrera Recreativa");
@@ -104,6 +117,48 @@ export default function PlanPage() {
 
     loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
   }, [router, loadPlan]);
+
+  const checkRaceStatus = useCallback(async () => {
+    const session = getSession();
+    if (!session?.userId || !raceDate) return;
+
+    const today = new Date();
+    const raceDay = new Date(raceDate);
+    const todayStr = today.toISOString().split("T")[0];
+
+    if (raceDay < today && raceDay.toISOString().split("T")[0] !== todayStr) {
+      setRaceHasExpired(true);
+
+      const { data: existingResult } = await supabase
+        .from("race_results")
+        .select("id")
+        .eq("user_id", session.userId)
+        .eq("plan_id", session.planId)
+        .single();
+
+      if (!existingResult) {
+        setHasPendingResult(true);
+
+        const deadline = new Date(raceDate);
+        deadline.setDate(deadline.getDate() + 10);
+
+        if (deadline > today) {
+          const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysUntilDeadline <= 3) {
+            setPendingDeadline(deadline.toLocaleDateString("es-ES", { day: "numeric", month: "short" }));
+            setPendingRaceName(raceName);
+            setShowDeadlineToast(true);
+          }
+        }
+      }
+    }
+  }, [raceDate, raceName]);
+
+  useEffect(() => {
+    if (raceDate && userId) {
+      checkRaceStatus();
+    }
+  }, [raceDate, userId, checkRaceStatus]);
 
   const saveProgress = useCallback(async (sessionId: string, sessionData: TrainingSession) => {
     if (!userId) {
@@ -296,6 +351,23 @@ export default function PlanPage() {
         onClose={() => setNewBadge(null)}
       />
 
+      <ToastNotification
+        isVisible={showDeadlineToast}
+        message={`¡No olvides registrar tu tiempo de ${pendingRaceName}!`}
+        subMessage={`Tienes hasta el ${pendingDeadline}`}
+        icon="⏰"
+        type="warning"
+        onClose={() => setShowDeadlineToast(false)}
+        action={{
+          label: "Registrar ahora",
+          onClick: () => {
+            setShowDeadlineToast(false);
+            setShowRaceResultModal(true);
+          },
+        }}
+        autoClose={8000}
+      />
+
       <div className="mx-auto max-w-2xl">
         <PlanHeader
           userName={userName}
@@ -306,6 +378,17 @@ export default function PlanPage() {
           raceDate={raceDate}
           raceName={raceName}
         />
+
+        {raceHasExpired && (
+          <ExpiredRaceBanner
+            raceName={raceName}
+            raceDate={raceDate}
+            raceDistance={raceDistance}
+            completedSessions={completedCount}
+            totalSessions={totalSessions}
+            onRegisterResult={() => setShowRaceResultModal(true)}
+          />
+        )}
 
         <div className="flex justify-end">
           <button
@@ -410,6 +493,25 @@ export default function PlanPage() {
             totalDistance: sessions.reduce((sum, s) => sum + s.distance, 0)
           }}
           onClose={() => setShowShare(null)}
+        />
+      )}
+
+      {showRaceResultModal && (
+        <RaceResultModal
+          isOpen={showRaceResultModal}
+          raceName={raceName}
+          raceDate={raceDate}
+          raceDistance={raceDistance}
+          planId={planId}
+          onClose={() => {
+            setShowRaceResultModal(false);
+            setHasPendingResult(false);
+          }}
+          onResultSaved={() => {
+            setHasPendingResult(false);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }}
         />
       )}
     </main>

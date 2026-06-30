@@ -4,7 +4,7 @@ const SESSION_KEY = "running_session"
 const SESSION_DURATION = 24 * 60 * 60 * 1000
 
 // Hash password using Web Crypto API
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   if (typeof window === "undefined") return ""
   const encoder = new TextEncoder()
   const data = encoder.encode(password)
