@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
+import { getRaceDeadline } from "@/lib/date-utils";
 
 interface RaceResultModalProps {
   isOpen: boolean;
@@ -47,15 +48,17 @@ export default function RaceResultModal({
   };
 
   const validateTimeFormat = (time: string): boolean => {
-    const regex = /^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/;
-    return regex.test(time);
+    const match = time.match(/^([0-9]{1,2}):([0-5][0-9]):([0-5][0-9])$/);
+    if (!match) return false;
+    const hours = parseInt(match[1], 10);
+    return hours >= 0 && hours <= 23;
   };
 
   const formatTimeInput = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
+    const numbers = value.replace(/\D/g, "").slice(0, 6);
     if (numbers.length <= 2) return numbers;
     if (numbers.length <= 4) return `${numbers.slice(0, 2)}:${numbers.slice(2)}`;
-    return `${numbers.slice(0, 2)}:${numbers.slice(2, 4)}:${numbers.slice(4, 6)}`;
+    return `${numbers.slice(0, 2)}:${numbers.slice(2, 4)}:${numbers.slice(4)}`;
   };
 
   const handleSave = async () => {
@@ -79,8 +82,7 @@ export default function RaceResultModal({
         return;
       }
 
-      const deadlineAt = new Date(raceDate);
-      deadlineAt.setDate(deadlineAt.getDate() + 10);
+      const deadlineAt = getRaceDeadline(raceDate);
 
       const { error: insertError } = await supabase.from("race_results").insert({
         user_id: session.userId,

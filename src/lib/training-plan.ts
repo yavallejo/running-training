@@ -25,6 +25,7 @@ export interface TrainingSession {
   completed: boolean
   rescheduled: boolean
   rescheduleUsed: boolean
+  rescheduledTo?: string
   blocked: boolean
   actualTime?: string
   actualPace?: string

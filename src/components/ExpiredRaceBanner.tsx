@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface ExpiredRaceBannerProps {
   raceName: string;
@@ -40,12 +41,9 @@ const MOTIVATIONAL_MESSAGES = [
   },
 ];
 
-function getRandomMessage() {
-  return MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
-}
-
 function formatDate(dateStr: string) {
-  const date = new Date(dateStr);
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
   return date.toLocaleDateString("es-ES", {
     day: "numeric",
     month: "long",
@@ -53,10 +51,12 @@ function formatDate(dateStr: string) {
 }
 
 function getDaysAgo(dateStr: string): number {
-  const raceDate = new Date(dateStr);
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const raceDate = new Date(y, m - 1, d);
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const diffTime = today.getTime() - raceDate.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
 }
 
 export default function ExpiredRaceBanner({
@@ -68,9 +68,9 @@ export default function ExpiredRaceBanner({
   onRegisterResult,
 }: ExpiredRaceBannerProps) {
   const router = useRouter();
-  const message = getRandomMessage();
+  const [message] = useState(() => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]);
   const daysAgo = getDaysAgo(raceDate);
-  const completionRate = Math.round((completedSessions / totalSessions) * 100);
+  const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
 
   return (
     <motion.div

@@ -34,3 +34,17 @@ export function checkBlockedSessions(sessionsData: TrainingSession[], todayStr: 
     return s;
   });
 }
+
+export function getRaceDeadline(raceDate: string, daysAfter: number = 10): Date {
+  const deadline = parseLocalDate(raceDate);
+  deadline.setDate(deadline.getDate() + daysAfter);
+  return deadline;
+}
+
+export function getDaysAgo(raceDate: string): number {
+  const race = parseLocalDate(raceDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = today.getTime() - race.getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}

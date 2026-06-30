@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
+import TrophiesSection from "@/components/TrophiesSection";
+import HistorySection from "@/components/HistorySection";
 
 interface UserProfile {
   id: string;
@@ -70,6 +72,8 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "trophies" | "history">("profile");
+  const [isPublicProfile, setIsPublicProfile] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -93,6 +97,7 @@ export default function ProfilePage() {
           race_date,
           race_name,
           start_date,
+          is_public_profile,
           user_profiles (
             experience_level,
             current_weekly_km,
@@ -136,7 +141,6 @@ export default function ProfilePage() {
         minutes_per_session: profileData.minutes_per_session || 60,
         has_injuries: profileData.has_injuries || false,
         injury_description: profileData.injury_description || "",
-        // New fields
         age: profileData.age || null,
         sex: profileData.sex || "other",
         weight: profileData.weight || null,
@@ -148,6 +152,7 @@ export default function ProfilePage() {
         progressive_pace: profileData.progressive_pace !== false,
         medical_clearance: profileData.medical_clearance || false,
       });
+      setIsPublicProfile(user.is_public_profile || false);
     } catch (err) {
       console.error("Error:", err);
     } finally {
@@ -323,6 +328,45 @@ export default function ProfilePage() {
                 <span className="text-border text-sm">·</span>
                 <span className="text-sm text-muted-foreground truncate">{profile.race_name || "Mi Carrera"}</span>
               </div>
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t border-primary/10">
+                <button
+                  onClick={async () => {
+                    const newValue = !isPublicProfile;
+                    setIsPublicProfile(newValue);
+                    const session = getSession();
+                    if (session?.userId) {
+                      await supabase
+                        .from("users")
+                        .update({ is_public_profile: newValue })
+                        .eq("id", session.userId);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                    isPublicProfile
+                      ? "bg-success/10 text-success border border-success/20"
+                      : "bg-muted/50 text-muted-foreground border border-border/30"
+                  }`}
+                >
+                  {isPublicProfile ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                      Perfil Público
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Privado
+                    </>
+                  )}
+                </button>
+                <span className="text-[10px] text-muted-foreground">
+                  {isPublicProfile ? "Aparece en rankings" : "No visible"}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -375,6 +419,61 @@ export default function ProfilePage() {
           </motion.div>
         )}
 
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="flex gap-1 p-1 rounded-xl bg-muted/30 border border-border/30 mb-4"
+        >
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-mono font-medium transition-all ${
+              activeTab === "profile"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            Perfil
+          </button>
+          <button
+            onClick={() => setActiveTab("trophies")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-mono font-medium transition-all ${
+              activeTab === "trophies"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+            </svg>
+            Trofeos
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-mono font-medium transition-all ${
+              activeTab === "history"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Historial
+          </button>
+        </motion.div>
+
+        {/* Tab Content */}
+        {activeTab === "trophies" ? (
+          <TrophiesSection />
+        ) : activeTab === "history" ? (
+          <HistorySection />
+        ) : (
+          <>
         {/* Race Goal */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -896,6 +995,8 @@ export default function ProfilePage() {
             ← Volver al Plan
           </a>
         </motion.div>
+          </>
+        )}
       </div>
     </main>
   );

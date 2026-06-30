@@ -15,7 +15,7 @@ import ShareModal from "@/components/ShareModal";
 import PlanHeader from "@/components/PlanHeader";
 import PlanStats from "@/components/PlanStats";
 import SessionCard from "@/components/SessionCard";
-import { checkBlockedSessions } from "@/lib/date-utils";
+import { checkBlockedSessions, getRaceDeadline } from "@/lib/date-utils";
 import { checkAchievements, saveAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
 import ExpiredRaceBanner from "@/components/ExpiredRaceBanner";
@@ -139,8 +139,7 @@ export default function PlanPage() {
       if (!existingResult) {
         setHasPendingResult(true);
 
-        const deadline = new Date(raceDate);
-        deadline.setDate(deadline.getDate() + 10);
+        const deadline = getRaceDeadline(raceDate);
 
         if (deadline > today) {
           const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -168,17 +167,21 @@ export default function PlanPage() {
     
     setSaving(true);
     try {
-      console.log('Saving progress for session:', sessionId, 'completed:', sessionData.completed);
-      const result = await saveUserProgress(userId, sessionId, {
+      const payload: Record<string, unknown> = {
         completed: sessionData.completed,
         rescheduled: sessionData.rescheduled,
-        rescheduledTo: (sessionData as any).rescheduledTo,
         actualTime: sessionData.actualTime,
         actualPace: sessionData.actualPace,
         feeling: sessionData.feeling,
         notes: sessionData.notes,
-        actualDistance: sessionData.actualDistance
-      });
+        actualDistance: sessionData.actualDistance,
+      };
+      if (sessionData.rescheduledTo !== undefined) {
+        payload.rescheduledTo = sessionData.rescheduledTo;
+      } else {
+        payload.rescheduledTo = null;
+      }
+      const result = await saveUserProgress(userId, sessionId, payload);
       console.log('Save result:', result);
     } catch (error) {
       console.error('Error saving progress:', error);
@@ -202,7 +205,7 @@ export default function PlanPage() {
   const toggleComplete = useCallback((id: string) => {
     setSessions(prev => {
       const updated = prev.map(s =>
-        s.id === id ? { ...s, completed: false, actualTime: undefined, actualPace: undefined, feeling: undefined, notes: undefined, actualDistance: undefined } : s
+        s.id === id ? { ...s, completed: false, actualTime: undefined, actualPace: undefined, feeling: undefined, notes: undefined, actualDistance: undefined, rescheduledTo: undefined } : s
       );
       saveProgress(id, updated.find(s => s.id === id)!);
       return updated;
@@ -318,6 +321,15 @@ export default function PlanPage() {
     router.push("/iniciar-sesion");
   }, [router]);
 
+  const handleCloseDeadlineToast = useCallback(() => {
+    setShowDeadlineToast(false);
+  }, []);
+
+  const handleCloseRaceResultModal = useCallback(() => {
+    setShowRaceResultModal(false);
+    setHasPendingResult(false);
+  }, []);
+
   if (loading) {
     return (
       <main className="flex flex-1 items-center justify-center">
@@ -357,11 +369,11 @@ export default function PlanPage() {
         subMessage={`Tienes hasta el ${pendingDeadline}`}
         icon="⏰"
         type="warning"
-        onClose={() => setShowDeadlineToast(false)}
+        onClose={handleCloseDeadlineToast}
         action={{
           label: "Registrar ahora",
           onClick: () => {
-            setShowDeadlineToast(false);
+            handleCloseDeadlineToast();
             setShowRaceResultModal(true);
           },
         }}
@@ -503,10 +515,7 @@ export default function PlanPage() {
           raceDate={raceDate}
           raceDistance={raceDistance}
           planId={planId}
-          onClose={() => {
-            setShowRaceResultModal(false);
-            setHasPendingResult(false);
-          }}
+          onClose={handleCloseRaceResultModal}
           onResultSaved={() => {
             setHasPendingResult(false);
             setShowConfetti(true);
