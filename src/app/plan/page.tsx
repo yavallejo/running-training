@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, loadUserProfile } from "@/lib/training-plan";
-import { getSession, clearSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
@@ -27,7 +27,6 @@ const Confetti = dynamic(() => import("react-confetti"), { ssr: false });
 export default function PlanPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const [_saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
@@ -36,7 +35,6 @@ export default function PlanPage() {
   const [raceDistance, setRaceDistance] = useState(7);
   const [raceDate, setRaceDate] = useState("2026-05-17");
   const [raceName, setRaceName] = useState("Carrera Recreativa");
-  const [_startDate, setStartDate] = useState("");
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 600 });
@@ -50,10 +48,12 @@ export default function PlanPage() {
 
   const [showRaceResultModal, setShowRaceResultModal] = useState(false);
   const [raceHasExpired, setRaceHasExpired] = useState(false);
-  const [_hasPendingResult, setHasPendingResult] = useState(false);
   const [showDeadlineToast, setShowDeadlineToast] = useState(false);
   const [pendingDeadline, setPendingDeadline] = useState<string | null>(null);
   const [pendingRaceName, setPendingRaceName] = useState<string | null>(null);
+
+  const shownBadgesRef = useRef<Set<string>>(new Set());
+  const lastCheckedPlanRef = useRef<string>("");
 
   const loadPlan = useCallback(async (planId: string, rDistance: number, rDate: string, uId: string, todayStr: string, startDate?: string) => {
     try {
@@ -110,7 +110,6 @@ export default function PlanPage() {
     setRaceDistance(session.raceDistance || 7);
     setRaceDate(session.raceDate || "2026-05-17");
     setRaceName(session.raceName || "Carrera Recreativa");
-    setStartDate(session.startDate || "");
 
     const todayStr = new Date().toISOString().split("T")[0];
     setToday(todayStr);
@@ -126,26 +125,34 @@ export default function PlanPage() {
     const raceDay = new Date(raceDate);
     const todayStr = today.toISOString().split("T")[0];
 
-    if (raceDay < today && raceDay.toISOString().split("T")[0] !== todayStr) {
-      setRaceHasExpired(true);
+    if (raceDay >= today || raceDay.toISOString().split("T")[0] === todayStr) {
+      setRaceHasExpired(false);
+      return;
+    }
 
-      const { data: existingResult } = await supabase
+    setRaceHasExpired(true);
+
+    try {
+      const { data: existingResult, error: resultError } = await supabase
         .from("race_results")
         .select("id, skipped, completed")
         .eq("user_id", session.userId)
         .eq("plan_id", session.planId)
-        .single();
+        .maybeSingle();
+
+      if (resultError) {
+        console.error("Error fetching race result:", resultError);
+        return;
+      }
 
       if (!existingResult || (!existingResult.completed && !existingResult.skipped)) {
-        setHasPendingResult(true);
-
         const deadline = getRaceDeadline(raceDate);
 
         if (deadline > today) {
           const daysUntilDeadline = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           if (daysUntilDeadline <= 3) {
             const toastKey = `runplan-pro_toast_shown_${session.planId}_${raceDate}`;
-            if (typeof window !== "undefined" && !sessionStorage.getItem(toastKey)) {
+            if (!sessionStorage.getItem(toastKey)) {
               sessionStorage.setItem(toastKey, "1");
               setPendingDeadline(deadline.toLocaleDateString("es-ES", { day: "numeric", month: "short" }));
               setPendingRaceName(raceName);
@@ -154,14 +161,22 @@ export default function PlanPage() {
           }
         }
       }
+    } catch (err) {
+      console.error("Error in checkRaceStatus:", err);
     }
   }, [raceDate, raceName]);
 
   useEffect(() => {
+    if (lastCheckedPlanRef.current !== planId) {
+      lastCheckedPlanRef.current = planId;
+      setRaceHasExpired(false);
+      setShowDeadlineToast(false);
+      shownBadgesRef.current = new Set();
+    }
     if (raceDate && userId) {
       checkRaceStatus();
     }
-  }, [raceDate, userId, checkRaceStatus]);
+  }, [raceDate, userId, planId, checkRaceStatus]);
 
   const saveProgress = useCallback(async (sessionId: string, sessionData: TrainingSession) => {
     if (!userId) {
@@ -169,7 +184,6 @@ export default function PlanPage() {
       return;
     }
     
-    setSaving(true);
     try {
       const payload: Record<string, unknown> = {
         completed: sessionData.completed,
@@ -185,20 +199,23 @@ export default function PlanPage() {
       } else {
         payload.rescheduledTo = null;
       }
-      const result = await saveUserProgress(userId, sessionId, payload);
-      console.log('Save result:', result);
+      await saveUserProgress(userId, sessionId, payload);
     } catch (error) {
       console.error('Error saving progress:', error);
-    } finally {
-      setSaving(false);
     }
   }, [userId]);
 
   const checkAndSetAchievements = useCallback(async (updatedSessions: TrainingSession[]) => {
-    const newBadges = await checkAndPersistAchievements(updatedSessions);
-    if (newBadges.length > 0) {
-      const badge = newBadges[0];
-      setNewBadge({ icon: badge.icon, name: badge.name, description: badge.description });
+    try {
+      const newBadges = await checkAndPersistAchievements(updatedSessions);
+      const unseen = newBadges.filter((b) => !shownBadgesRef.current.has(b.id));
+      if (unseen.length > 0) {
+        const badge = unseen[0];
+        shownBadgesRef.current.add(badge.id);
+        setNewBadge({ icon: badge.icon, name: badge.name, description: badge.description });
+      }
+    } catch (err) {
+      console.error("Error checking achievements:", err);
     }
   }, []);
 
@@ -317,18 +334,12 @@ export default function PlanPage() {
     }
   }, [sessions, today]);
 
-  const _handleLogout = useCallback(() => {
-    clearSession();
-    router.push("/iniciar-sesion");
-  }, [router]);
-
   const handleCloseDeadlineToast = useCallback(() => {
     setShowDeadlineToast(false);
   }, []);
 
   const handleCloseRaceResultModal = useCallback(() => {
     setShowRaceResultModal(false);
-    setHasPendingResult(false);
   }, []);
 
   if (loading) {
@@ -518,7 +529,6 @@ export default function PlanPage() {
           planId={planId}
           onClose={handleCloseRaceResultModal}
           onResultSaved={() => {
-            setHasPendingResult(false);
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 4000);
           }}
