@@ -166,7 +166,7 @@ export async function createUser(
       return date.toISOString().split('T')[0]
     })()
 
-    const { error } = await supabase
+    const { data: newUser, error } = await supabase
       .from('users')
       .insert({
         username: username.toLowerCase(),
@@ -179,8 +179,25 @@ export async function createUser(
         start_date: effectiveStartDate,
         role: role
       })
+      .select('id')
+      .single()
 
     if (error) return { success: false, error: error.message }
+
+    if (newUser) {
+      await supabase.from('user_plans').insert({
+        user_id: newUser.id,
+        plan_id: plan.id,
+        plan_name: planLevel,
+        plan_level: planLevel,
+        race_distance: raceDistance,
+        race_date: effectiveRaceDate,
+        race_name: raceName,
+        start_date: effectiveStartDate,
+        is_active: true,
+      })
+    }
+
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }

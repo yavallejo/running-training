@@ -4,15 +4,28 @@ import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { TrainingSession } from "@/lib/training-plan";
 
-interface PlanStatsProps {
-  sessions: TrainingSession[];
-  completedCount?: number;
-}
+const ICON_BG = {
+  primary: "bg-primary/10",
+  secondary: "bg-secondary/10",
+  success: "bg-success/10",
+  warning: "bg-warning/10",
+} as const;
 
-interface StatCardProps {
+const ICON_COLOR = {
+  primary: "text-primary",
+  secondary: "text-secondary",
+  success: "text-success",
+  warning: "text-warning",
+  muted: "text-muted-foreground",
+} as const;
+
+type IconBg = keyof typeof ICON_BG;
+type IconColor = keyof typeof ICON_COLOR;
+
+export interface StatCardProps {
   icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
+  iconBg?: IconBg;
+  iconColor?: IconColor;
   label: string;
   value: string | number;
   unit?: string;
@@ -20,24 +33,28 @@ interface StatCardProps {
   delay: number;
 }
 
-function StatCard({
-  icon,
-  iconBg,
-  iconColor,
-  label,
-  value,
-  unit,
-  ariaLabel,
-  delay,
-}: StatCardProps) {
+export function useFadeUp(delay: number) {
   const shouldReduceMotion = useReducedMotion();
-  const motionProps = shouldReduceMotion
+  return shouldReduceMotion
     ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0 } }
     : {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         transition: { delay },
       };
+}
+
+export function StatCard({
+  icon,
+  iconBg = "primary",
+  iconColor = "primary",
+  label,
+  value,
+  unit,
+  ariaLabel,
+  delay,
+}: StatCardProps) {
+  const motionProps = useFadeUp(delay);
 
   return (
     <motion.div
@@ -45,10 +62,10 @@ function StatCard({
       className="rounded-xl bg-surface-elevated border border-border p-4"
     >
       <div className="flex items-center gap-2 mb-2">
-        <div className={`w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center`}>
+        <div className={`w-8 h-8 rounded-lg ${ICON_BG[iconBg]} flex items-center justify-center`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className={`w-4 h-4 ${iconColor}`}
+            className={`w-4 h-4 ${ICON_COLOR[iconColor]}`}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -60,16 +77,14 @@ function StatCard({
         </div>
         <span className="text-xs text-muted-foreground font-medium">{label}</span>
       </div>
-      <p
-        className="text-2xl font-bold text-foreground font-urbanist"
-        aria-label={ariaLabel}
-      >
+      <p className="text-2xl font-bold text-foreground font-urbanist">
         {value}
         {unit && (
-          <span className="text-sm font-normal text-muted-foreground ml-1">
+          <span className="text-sm font-normal text-muted-foreground ml-1" aria-hidden="true">
             {unit}
           </span>
         )}
+        <span className="sr-only">. {ariaLabel}</span>
       </p>
     </motion.div>
   );
@@ -78,16 +93,19 @@ function StatCard({
 export default function PlanStats({
   sessions,
   completedCount: completedCountProp,
-}: PlanStatsProps) {
+}: {
+  sessions: TrainingSession[];
+  completedCount?: number;
+}) {
   const shouldReduceMotion = useReducedMotion();
-
-  const { totalSessions, totalDistance, totalPlannedDistance, completedCount, completionRate, remainingDistance, isOverPlanned } = useMemo(() => {
+  const stats = useMemo(() => {
     const total = sessions.length;
     const completed = sessions.filter((s) => s.completed);
     const dist = completed.reduce((sum, s) => sum + (s.actualDistance ?? s.distance), 0);
     const planned = sessions.reduce((sum, s) => sum + s.distance, 0);
     const count = completedCountProp ?? completed.length;
-    const rate = total > 0 ? Math.round((count / total) * 100) : 0;
+    const rawRate = total > 0 ? Math.round((count / total) * 100) : 0;
+    const rate = Math.min(100, Math.max(0, rawRate));
     return {
       totalSessions: total,
       totalDistance: dist,
@@ -95,18 +113,28 @@ export default function PlanStats({
       completedCount: count,
       completionRate: rate,
       remainingDistance: Math.max(0, planned - dist),
-      isOverPlanned: dist >= planned,
+      isOverPlanned: total > 0 && dist > planned,
     };
   }, [sessions, completedCountProp]);
 
-  const fadeUp = (delay: number) =>
-    shouldReduceMotion
-      ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0 } }
-      : { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay } };
+  const headerProps = useFadeUp(0);
+  const progressProps = useFadeUp(0.2);
+
+  if (stats.totalSessions === 0) {
+    return (
+      <div className="rounded-2xl bg-surface border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground font-urbanist">Tu Progreso</h3>
+        <p className="text-xs text-muted-foreground mt-2">Aún no hay sesiones en este plan.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl bg-surface border border-border p-4">
-      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2 font-urbanist">
+      <motion.h3
+        {...headerProps}
+        className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2 font-urbanist"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-4 h-4 text-primary"
@@ -123,7 +151,7 @@ export default function PlanStats({
           />
         </svg>
         Tu Progreso
-      </h3>
+      </motion.h3>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <StatCard
@@ -134,12 +162,12 @@ export default function PlanStats({
               d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           }
-          iconBg="bg-primary/10"
-          iconColor="text-primary"
+          iconBg="primary"
+          iconColor="primary"
           label="Sesiones"
-          value={completedCount}
-          unit={`/ ${totalSessions}`}
-          ariaLabel={`${completedCount} de ${totalSessions} sesiones completadas`}
+          value={stats.completedCount}
+          unit={`/ ${stats.totalSessions}`}
+          ariaLabel={`${stats.completedCount} de ${stats.totalSessions} sesiones completadas`}
           delay={0.1}
         />
         <StatCard
@@ -157,51 +185,60 @@ export default function PlanStats({
               />
             </>
           }
-          iconBg="bg-secondary/10"
-          iconColor="text-secondary"
+          iconBg="secondary"
+          iconColor="secondary"
           label="Distancia"
-          value={totalDistance.toFixed(1)}
+          value={stats.totalDistance.toFixed(1)}
           unit="km"
-          ariaLabel={`${totalDistance.toFixed(1)} kilómetros completados`}
+          ariaLabel={`${stats.totalDistance.toFixed(1)} kilómetros completados`}
           delay={0.15}
         />
       </div>
 
       <motion.div
-        {...fadeUp(0.2)}
+        {...progressProps}
         className="rounded-xl bg-surface-elevated border border-border p-4"
       >
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs text-muted-foreground font-medium" id="progress-label">
             Progreso del plan
           </span>
-          <span
-            className="text-sm font-bold text-primary font-urbanist"
-            aria-hidden="true"
-          >
-            {completionRate}%
+          <span className="text-sm font-bold text-primary font-urbanist" aria-hidden="true">
+            {stats.completionRate}%
           </span>
         </div>
         <div
           className="h-2 w-full rounded-full bg-surface overflow-hidden"
           role="progressbar"
-          aria-valuenow={completionRate}
+          aria-valuenow={stats.completionRate}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-valuetext={`${stats.completionRate} por ciento${stats.isOverPlanned ? ", meta superada" : ""}`}
           aria-labelledby="progress-label"
         >
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60"
             initial={{ width: 0 }}
-            animate={{ width: `${completionRate}%` }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: "easeOut", delay: 0.3 }}
+            animate={{ width: `${stats.completionRate}%` }}
+            transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.3, duration: 0.8, ease: "easeOut" }}
           />
         </div>
         <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
-          <span>{totalPlannedDistance.toFixed(1)} km planeados</span>
-          <span>
-            {isOverPlanned ? "🎉 Meta superada" : `${remainingDistance.toFixed(1)} km restantes`}
+          <span>{stats.totalPlannedDistance.toFixed(1)} km planeados</span>
+          <span className="flex items-center gap-1">
+            {stats.isOverPlanned ? (
+              <span className="font-semibold text-success px-1.5 py-0.5 rounded bg-success/10 border border-success/30">
+                <span aria-hidden="true">🎉</span> Meta superada
+              </span>
+            ) : (
+              <span aria-hidden="true">{stats.remainingDistance.toFixed(1)} km restantes</span>
+            )}
           </span>
+        </div>
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {stats.isOverPlanned
+            ? "Meta superada. Has corrido más de lo planeado."
+            : `${Math.round(stats.remainingDistance)} kilómetros restantes`}
         </div>
       </motion.div>
     </div>

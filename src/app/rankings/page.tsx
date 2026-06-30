@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
+import { parseTimeToSeconds, formatTimeFromSeconds } from "@/lib/date-utils";
 
 interface RankingUser {
   id: string;
@@ -19,22 +20,6 @@ interface RankingUser {
 }
 
 type SortBy = "achievements" | "distance" | "pace";
-
-function parseTimeToSeconds(time: string): number | null {
-  const match = time.match(/^(\d{1,2}):([0-5]\d):([0-5]\d)$/);
-  if (!match) return null;
-  const h = parseInt(match[1], 10);
-  const m = parseInt(match[2], 10);
-  const s = parseInt(match[3], 10);
-  return h * 3600 + m * 60 + s;
-}
-
-function formatTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
 
 export default function RankingsPage() {
   const [users, setUsers] = useState<RankingUser[]>([]);
@@ -366,7 +351,7 @@ export default function RankingsPage() {
                         <span>🏆 {user.achievementCount}</span>
                         <span>📏 {user.totalKm.toFixed(0)}km</span>
                         {user.bestRaceTime !== null && (
-                          <span>⏱️ {formatTime(user.bestRaceTime)}</span>
+                          <span>⏱️ {formatTimeFromSeconds(user.bestRaceTime)}</span>
                         )}
                       </div>
                     </div>

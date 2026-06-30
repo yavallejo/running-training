@@ -13,7 +13,7 @@ export function getLocalDateString(date: Date): string {
 }
 
 export function formatDayLabel(dateStr: string): string {
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
   const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
@@ -47,4 +47,20 @@ export function getDaysAgo(raceDate: string): number {
   today.setHours(0, 0, 0, 0);
   const diff = today.getTime() - race.getTime();
   return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
+export function parseTimeToSeconds(time: string): number | null {
+  const match = time.match(/^(\d{1,2}):([0-5]\d):([0-5]\d)$/);
+  if (!match) return null;
+  const h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const s = parseInt(match[3], 10);
+  return h * 3600 + m * 60 + s;
+}
+
+export function formatTimeFromSeconds(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }

@@ -10,6 +10,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "coverage/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "vitest.config.ts",
   ]),
   {
     rules: {

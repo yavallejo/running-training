@@ -239,6 +239,26 @@ export default function OnboardingPage() {
         console.error("User update error:", userError);
       }
 
+      // Archive previous plan and create a new one in user_plans
+      const planId = getSession()?.planId;
+      if (planId) {
+        await supabase
+          .from("user_plans")
+          .update({ is_active: false, archived_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("is_active", true);
+
+        await supabase.from("user_plans").insert({
+          user_id: userId,
+          plan_id: planId,
+          plan_level: "beginner",
+          race_distance: answers.goalDistance,
+          race_date: answers.goalDate,
+          race_name: answers.goalName || "Mi Carrera",
+          is_active: true,
+        });
+      }
+
       // Refresh localStorage session with updated race data so plan page reads real values
       const stored = localStorage.getItem("running_session");
       if (stored) {

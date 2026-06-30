@@ -18,7 +18,6 @@ interface PlanHistory {
   race_feeling?: number;
   completed_sessions: number;
   total_sessions: number;
-  created_at: string;
   is_current: boolean;
 }
 
@@ -45,69 +44,73 @@ export default function HistorySection() {
 
   const loadHistory = async () => {
     const session = getSession();
-    if (!session?.userId) return;
+    if (!session?.userId) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { data: users } = await supabase
-        .from("users")
-        .select(`
-          id,
-          username,
-          plan_id,
-          race_distance,
-          race_date,
-          race_name,
-          created_at,
-          plans:plan_id (name, level)
-        `)
-        .eq("id", session.userId)
+      const { data: plans, error: plansError } = await supabase
+        .from("user_plans")
+        .select("id, plan_id, plan_name, plan_level, race_distance, race_date, race_name, total_sessions, is_active, created_at")
+        .eq("user_id", session.userId)
         .order("created_at", { ascending: false });
 
-      if (!users || users.length === 0) {
+      if (plansError) {
+        console.error("Error loading plans:", plansError);
         setLoading(false);
         return;
       }
 
-      const { data: raceResults } = await supabase
-        .from("race_results")
-        .select("id, plan_id, race_date, race_time, race_feeling")
-        .eq("user_id", session.userId)
-        .order("created_at", { ascending: false });
+      if (!plans || plans.length === 0) {
+        setHistory([]);
+        setLoading(false);
+        return;
+      }
 
-      const { data: progressData } = await supabase
-        .from("user_progress")
-        .select("session_id")
-        .eq("user_id", session.userId)
-        .eq("completed", true);
+      const planIds = plans.map((p) => p.id);
 
-      const sessionCount = progressData?.length || 0;
+      const [resultsRes, progressRes] = await Promise.all([
+        supabase
+          .from("race_results")
+          .select("id, plan_id, race_date, race_time, race_feeling")
+          .in("plan_id", planIds),
+        supabase
+          .from("user_progress")
+          .select("session_id, plan_id")
+          .eq("user_id", session.userId)
+          .eq("completed", true)
+          .in("plan_id", planIds),
+      ]);
 
-      const raceResultsMap = new Map<string, RaceResult>();
-      raceResults?.forEach(rr => {
-        if (!raceResultsMap.has(rr.plan_id)) {
-          raceResultsMap.set(rr.plan_id, rr);
+      const raceResultsByPlan = new Map<string, RaceResult>();
+      resultsRes.data?.forEach((r) => {
+        if (!raceResultsByPlan.has(r.plan_id)) {
+          raceResultsByPlan.set(r.plan_id, r as RaceResult);
         }
       });
 
-      const historyItems: PlanHistory[] = users.map(user => {
-        const raceResult = raceResultsMap.get(user.plan_id || "");
-        const isExpired = user.race_date ? new Date(user.race_date) < new Date() : false;
-        const estimatedTotalSessions = Math.ceil((user.race_distance || 7) * 2);
+      const sessionCountByPlan = new Map<string, number>();
+      progressRes.data?.forEach((p) => {
+        if (!p.plan_id) return;
+        sessionCountByPlan.set(p.plan_id, (sessionCountByPlan.get(p.plan_id) || 0) + 1);
+      });
 
+      const historyItems: PlanHistory[] = plans.map((p) => {
+        const raceResult = raceResultsByPlan.get(p.id);
         return {
-          id: user.id,
-          plan_id: user.plan_id || "",
-          plan_name: (user.plans as any)?.name || "Plan",
-          plan_level: (user.plans as any)?.level || "beginner",
-          race_distance: user.race_distance || 7,
-          race_date: user.race_date || "",
-          race_name: user.race_name || "Carrera",
+          id: p.id,
+          plan_id: p.plan_id,
+          plan_name: p.plan_name || "Plan",
+          plan_level: p.plan_level || "beginner",
+          race_distance: p.race_distance || 7,
+          race_date: p.race_date || "",
+          race_name: p.race_name || "Carrera",
           race_time: raceResult?.race_time,
           race_feeling: raceResult?.race_feeling,
-          completed_sessions: isExpired ? Math.min(sessionCount, estimatedTotalSessions) : sessionCount,
-          total_sessions: estimatedTotalSessions,
-          created_at: user.created_at,
-          is_current: !isExpired,
+          completed_sessions: sessionCountByPlan.get(p.id) || 0,
+          total_sessions: p.total_sessions || 0,
+          is_current: p.is_active,
         };
       });
 
@@ -125,10 +128,11 @@ export default function HistorySection() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "Sin fecha";
-    return new Date(dateStr).toLocaleDateString("es-ES", {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("es-ES", {
       day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -139,24 +143,25 @@ export default function HistorySection() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12" role="status" aria-live="polite">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
         />
+        <span className="sr-only">Cargando historial…</span>
       </div>
     );
   }
 
-  const currentPlan = history.find(h => h.is_current);
-  const pastPlans = history.filter(h => !h.is_current);
+  const currentPlan = history.find((h) => h.is_current);
+  const pastPlans = history.filter((h) => !h.is_current);
 
   return (
     <div className="space-y-6">
       {currentPlan && (
-        <div>
-          <h3 className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-3">
+        <section aria-labelledby="current-plan-heading">
+          <h3 id="current-plan-heading" className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-3">
             Plan Actual
           </h3>
           <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
@@ -173,14 +178,17 @@ export default function HistorySection() {
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>📅 {formatDate(currentPlan.race_date)}</span>
+              {currentPlan.total_sessions > 0 && (
+                <span>· {currentPlan.completed_sessions}/{currentPlan.total_sessions} sesiones</span>
+              )}
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {pastPlans.length > 0 && (
-        <div>
-          <h3 className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-3">
+        <section aria-labelledby="past-plans-heading">
+          <h3 id="past-plans-heading" className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-3">
             Planes Anteriores ({pastPlans.length})
           </h3>
           <div className="space-y-3">
@@ -189,7 +197,7 @@ export default function HistorySection() {
               const hasResult = !!plan.race_time;
 
               return (
-                <div
+                <article
                   key={plan.id}
                   className="p-4 rounded-2xl bg-surface/50 border border-border/30"
                 >
@@ -211,43 +219,53 @@ export default function HistorySection() {
                     )}
                   </div>
 
-                  <div className="mb-2">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">
-                        {plan.completed_sessions} de {plan.total_sessions} sesiones
-                      </span>
-                      <span className="font-mono font-medium">{completionRate}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-border/30 overflow-hidden">
+                  {plan.total_sessions > 0 && (
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">
+                          {plan.completed_sessions} de {plan.total_sessions} sesiones
+                        </span>
+                        <span className="font-mono font-medium">{completionRate}%</span>
+                      </div>
                       <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${completionRate}%` }}
-                      />
+                        className="h-1.5 rounded-full bg-border/30 overflow-hidden"
+                        role="progressbar"
+                        aria-valuenow={completionRate}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{ width: `${completionRate}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>📅 {formatDate(plan.race_date)}</span>
                       {plan.race_feeling && (
-                        <span>{FEELING_EMOJIS[plan.race_feeling]}</span>
+                        <span aria-label={`Sensación: ${plan.race_feeling}/5`}>
+                          {FEELING_EMOJIS[plan.race_feeling]}
+                        </span>
                       )}
                     </div>
 
-                    {completionRate < 100 && (
+                    {completionRate < 100 && plan.total_sessions > 0 && (
                       <button
                         onClick={() => router.push("/onboarding")}
-                        className="text-xs text-primary hover:text-primary/80 font-semibold transition-colors"
+                        className="text-xs text-primary hover:text-primary/80 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded"
                       >
-                        Completar →
+                        Nuevo plan →
                       </button>
                     )}
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
-        </div>
+        </section>
       )}
 
       {history.length === 0 && (
@@ -258,7 +276,7 @@ export default function HistorySection() {
           </p>
           <button
             onClick={() => router.push("/onboarding")}
-            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-all"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
           >
             Crear nuevo plan
           </button>

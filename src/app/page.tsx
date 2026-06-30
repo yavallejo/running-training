@@ -96,6 +96,8 @@ export default function LandingPage() {
                 <a href="#solucion" className="hover:text-foreground transition-colors tracking-wide">SOLUCIÓN</a>
                 <span className="text-border" aria-hidden="true">·</span>
                 <a href="#pasos" className="hover:text-foreground transition-colors tracking-wide">CÓMO</a>
+                <span className="text-border" aria-hidden="true">·</span>
+                <a href="#comunidad" className="hover:text-foreground transition-colors tracking-wide">COMUNIDAD</a>
               </div>
             </nav>
 

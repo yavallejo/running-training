@@ -338,6 +338,66 @@ export default function SectionsContent() {
       </section>
 
       <section
+        id="comunidad"
+        className="relative py-32 sm:py-40 px-4 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/8 via-primary/3 to-transparent rounded-full blur-3xl" aria-hidden="true" />
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+              Comunidad
+            </span>
+            <h2
+              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
+              style={{ fontFamily: "var(--font-urbanist)" }}
+            >
+              No corras
+              <span className="block text-primary">solo</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
+              Activá tu perfil público y competí con corredores que comparten tu distancia.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
+            <FeatureCard
+              icon="🏆"
+              iconClass="text-3xl mb-4"
+              title="Rankings por trofeos"
+              description="Desbloqueá logros y aparecé en el ranking. Cuantos más trofeos, más arriba."
+            />
+            <FeatureCard
+              icon="📏"
+              iconClass="text-3xl mb-4"
+              title="Por distancia y ritmo"
+              description="Filtrá por 5K, 7K, 10K. Compará tu tiempo final con el de tu categoría."
+            />
+            <FeatureCard
+              icon="🔒"
+              iconClass="text-3xl mb-4"
+              title="Vos decidís qué se ve"
+              description="Tu perfil es privado por defecto. Activá el modo público cuando quieras."
+            />
+          </div>
+
+          <div className="text-center mt-12">
+            <a
+              href="/rankings"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
+            >
+              Ver rankings
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section
         id="cta"
         className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
