@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrainingSession, generateTrainingPlan, loadUserProgress, saveUserProgress, loadUserProfile } from "@/lib/training-plan";
-import { getSession } from "@/lib/auth";
+import { getSession, clearSession } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import DatePickerModal from "@/components/DatePickerModal";
 import PostWorkoutModal from "@/components/PostWorkoutModal";
@@ -350,6 +350,43 @@ export default function PlanPage() {
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
         />
+      </main>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center bg-background px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md text-center space-y-6"
+        >
+          <div className="text-6xl" aria-hidden="true">🏃</div>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+              Bienvenido a tu plan
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Contanos sobre tu carrera y te armamos un plan personalizado.
+            </p>
+          </div>
+          <button
+            onClick={() => router.push("/onboarding")}
+            className="w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
+          >
+            Elegir mi carrera →
+          </button>
+          <button
+            onClick={() => {
+              clearSession();
+              router.replace("/iniciar-sesion");
+            }}
+            className="text-xs font-mono text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 rounded px-2 py-1 transition-colors"
+          >
+            Cambiar de cuenta
+          </button>
+        </motion.div>
       </main>
     );
   }

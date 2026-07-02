@@ -52,7 +52,7 @@ export default function LoginContent() {
     checkSession();
     
     if (searchParams.get("registered") === "true") {
-      setSuccess("¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.");
+      setSuccess("¡Cuenta creada! Iniciá sesión para armar tu plan.");
     }
   }, [router, searchParams]);
 
@@ -201,9 +201,11 @@ export default function LoginContent() {
                   initial={{ opacity: 0, y: -10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: "auto" }}
                   exit={{ opacity: 0, y: -10, height: 0 }}
+                  role="status"
+                  aria-live="polite"
                   className="flex items-center gap-2 px-4 py-3 rounded-xl bg-success/10 border border-success/20"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p className="text-sm text-success">{success}</p>
@@ -283,9 +285,11 @@ export default function LoginContent() {
                   initial={{ opacity: 0, y: -10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: "auto" }}
                   exit={{ opacity: 0, y: -10, height: 0 }}
+                  role="alert"
+                  aria-live="assertive"
                   className="flex items-center gap-2 px-4 py-3 rounded-xl bg-danger/10 border border-danger/20"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                   </svg>
                   <p className="text-sm text-danger">{error}</p>

@@ -111,7 +111,7 @@ const features = [
       </svg>
     ),
     title: "Plan Diario",
-    description: "Cada día sabés exactamente qué hacer. Distancia, ritmo, tipo de sesión. Sin adivinar.",
+    description: "Cada día sabés exactamente qué hacer. Distancia, ritmo, tipo de sesión. Sin tener que adivinar.",
     iconClass: "w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300",
   },
   {
@@ -121,7 +121,7 @@ const features = [
       </svg>
     ),
     title: "Cuenta Regresiva",
-    description: "¿Cuántos días para la carrera? Siempre a la vista. La urgencia que necesitás para salir.",
+    description: "¿Cuántos días para la carrera? Siempre a la vista. La motivación que necesitás para salir.",
     iconClass: "w-11 h-11 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning mb-4 group-hover:scale-110 transition-transform duration-300",
   },
   {
@@ -163,6 +163,37 @@ const features = [
     title: "Desde Cualquier Dispositivo",
     description: "Celular, tablet o compu. Sin instalación. Abrís el navegador y tu plan está ahí.",
     iconClass: "w-11 h-11 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground mb-4 group-hover:scale-110 transition-transform duration-300",
+  },
+  {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5h3M12 1.5V3" />
+      </svg>
+    ),
+    title: "Tu Tiempo Final",
+    description: "Después de la carrera, cargá tu tiempo real. Suma a los rankings y queda en tu historial.",
+    iconClass: "w-11 h-11 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning mb-4 group-hover:scale-110 transition-transform duration-300",
+  },
+  {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+      </svg>
+    ),
+    title: "Múltiples Carreras",
+    description: "Terminaste una y querés otra. Empezá un plan nuevo cuando quieras. Tu historial queda guardado.",
+    iconClass: "w-11 h-11 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success mb-4 group-hover:scale-110 transition-transform duration-300",
+  },
+  {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+      </svg>
+    ),
+    title: "Compartí Tu Progreso",
+    description: "Compartí tu plan o tus sesiones en redes. Motivalos a correr.",
+    iconClass: "w-11 h-11 rounded-xl bg-info/10 border border-info/20 flex items-center justify-center text-info mb-4 group-hover:scale-110 transition-transform duration-300",
   },
 ];
 
@@ -292,12 +323,12 @@ export default function SectionsContent() {
             <StepCard
               number="01"
               title="Entrás"
-              description="Recibís tu usuario. Accedés desde el celular, la tablet o la compu. Sin instalado nada."
+              description="Recibís tu usuario. Accedés desde el celular, la tablet o la compu. Sin instalar nada."
             />
             <StepCard
               number="02"
               title="Seguí"
-              description="Cada día te dice exactamente qué hacer. Marcás completed cuando lo terminás. Seguís al siguiente."
+              description="Cada día te dice exactamente qué hacer. Marcás completada cuando la terminás. Seguís al siguiente."
             />
             <StepCard
               number="03"
