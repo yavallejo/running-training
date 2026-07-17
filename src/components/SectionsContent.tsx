@@ -1,19 +1,66 @@
 "use client";
 
+import { useRef } from "react";
+import { useLandingAnimations } from "@/hooks/useLandingAnimations";
+import TestimonialsSection from "@/components/landing/TestimonialsSection";
+
+const ICON_STROKE = {
+  bolt: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z",
+  search:
+    "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z",
+  trendDown:
+    "M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.898m0 0l3.182-5.511m-3.182 5.51l-5.511-3.181",
+  clock: "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z",
+  badgeCheck:
+    "M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z",
+  heart:
+    "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
+  flag: "M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5",
+} as const;
+
+function StrokeIcon({ path, className }: { path: string; className: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    </svg>
+  );
+}
+
 function PainCard({
-  emoji,
+  icon,
+  index,
   title,
   description,
 }: {
-  emoji: string;
+  icon: string;
+  index: string;
   title: string;
   description: string;
 }) {
   return (
-    <div className="group relative p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm overflow-hidden hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_0_30px_-8px_rgba(255,59,48,0.14)] transition-all duration-500">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div
+      data-reveal-item
+      className="group relative p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm overflow-hidden hover:border-danger/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_0_30px_-8px_rgba(239,68,68,0.12)] transition-all duration-500"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-danger/6 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true" />
+      <span
+        className="absolute top-6 right-6 text-xs font-mono text-muted-foreground/50 tracking-widest"
+        aria-hidden="true"
+      >
+        {index}
+      </span>
       <div className="relative">
-        <div className="text-5xl mb-6" role="img" aria-label={title}>{emoji}</div>
+        <div className="w-12 h-12 rounded-2xl bg-danger/10 border border-danger/20 flex items-center justify-center text-danger mb-6 group-hover:scale-110 transition-transform duration-500">
+          <StrokeIcon path={icon} className="w-6 h-6" />
+        </div>
         <h3 className="text-xl font-bold mb-3 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
           {title}
         </h3>
@@ -24,24 +71,29 @@ function PainCard({
 }
 
 function SolutionCard({
-  emoji,
+  icon,
   title,
   description,
 }: {
-  emoji: string;
+  icon: string;
   title: string;
   description: string;
 }) {
   return (
-    <div className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_-8px_rgba(255,59,48,0.1)] transition-all duration-500">
-      <div className="flex-shrink-0 text-4xl" role="img" aria-label={title}>{emoji}</div>
+    <div
+      data-reveal-item
+      className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_-8px_rgba(255,59,48,0.1)] transition-all duration-500"
+    >
+      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+        <StrokeIcon path={icon} className="w-6 h-6" />
+      </div>
       <div>
         <h3 className="text-2xl font-bold mb-2 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
           {title}
         </h3>
         <p className="text-muted-foreground leading-relaxed font-mono text-sm">{description}</p>
       </div>
-      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" />
+      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-150 transition-all duration-300" aria-hidden="true" />
     </div>
   );
 }
@@ -56,12 +108,12 @@ function StepCard({
   description: string;
 }) {
   return (
-    <div className="relative text-center group">
-      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8rem] sm:text-[10rem] font-black text-primary/[0.06] leading-none select-none" style={{ fontFamily: "var(--font-urbanist)" }}>
+    <div data-reveal-item className="relative text-center group">
+      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8rem] sm:text-[10rem] font-black text-primary/[0.06] leading-none select-none" style={{ fontFamily: "var(--font-urbanist)" }} aria-hidden="true">
         {number}
       </div>
       <div className="relative pt-16 pb-8 px-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-6 group-hover:scale-110 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px:-4px_rgba(255,59,48,0.2)] transition-all duration-500">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-6 group-hover:scale-110 group-hover:bg-primary/20 group-hover:shadow-[0_0_20px_-4px_rgba(255,59,48,0.2)] transition-all duration-500">
           <span className="text-2xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
             {number}
           </span>
@@ -71,9 +123,6 @@ function StepCard({
         </h3>
         <p className="text-muted-foreground leading-relaxed max-w-xs mx-auto font-mono text-sm">{description}</p>
       </div>
-      {number !== "03" && (
-        <div className="hidden md:block absolute top-1/2 -right-6 w-12 h-px bg-gradient-to-r from-border to-transparent" />
-      )}
     </div>
   );
 }
@@ -83,18 +132,25 @@ function FeatureCard({
   title,
   description,
   iconClass,
+  featured,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   iconClass: string;
+  featured?: boolean;
 }) {
   return (
-    <div className="group relative p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 shadow-[0_1px_6px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div
+      data-reveal-item
+      className={`group relative p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 shadow-[0_1px_6px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500 overflow-hidden ${
+        featured ? "sm:col-span-2 bg-gradient-to-br from-primary/[0.07] to-transparent border-primary/25" : ""
+      }`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true" />
       <div className="relative">
         <div className={iconClass}>{icon}</div>
-        <h3 className="text-lg font-bold mb-2 tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+        <h3 className={`font-bold mb-2 tracking-tight ${featured ? "text-xl" : "text-lg"}`} style={{ fontFamily: "var(--font-urbanist)" }}>
           {title}
         </h3>
         <p className="text-muted-foreground text-sm font-mono leading-relaxed">{description}</p>
@@ -178,7 +234,7 @@ const features = [
   {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108.966 3.99 2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
       </svg>
     ),
     title: "Múltiples Carreras",
@@ -198,45 +254,53 @@ const features = [
 ];
 
 export default function SectionsContent() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  useLandingAnimations(rootRef);
+
   return (
-    <>
+    <div ref={rootRef}>
       <section
         id="problema"
+        data-reveal
         className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" />
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" aria-hidden="true" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" aria-hidden="true" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="text-center mb-20">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
               El Problema
             </span>
             <h2
+              data-reveal-head
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
               El problema no es
               <span className="block text-primary"> correr</span>
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
+            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               El problema es que nadie te dice qué hacer cuando estás en el km 2 y te querés morir.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <PainCard
-              emoji="😰"
+              icon={ICON_STROKE.bolt}
+              index="01"
               title="Empezás con toda la motivación..."
               description="Te comprás zapatillas nuevas, descargás una app, seguís 3 influencers de running. Todo bien hasta el día 4."
             />
             <PainCard
-              emoji="🌀"
+              icon={ICON_STROKE.search}
+              index="02"
               title="...y terminás googoleando..."
               description="'¿Cuánto correr el primer día?', '¿Es normal que me duelan las rodillas?', '¿Cuánto descanso entre sesiones?'"
             />
             <PainCard
-              emoji="😞"
+              icon={ICON_STROKE.trendDown}
+              index="03"
               title="...y terminás abandonando"
               description="Sin un plan claro, cada duda te frena. Una semana se convierte en un mes. Y la carrera sigue ahí, esperándote."
             />
@@ -246,47 +310,49 @@ export default function SectionsContent() {
 
       <section
         id="solucion"
+        data-reveal
         className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" aria-hidden="true">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-primary/8 via-primary/3 to-transparent rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="text-center mb-20">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
               La Solución
             </span>
             <h2
+              data-reveal-head
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
               Lo que <span className="text-primary">perdés</span> cuando
               <span className="block">no tenés plan</span>
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
+            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               Cada día sin plan estructurado es un día que podrías haber avanzado con seguridad.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <SolutionCard
-              emoji="⏰"
+              icon={ICON_STROKE.clock}
               title="Tiempo"
               description="Horas buscando información, armando rutinas, preguntando en foros. Con un plan, ese tiempo lo recuperás."
             />
             <SolutionCard
-              emoji="🏃"
+              icon={ICON_STROKE.badgeCheck}
               title="Confianza"
               description="Saldrás a correr sabiendo exactamente qué hacer. Sin dudas, sin excusas. Solo salir y hacerlo."
             />
             <SolutionCard
-              emoji="❤️"
+              icon={ICON_STROKE.heart}
               title="Tu cuerpo"
               description="Un plan progresivo te prepara sin lesionarte. Las rodillas te lo van a agradecer."
             />
             <SolutionCard
-              emoji="🏁"
+              icon={ICON_STROKE.flag}
               title="Tu orgullo"
               description="Vas a cruzar la meta sabiendo que hiciste todo bien. Eso no tiene precio."
             />
@@ -296,30 +362,37 @@ export default function SectionsContent() {
 
       <section
         id="pasos"
+        data-reveal
         className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" />
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" aria-hidden="true" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" aria-hidden="true" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" aria-hidden="true" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="text-center mb-20">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
               Cómo Funciona
             </span>
             <h2
+              data-reveal-head
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
               <span className="text-primary">De 4 a 18 semanas.</span>
               <span className="block">Sin excusas.</span>
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
+            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
               Todo el trabajo pesado está hecho. Vos solo tenés que seguir el plan.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div data-steps-grid className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <div
+              data-steps-line
+              className="hidden md:block absolute top-[4.5rem] left-[16%] right-[16%] h-px bg-gradient-to-r from-primary/60 via-primary/40 to-primary/60"
+              aria-hidden="true"
+            />
             <StepCard
               number="01"
               title="Entrás"
@@ -339,56 +412,61 @@ export default function SectionsContent() {
         </div>
       </section>
 
-      <section className="relative py-32 sm:py-40 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" />
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <section data-reveal className="relative py-32 sm:py-40 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/20 to-background" aria-hidden="true" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" aria-hidden="true" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
               Todo Incluido
             </span>
             <h2
+              data-reveal-head
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
               Tu entrenador personal,
               <span className="block text-primary">en tu bolsillo</span>
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
+            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
               Todo lo que necesitás para llegar a la línea de largada. Sin excusas.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((feature) => (
-              <FeatureCard key={feature.title} {...feature} />
+            {features.map((feature, i) => (
+              <FeatureCard key={feature.title} {...feature} featured={i === 0} />
             ))}
           </div>
         </div>
       </section>
 
+      <TestimonialsSection />
+
       <section
         id="comunidad"
+        data-reveal
         className="relative py-32 sm:py-40 px-4 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" />
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface/30 to-background" aria-hidden="true" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" aria-hidden="true" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/8 via-primary/3 to-transparent rounded-full blur-3xl" aria-hidden="true" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
               Comunidad
             </span>
             <h2
+              data-reveal-head
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
               No corras
               <span className="block text-primary">solo</span>
             </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
+            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
               Activá tu perfil público y competí con corredores que comparten tu distancia.
             </p>
           </div>
@@ -414,13 +492,13 @@ export default function SectionsContent() {
             />
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12" data-reveal-item>
             <a
               href="/rankings"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
             >
               Ver rankings
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </a>
@@ -430,11 +508,12 @@ export default function SectionsContent() {
 
       <section
         id="cta"
+        data-reveal
         className="relative py-32 sm:py-48 px-4 overflow-hidden"
       >
-        <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-br from-primary/30 via-primary/12 to-transparent rounded-full blur-3xl" aria-hidden="true" />
-          <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <div className="absolute inset-0" aria-hidden="true">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-br from-primary/30 via-primary/12 to-transparent rounded-full blur-3xl" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="diagonal" width="40" height="40" patternUnits="userSpaceOnUse">
                 <path d="M 0 40 L 40 0" fill="none" stroke="currentColor" strokeWidth="0.5"/>
@@ -446,38 +525,41 @@ export default function SectionsContent() {
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2
+            data-reveal-head
             className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-8"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >
             <span className="text-primary">Cada día</span> que pasa
             <span className="block">es un día menos</span>
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-xl mx-auto font-mono leading-relaxed">
+          <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-xl mx-auto font-mono leading-relaxed">
             Tu carrera no va a esperar. Preguntarte &ldquo;y si hubiera arrancado&rdquo; no es una opción. Arrancá ahora.
           </p>
-          <button
-            onClick={() => {
-              const event = new CustomEvent("open-login-modal");
-              window.dispatchEvent(event);
-            }}
-            className="group relative px-14 py-6 rounded-2xl font-bold text-xl text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
-            aria-label="Empezá ahora"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            <span className="relative flex items-center justify-center gap-4">
-              <span className="font-mono tracking-tight">EMPEZÁ AHORA</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </span>
-          </button>
-          <p className="mt-6 text-sm font-mono text-muted-foreground tracking-wide">
-            SIN TARJETA · SIN COMPROMISO · ACCEDÉ HOY
-          </p>
+          <div data-reveal-item>
+            <button
+              onClick={() => {
+                const event = new CustomEvent("open-login-modal");
+                window.dispatchEvent(event);
+              }}
+              className="group relative px-14 py-6 rounded-2xl font-bold text-xl text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
+              aria-label="Empezá ahora"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" aria-hidden="true" />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
+              <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" aria-hidden="true" />
+              <span className="relative flex items-center justify-center gap-4">
+                <span className="font-mono tracking-tight">EMPEZÁ AHORA</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </span>
+            </button>
+            <p className="mt-6 text-sm font-mono text-muted-foreground tracking-wide">
+              SIN TARJETA · SIN COMPROMISO · ACCEDÉ HOY
+            </p>
+          </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

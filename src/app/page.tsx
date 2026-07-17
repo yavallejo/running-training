@@ -3,6 +3,8 @@ import PublicHeader from "@/components/PublicHeader";
 import HeroContent from "@/components/HeroContent";
 import LoginModalHandler from "@/components/LoginModalHandler";
 import SectionsContent from "@/components/SectionsContent";
+import HeroSceneWrapper from "@/components/landing/HeroSceneWrapper";
+import Marquee from "@/components/landing/Marquee";
 
 export const metadata: Metadata = {
   other: {
@@ -38,6 +40,7 @@ export default function LandingPage() {
             <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-primary/25 via-primary/8 to-transparent rounded-full blur-3xl" aria-hidden="true" />
             <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-gradient-to-tl from-primary/10 via-transparent to-transparent rounded-full blur-3xl" aria-hidden="true" />
           </div>
+          <HeroSceneWrapper />
           <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -60,6 +63,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <Marquee />
 
       <SectionsContent />
 
@@ -96,6 +101,8 @@ export default function LandingPage() {
                 <a href="#solucion" className="hover:text-foreground transition-colors tracking-wide">SOLUCIÓN</a>
                 <span className="text-border" aria-hidden="true">·</span>
                 <a href="#pasos" className="hover:text-foreground transition-colors tracking-wide">CÓMO</a>
+                <span className="text-border" aria-hidden="true">·</span>
+                <a href="#testimonios" className="hover:text-foreground transition-colors tracking-wide">TESTIMONIOS</a>
                 <span className="text-border" aria-hidden="true">·</span>
                 <a href="#comunidad" className="hover:text-foreground transition-colors tracking-wide">COMUNIDAD</a>
               </div>

@@ -1,13 +1,34 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
+import { gsap } from "@/lib/gsap";
 
 export default function HeroContent() {
+  const rootRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
+  useEffect(() => {
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.from("[data-hero='badge']", { y: -18, opacity: 0, duration: 0.7 })
+        .from("[data-hero='line-1']", { yPercent: 115, duration: 1 }, 0.15)
+        .from("[data-hero='line-2']", { yPercent: 115, duration: 1 }, 0.3)
+        .from("[data-hero='sub']", { y: 26, opacity: 0, duration: 0.8 }, 0.65)
+        .from(
+          "[data-hero='cta']",
+          { y: 22, opacity: 0, scale: 0.97, duration: 0.7 },
+          0.85
+        )
+        .from("[data-hero='stats']", { y: 48, opacity: 0, duration: 1 }, 1);
+    }, rootRef);
+    return () => mm.revert();
+  }, []);
+
   return (
-    <div className="relative z-10 max-w-5xl mx-auto text-center">
-      <div className="mb-8">
+    <div ref={rootRef} className="relative z-10 max-w-5xl mx-auto text-center">
+      <div className="mb-8" data-hero="badge">
         <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-surface/80 backdrop-blur-sm border border-border/50">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" aria-hidden="true"></span>
@@ -23,17 +44,21 @@ export default function HeroContent() {
         className="text-[clamp(2.5rem,8vw,6rem)] font-black tracking-[-0.03em] leading-[0.95] mb-8"
         style={{ fontFamily: "var(--font-urbanist)" }}
       >
-        <span className="block text-primary">QUERÉS CORRER.</span>
-        <span className="block text-[0.5em] text-muted-foreground mt-2 font-medium">
-          PERO NO SABÉS CÓMO ARRANCAR.
+        <span className="block overflow-hidden">
+          <span data-hero="line-1" className="block text-primary">QUERÉS CORRER.</span>
+        </span>
+        <span className="block overflow-hidden mt-2">
+          <span data-hero="line-2" className="block text-[0.5em] text-muted-foreground font-medium">
+            PERO NO SABÉS CÓMO ARRANCAR.
+          </span>
         </span>
       </h1>
 
-      <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-mono leading-relaxed">
+      <p data-hero="sub" className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-mono leading-relaxed">
         <span className="text-foreground">No necesitás otro tutorial.</span> Necesitás saber exactamente qué hacer mañana, pasado, y el día después — sin pensarlo.
       </p>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+      <div data-hero="cta" className="flex flex-col sm:flex-row items-center justify-center gap-5">
         <button
           onClick={() => {
             const event = new CustomEvent("open-login-modal");
@@ -54,7 +79,7 @@ export default function HeroContent() {
         </button>
       </div>
 
-      <div className="mt-20 p-8 rounded-3xl bg-surface border border-primary/30 backdrop-blur-sm shadow-[0_2px_16px,-4px_rgba(0,0,0,0.07),0_0_40px,-12px_rgba(255,59,48,0.2)]">
+      <div data-hero="stats" className="mt-20 p-8 rounded-3xl bg-surface/80 border border-primary/30 backdrop-blur-sm shadow-[0_2px_16px,-4px_rgba(0,0,0,0.07),0_0_40px,-12px_rgba(255,59,48,0.2)]">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
           <div className="text-center">
             <div className="text-3xl sm:text-4xl font-black text-primary tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
