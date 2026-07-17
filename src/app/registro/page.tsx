@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { registerUser, clearSession } from "@/lib/auth";
+import { signUp } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,10 +36,9 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
-    const result = await registerUser(username.trim(), email.trim(), password);
+    const result = await signUp(email.trim(), password, username.trim());
 
     if (result.success) {
-      clearSession();
       router.push("/iniciar-sesion?registered=true");
     } else {
       setError(result.error || "Error al crear la cuenta");

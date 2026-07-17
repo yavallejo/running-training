@@ -114,7 +114,7 @@ export default function PlanPage() {
     const todayStr = new Date().toISOString().split("T")[0];
     setToday(todayStr);
 
-    loadPlan(session.planId, session.raceDistance, session.raceDate, session.userId, todayStr, session.startDate);
+    loadPlan(session.planId || "", session.raceDistance, session.raceDate || "", session.userId, todayStr, session.startDate || undefined);
   }, [router, loadPlan]);
 
   const checkRaceStatus = useCallback(async () => {

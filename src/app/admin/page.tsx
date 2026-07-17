@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { createUser, hashPassword } from "@/lib/auth";
 import { getSession, clearSession } from "@/lib/auth";
 import dynamic from "next/dynamic";
 import {
@@ -232,18 +231,43 @@ export default function AdminPage() {
       return;
     }
 
-    const result = await createUser(username.trim(), password, planLevel, raceDistance, raceDate, raceName, userRole, startDate);
-    if (result.success) {
-      const { data: newUser } = await supabase.from('users').select('id').eq('username', username.toLowerCase()).single();
-      setMessage({ type: 'success', text: `Usuario ${username} creado exitosamente` });
-      setUsername("");
-      setPassword("");
-      setUserRole('user');
-      logAudit('CREATE_USER', newUser?.id || '', username, `Created user with role ${userRole}`);
-      loadData();
-    } else {
-      setMessage({ type: 'error', text: result.error || 'Error al crear usuario' });
+    // We use the username as the email local-part to satisfy Supabase Auth.
+    const inferredEmail = `${username.toLowerCase().trim()}@runplan.app`;
+    const session = getSession();
+    if (!session) {
+      setMessage({ type: 'error', text: 'Sesión no encontrada' });
+      return;
     }
+
+    const { data, error } = await supabase.functions.invoke<{ id: string; email: string; username: string }>(
+      'admin-create-user',
+      {
+        body: {
+          email: inferredEmail,
+          password,
+          username: username.trim(),
+          plan_level: planLevel,
+          race_distance: raceDistance,
+          race_date: raceDate,
+          race_name: raceName,
+          start_date: startDate || undefined,
+          role: userRole,
+        },
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}` },
+      },
+    );
+
+    if (error || !data) {
+      setMessage({ type: 'error', text: error?.message ?? 'Error al crear usuario' });
+      return;
+    }
+
+    setMessage({ type: 'success', text: `Usuario ${username} creado exitosamente` });
+    setUsername("");
+    setPassword("");
+    setUserRole('user');
+    logAudit('CREATE_USER', data.id, username, `Created user with role ${userRole}`);
+    loadData();
   };
 
   const handleDeleteUser = (userId: string, userName: string, isHardDelete = false) => {
@@ -258,29 +282,13 @@ export default function AdminPage() {
     setDeletingUserId(userToDelete.id);
 
     if (hardDelete) {
-      const { error: progressError } = await supabase.from('user_progress').delete().eq('user_id', userToDelete.id);
-      if (progressError) {
-        console.error('Error deleting user progress:', progressError);
-        setMessage({ type: 'error', text: 'Error al eliminar progreso del usuario' });
-        setShowDeleteModal(false);
-        setUserToDelete(null);
-        setDeletingUserId(null);
-        return;
-      }
-
-      const { error: profileError } = await supabase.from('user_profiles').delete().eq('id', userToDelete.id);
-      if (profileError) {
-        console.error('Error deleting user profile:', profileError);
-        setMessage({ type: 'error', text: 'Error al eliminar perfil del usuario' });
-        setShowDeleteModal(false);
-        setUserToDelete(null);
-        setDeletingUserId(null);
-        return;
-      }
-
-      const { error } = await supabase.from('users').delete().eq('id', userToDelete.id);
-      if (error) {
-        setMessage({ type: 'error', text: 'Error al eliminar usuario' });
+      // Hard delete: cascade + auth user removal via Edge Function.
+      const { error: fnError } = await supabase.functions.invoke('admin-delete-user', {
+        body: { user_id: userToDelete.id, hard: true },
+        headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}` },
+      });
+      if (fnError) {
+        setMessage({ type: 'error', text: `Error al eliminar: ${fnError.message}` });
       } else {
         setMessage({ type: 'success', text: 'Usuario eliminado permanentemente' });
         logAudit('HARD_DELETE', userToDelete.id, userToDelete.username, 'Permanently deleted user');
@@ -358,19 +366,22 @@ export default function AdminPage() {
       return;
     }
 
-    const passwordHash = await hashPassword(newPassword);
-    const { error } = await supabase.from('users').update({ password_hash: passwordHash }).eq('id', resetPasswordUser.id);
+    const { error } = await supabase.functions.invoke('admin-reset-password', {
+      body: { user_id: resetPasswordUser.id, new_password: newPassword },
+      headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ''}` },
+    });
 
     if (error) {
-      setMessage({ type: 'error', text: 'Error al resetear contraseña' });
-    } else {
-      setMessage({ type: 'success', text: 'Contraseña actualizada correctamente' });
-      logAudit('RESET_PASSWORD', resetPasswordUser.id, resetPasswordUser.username, 'Password reset by admin');
-      setShowResetPasswordModal(false);
-      setResetPasswordUser(null);
-      setNewPassword('');
-      setConfirmPassword('');
+      setMessage({ type: 'error', text: `Error al resetear contraseña: ${error.message}` });
+      return;
     }
+
+    setMessage({ type: 'success', text: 'Contraseña actualizada correctamente' });
+    logAudit('RESET_PASSWORD', resetPasswordUser.id, resetPasswordUser.username, 'Password reset by admin');
+    setShowResetPasswordModal(false);
+    setResetPasswordUser(null);
+    setNewPassword('');
+    setConfirmPassword('');
   };
 
   const handleSendNotification = async () => {

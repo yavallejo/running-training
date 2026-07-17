@@ -38,8 +38,8 @@ export default function Header() {
     const session = localStorage.getItem("running_session");
     if (session) {
       try {
-        const { name } = JSON.parse(session);
-        setUserName(name || "");
+        const { username } = JSON.parse(session);
+        setUserName(username || "");
       } catch {
         // ignore
       }

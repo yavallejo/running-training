@@ -171,6 +171,9 @@ CREATE POLICY "notifications_select_own"
 -- 3) Safe public-facing view: replaces the need to SELECT from public.users
 --    for leaderboards, social pages, etc.
 -- =============================================================================
+-- DROP first so we can change the column list safely on re-runs.
+DROP VIEW IF EXISTS public.public_user_summary;
+
 CREATE OR REPLACE VIEW public.public_user_summary AS
 SELECT
   u.id,

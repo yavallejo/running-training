@@ -1,250 +1,247 @@
 import { supabase } from './supabase'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+
+// =============================================================================
+// Auth module — Supabase Auth edition
+// =============================================================================
+// Migration notes:
+//   - Replaces the old custom SHA-256 password hash flow with Supabase Auth
+//     (bcrypt managed server-side, JWT issued by Supabase).
+//   - `getSession()` is synchronous: it reads the localStorage cache that we
+//     populate after each sign-in and on auth state changes. Use
+//     `getSessionAsync()` for the authoritative server-side check.
+//   - The source of truth is the Supabase auth session. localStorage is a
+//     performance cache for instant UI render.
+// =============================================================================
 
 const SESSION_KEY = "running_session"
 const SESSION_DURATION = 24 * 60 * 60 * 1000
 
-// Hash password using Web Crypto API
-export async function hashPassword(password: string): Promise<string> {
-  if (typeof window === "undefined") return ""
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-// Validar credenciales contra Supabase
-export async function validateCredentials(username: string, password: string): Promise<{ success: boolean; user?: any }> {
-  if (typeof window === "undefined") return { success: false }
-
-  try {
-    const passwordHash = await hashPassword(password)
-
-    const { data, error } = await supabase
-      .from('users')
-      .select(`
-        id,
-        username,
-        password_hash,
-        plan_id,
-        race_distance,
-        race_date,
-        race_name,
-        start_date,
-        role,
-        plans:plan_id (
-          id,
-          name,
-          level
-        )
-      `)
-      .eq('username', username.toLowerCase())
-      .single()
-
-    if (error || !data) {
-      return { success: false }
-    }
-
-    // Verificar hash manualmente
-    if (data.password_hash !== passwordHash) {
-      return { success: false }
-    }
-
-    return { success: true, user: data }
-  } catch (error) {
-    console.error('Auth validation error:', error)
-    return { success: false }
-  }
-}
-
-// Crear sesión local
-export function createSession(user: any): void {
-  if (typeof window === "undefined") return
-  
-  // Calculate start date (day after registration or user's start_date)
-  const startDate = user.start_date || (() => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
-  })()
-  
-  const session = {
-    authenticated: true,
-    userId: user.id,
-    username: user.username,
-    planId: user.plan_id,
-    planLevel: user.plans?.level,
-    planName: user.plans?.name,
-    raceDistance: user.race_distance || 7,
-    raceDate: user.race_date || getDefaultRaceDate(),
-    raceName: user.race_name || 'Carrera Recreativa',
-    startDate: startDate,
-    role: user.role || 'user',
-    expiresAt: Date.now() + SESSION_DURATION
-  }
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-}
-
-// Get default race date (8 weeks from now)
-function getDefaultRaceDate(): string {
-  const date = new Date()
-  date.setDate(date.getDate() + 56) // 8 weeks
-  return date.toISOString().split('T')[0]
-}
-
-interface Session {
+export interface AppSession {
   authenticated: boolean
   userId: string
+  email: string
   username: string
-  planId: string
-  planLevel: string
-  planName: string
-  raceDistance: number
-  raceDate: string
-  raceName: string
-  startDate: string
   role: 'user' | 'admin'
+  planId: string | null
+  planName: string | null
+  planLevel: string | null
+  raceDistance: number
+  raceDate: string | null
+  raceName: string | null
+  startDate: string | null
   expiresAt: number
 }
 
-export function getSession(): Session | null {
-  if (typeof window === "undefined") return null
-  const stored = localStorage.getItem(SESSION_KEY)
-  if (!stored) return null
+// -----------------------------------------------------------------------------
+// Helpers
+// -----------------------------------------------------------------------------
 
+function getDefaultRaceDate(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 56)
+  return d.toISOString().split('T')[0]
+}
+
+function tomorrowDate(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().split('T')[0]
+}
+
+async function loadPublicUserRow(userId: string): Promise<any | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select(`
+      id,
+      username,
+      role,
+      plan_id,
+      race_distance,
+      race_date,
+      race_name,
+      start_date,
+      plans:plan_id ( id, name, level )
+    `)
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('loadPublicUserRow error:', error)
+    return null
+  }
+  return data
+}
+
+function buildAppSession(authUser: SupabaseUser, row: any): AppSession {
+  return {
+    authenticated: true,
+    userId: authUser.id,
+    email: authUser.email ?? '',
+    username: row?.username ?? (authUser.email?.split('@')[0] ?? ''),
+    role: (row?.role as 'user' | 'admin') ?? 'user',
+    planId: row?.plan_id ?? null,
+    planName: row?.plans?.name ?? null,
+    planLevel: row?.plans?.level ?? null,
+    raceDistance: row?.race_distance ?? 7,
+    raceDate: row?.race_date ?? getDefaultRaceDate(),
+    raceName: row?.race_name ?? 'Carrera Recreativa',
+    startDate: row?.start_date ?? tomorrowDate(),
+    expiresAt: Date.now() + SESSION_DURATION,
+  }
+}
+
+function persistSession(s: AppSession | null) {
+  if (typeof window === 'undefined') return
+  if (!s) {
+    localStorage.removeItem(SESSION_KEY)
+    return
+  }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(s))
+}
+
+function readCachedSession(): AppSession | null {
+  if (typeof window === 'undefined') return null
   try {
-    const session: Session = JSON.parse(stored)
-    if (session.expiresAt < Date.now()) {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) return null
+    const s: AppSession = JSON.parse(raw)
+    if (!s.authenticated || s.expiresAt < Date.now()) {
       localStorage.removeItem(SESSION_KEY)
       return null
     }
-    return session
+    return s
   } catch {
-    localStorage.removeItem(SESSION_KEY)
     return null
   }
 }
 
-export function clearSession(): void {
-  if (typeof window === "undefined") return
-  localStorage.removeItem(SESSION_KEY)
+// -----------------------------------------------------------------------------
+// Auth API
+// -----------------------------------------------------------------------------
+
+export async function signIn(
+  email: string,
+  password: string
+): Promise<{ success: boolean; session?: AppSession; error?: string }> {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase().trim(),
+      password,
+    })
+    if (error || !data.user) {
+      return { success: false, error: error?.message ?? 'Credenciales incorrectas' }
+    }
+
+    const row = await loadPublicUserRow(data.user.id)
+    if (!row) {
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error: 'Cuenta sin perfil público. Contactá al administrador.',
+      }
+    }
+
+    const session = buildAppSession(data.user, row)
+    persistSession(session)
+    return { success: true, session }
+  } catch (e: any) {
+    return { success: false, error: e?.message ?? 'Error de conexión' }
+  }
 }
 
-// Crear usuario (para uso admin o registro)
-export async function createUser(
-  username: string,
+export async function signUp(
+  email: string,
   password: string,
-  planLevel: 'beginner' | 'intermediate' | 'pro',
-  raceDistance: number = 7,
-  raceDate?: string,
-  raceName: string = 'Carrera Recreativa',
-  role: 'user' | 'admin' = 'user',
-  startDate?: string,
-  email?: string
-): Promise<{ success: boolean; error?: string }> {
+  username: string
+): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> {
   try {
-    const passwordHash = await hashPassword(password)
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/confirm?next=/iniciar-sesion`
+        : undefined
 
-    const { data: plan } = await supabase
-      .from('plans')
-      .select('id')
-      .eq('level', planLevel)
-      .single()
-
-    if (!plan) return { success: false, error: 'Plan no encontrado' }
-
-    // Calculate dates
-    const effectiveStartDate = startDate || (() => {
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      return tomorrow.toISOString().split('T')[0]
-    })()
-    
-    const effectiveRaceDate = raceDate || (() => {
-      const date = new Date()
-      date.setDate(date.getDate() + 56) // 8 weeks default
-      return date.toISOString().split('T')[0]
-    })()
-
-    const { data: newUser, error } = await supabase
-      .from('users')
-      .insert({
-        username: username.toLowerCase(),
-        email: email?.toLowerCase() || null,
-        password_hash: passwordHash,
-        plan_id: plan.id,
-        race_distance: raceDistance,
-        race_date: effectiveRaceDate,
-        race_name: raceName,
-        start_date: effectiveStartDate,
-        role: role
-      })
-      .select('id')
-      .single()
-
+    const { data, error } = await supabase.auth.signUp({
+      email: email.toLowerCase().trim(),
+      password,
+      options: {
+        data: { username: username.toLowerCase().trim() },
+        emailRedirectTo: redirectTo,
+      },
+    })
     if (error) return { success: false, error: error.message }
 
-    if (newUser) {
-      await supabase.from('user_plans').insert({
-        user_id: newUser.id,
-        plan_id: plan.id,
-        plan_name: planLevel,
-        plan_level: planLevel,
-        race_distance: raceDistance,
-        race_date: effectiveRaceDate,
-        race_name: raceName,
-        start_date: effectiveStartDate,
-        is_active: true,
-      })
+    if (!data.session || !data.user) {
+      return {
+        success: true,
+        needsConfirmation: true,
+        error: 'Te enviamos un email de confirmación. Revisá tu bandeja (y spam) y hacé clic en el link para activar tu cuenta.',
+      }
     }
 
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (e: any) {
+    return { success: false, error: e?.message ?? 'Error al crear la cuenta' }
   }
 }
 
-// Register user (public registration — race details configured during onboarding)
-export async function registerUser(
-  username: string,
-  email: string,
-  password: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const passwordHash = await hashPassword(password)
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut()
+  persistSession(null)
+}
 
-    const { data: plan } = await supabase
-      .from('plans')
-      .select('id')
-      .eq('level', 'beginner')
-      .single()
+/**
+ * Backwards-compatible alias used throughout the app. Sync wrapper that
+ * clears the local cache immediately and signs out of Supabase in the
+ * background. UI can navigate without awaiting.
+ */
+export function clearSession(): void {
+  persistSession(null)
+  void supabase.auth.signOut()
+}
 
-    if (!plan) return { success: false, error: 'Plan no encontrado' }
+// -----------------------------------------------------------------------------
+// Session retrieval
+// -----------------------------------------------------------------------------
 
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() + 1)
-    const startDateStr = startDate.toISOString().split('T')[0]
+/** Synchronous accessor — reads localStorage cache. */
+export function getSession(): AppSession | null {
+  return readCachedSession()
+}
 
-    // Default values — overwritten by onboarding once user configures their plan
-    const defaultRaceDate = getDefaultRaceDate()
+/** Authoritative session check — refreshes from Supabase + public.users. */
+export async function getSessionAsync(): Promise<AppSession | null> {
+  if (typeof window === 'undefined') return null
 
-    const { error } = await supabase
-      .from('users')
-      .insert({
-        username: username.toLowerCase(),
-        email: email.toLowerCase(),
-        password_hash: passwordHash,
-        plan_id: plan.id,
-        race_distance: 7,
-        race_date: defaultRaceDate,
-        race_name: 'Mi Carrera',
-        start_date: startDateStr,
-        role: 'user'
-      })
-
-    if (error) return { success: false, error: error.message }
-    return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  const { data } = await supabase.auth.getSession()
+  if (!data.session?.user) {
+    persistSession(null)
+    return null
   }
+
+  const row = await loadPublicUserRow(data.session.user.id)
+  if (!row) return null
+
+  const session = buildAppSession(data.session.user, row)
+  persistSession(session)
+  return session
+}
+
+/** Refresh the cached session from authoritative sources. */
+export async function refreshSession(): Promise<AppSession | null> {
+  return getSessionAsync()
+}
+
+/** Initialize the auth listener. Call once in the root layout. */
+export function initAuthListener() {
+  if (typeof window === 'undefined') return
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (!session?.user) {
+      persistSession(null)
+      return
+    }
+    const row = await loadPublicUserRow(session.user.id)
+    if (!row) return
+    persistSession(buildAppSession(session.user, row))
+  })
 }

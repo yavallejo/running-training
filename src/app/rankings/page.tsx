@@ -31,9 +31,8 @@ export default function RankingsPage() {
   const loadRankings = useCallback(async () => {
     try {
       const { data: publicUsers, error: usersError } = await supabase
-        .from("users")
+        .from("public_user_summary")
         .select("id, username, race_distance, race_date, race_name, is_public_profile")
-        .eq("is_public_profile", true)
         .order("username", { ascending: true });
 
       if (usersError) {

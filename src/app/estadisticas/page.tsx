@@ -28,7 +28,7 @@ export default function EstadisticasPage() {
           return;
         }
 
-        const sessionsData = await generateTrainingPlan(session.planId);
+        const sessionsData = await generateTrainingPlan(session.planId || "");
         const progressMap = await loadUserProgress(session.userId);
 
         const sessionsWithProgress = sessionsData.map(s => {

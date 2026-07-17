@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { validateCredentials, createSession } from "@/lib/auth";
+import { signIn, getSessionAsync } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginContent() {
@@ -19,38 +19,30 @@ export default function LoginContent() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const stored = localStorage.getItem("running_session");
-      if (stored) {
-        try {
-          const session = JSON.parse(stored);
-          if (session?.authenticated && session?.expiresAt > Date.now()) {
-            if (session.role === 'admin') {
-              router.replace("/admin");
-            } else {
-              // Check if user has completed onboarding before redirecting to plan
-              const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('id')
-                .eq('id', session.userId)
-                .single();
-              
-              if (profile) {
-                router.replace("/plan");
-              } else {
-                router.replace("/onboarding");
-              }
-            }
-            return;
+      const session = await getSessionAsync();
+      if (session) {
+        if (session.role === 'admin') {
+          router.replace("/admin");
+        } else {
+          // Check if user has completed onboarding before redirecting to plan
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', session.userId)
+            .single();
+
+          if (profile) {
+            router.replace("/plan");
+          } else {
+            router.replace("/onboarding");
           }
-          localStorage.removeItem("running_session");
-        } catch {
-          localStorage.removeItem("running_session");
         }
+        return;
       }
       setLoading(false);
     };
     checkSession();
-    
+
     if (searchParams.get("registered") === "true") {
       setSuccess("¡Cuenta creada! Iniciá sesión para armar tu plan.");
     }
@@ -61,26 +53,24 @@ export default function LoginContent() {
     setError("");
 
     if (!username.trim() || !password) {
-      setError("Ingresa usuario y contraseña");
+      setError("Ingresa email y contraseña");
       return;
     }
 
     setIsAuthenticating(true);
     try {
-      const result = await validateCredentials(username.trim(), password);
-      if (result.success && result.user) {
-        createSession(result.user);
-        
-        if (result.user.role === 'admin') {
+      const result = await signIn(username.trim(), password);
+      if (result.success && result.session) {
+        if (result.session.role === 'admin') {
           router.replace("/admin");
         } else {
           // Check if user has completed onboarding
           const { data: profile } = await supabase
             .from('user_profiles')
             .select('id')
-            .eq('id', result.user.id)
+            .eq('id', result.session.userId)
             .single();
-          
+
           if (profile) {
             router.replace("/plan");
           } else {
@@ -88,7 +78,7 @@ export default function LoginContent() {
           }
         }
       } else {
-        setError("Credenciales incorrectas");
+        setError(result.error || "Credenciales incorrectas");
       }
     } catch {
       setError("Error de conexión");
@@ -214,23 +204,23 @@ export default function LoginContent() {
             </AnimatePresence>
 
             <div className="space-y-2">
-              <label htmlFor="username" className="sr-only">Usuario</label>
+              <label htmlFor="email" className="sr-only">Email</label>
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                   </svg>
                 </div>
                 <input
-                  id="username"
-                  type="text"
+                  id="email"
+                  type="email"
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value);
                     setError("");
                   }}
-                  placeholder="Usuario"
-                  autoComplete="username"
+                  placeholder="tu@email.com"
+                  autoComplete="email"
                   required
                   className="w-full h-14 rounded-xl bg-surface border border-border pl-12 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                 />

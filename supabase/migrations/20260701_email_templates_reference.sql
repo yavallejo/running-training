@@ -1,0 +1,55 @@
+-- =============================================================================
+-- Optional: Supabase Auth email templates (PKCE confirmation)
+-- =============================================================================
+-- Supabase lets you edit email templates from the dashboard:
+--   Authentication → Email Templates → "Confirm signup" / "Reset password"
+--
+-- This file shows the recommended HTML body for each. You can either:
+--   (a) Copy-paste these into the dashboard, or
+--   (b) Update via SQL using auth.config (limited support; dashboard preferred).
+--
+-- Templates use Go template variables provided by Supabase:
+--   {{ .SiteURL }}     — your project URL
+--   {{ .TokenHash }}   — the OTP token
+--   {{ .RedirectTo }}  — the URL Supabase should send the user back to
+--   {{ .Email }}       — the user's email
+--   {{ .ConfirmationURL }} — legacy implicit flow link (do NOT use with PKCE)
+-- =============================================================================
+
+-- ----- Confirm signup template -----
+-- Subject: Confirmá tu email para RunPlan Pro
+--
+-- Body (HTML):
+--
+--   <h2>¡Bienvenido a RunPlan Pro!</h2>
+--   <p>Confirmá tu email para activar tu cuenta y empezar a entrenar.</p>
+--   <p>
+--     <a
+--       href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
+--       style="display:inline-block;padding:12px 24px;background:#FF3B30;color:white;text-decoration:none;border-radius:8px;font-weight:600"
+--     >
+--       Confirmar mi email
+--     </a>
+--   </p>
+--   <p style="color:#666;font-size:13px;margin-top:24px">
+--     Si no creaste esta cuenta, podés ignorar este email.
+--   </p>
+
+-- ----- Reset password template -----
+-- Subject: Restablecé tu contraseña de RunPlan Pro
+--
+-- Body (HTML):
+--
+--   <h2>Restablecé tu contraseña</h2>
+--   <p>Recibimos un pedido para restablecer la contraseña de tu cuenta.</p>
+--   <p>
+--     <a
+--       href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/cuenta/nueva-password"
+--       style="display:inline-block;padding:12px 24px;background:#FF3B30;color:white;text-decoration:none;border-radius:8px;font-weight:600"
+--     >
+--       Elegir nueva contraseña
+--     </a>
+--   </p>
+--   <p style="color:#666;font-size:13px;margin-top:24px">
+--     Si no pediste restablecerla, ignorá este email.
+--   </p>
