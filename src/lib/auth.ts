@@ -156,10 +156,15 @@ export async function signUp(
   username: string
 ): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> {
   try {
-    const redirectTo =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/confirm?next=/iniciar-sesion`
-        : undefined
+    // Use the configured production URL for email confirmation links so they
+    // always point to the live site, even if the signup request happens to be
+    // triggered from a local/dev origin.
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : undefined)
+    const redirectTo = siteUrl
+      ? `${siteUrl.replace(/\/$/, '')}/auth/confirm?next=/iniciar-sesion`
+      : undefined
 
     const { data, error } = await supabase.auth.signUp({
       email: email.toLowerCase().trim(),
