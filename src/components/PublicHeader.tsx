@@ -18,6 +18,7 @@ export default function PublicHeader() {
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const { resolvedTheme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
 
@@ -31,6 +32,27 @@ export default function PublicHeader() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const ids = ["inicio", "problema", "solucion", "pasos", "testimonios", "comunidad"];
+    const sections = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(`#${entry.target.id}`);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -132,9 +154,20 @@ export default function PublicHeader() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    aria-current={activeSection === link.href ? "true" : undefined}
+                    className={`relative text-sm font-medium transition-colors ${
+                      activeSection === link.href
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     {link.label}
+                    <span
+                      className={`absolute -bottom-1.5 left-0 h-px bg-primary transition-all duration-300 ${
+                        activeSection === link.href ? "w-full" : "w-0"
+                      }`}
+                      aria-hidden="true"
+                    />
                   </a>
                 ) : (
                   <Link
@@ -273,7 +306,11 @@ export default function PublicHeader() {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-surface hover:bg-surface-elevated transition-colors text-foreground"
+                      className={`flex items-center gap-3 p-4 rounded-xl transition-colors ${
+                        activeSection === link.href
+                          ? "bg-primary/10 border border-primary/25 text-primary"
+                          : "bg-surface border border-transparent hover:bg-surface-elevated text-foreground"
+                      }`}
                     >
                       <span className="text-sm font-medium">{link.label}</span>
                     </a>

@@ -13,7 +13,6 @@ interface RankingUser {
   race_distance: number;
   race_date: string;
   race_name: string;
-  is_public_profile: boolean;
   achievementCount: number;
   bestRaceTime: number | null;
   totalKm: number;
@@ -32,7 +31,7 @@ export default function RankingsPage() {
     try {
       const { data: publicUsers, error: usersError } = await supabase
         .from("public_user_summary")
-        .select("id, username, race_distance, race_date, race_name, is_public_profile")
+        .select("id, username, race_distance, race_date, race_name")
         .order("username", { ascending: true });
 
       if (usersError) {
@@ -94,7 +93,6 @@ export default function RankingsPage() {
         race_distance: u.race_distance || 7,
         race_date: u.race_date || "",
         race_name: u.race_name || "Carrera",
-        is_public_profile: true,
         achievementCount: achievementCounts[u.id] || 0,
         bestRaceTime: bestTimes[u.id] ?? null,
         totalKm: totals[u.id] || 0,

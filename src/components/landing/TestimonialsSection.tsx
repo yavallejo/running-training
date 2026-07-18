@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { splitWords } from "@/lib/split-words";
 
 export interface Testimonial {
   name: string;
@@ -10,6 +11,20 @@ export interface Testimonial {
   distance: string;
   result: string;
   quote: string;
+}
+
+const DISTANCE_STYLES: Record<string, string> = {
+  "5K": "bg-info/10 border-info/20 text-info",
+  "10K": "bg-primary/10 border-primary/20 text-primary",
+  "21K": "bg-warning/10 border-warning/20 text-warning",
+  "42K": "bg-success/10 border-success/20 text-success",
+};
+
+function distanceStyle(distance: string): string {
+  return (
+    DISTANCE_STYLES[distance] ??
+    "bg-primary/10 border-primary/20 text-primary"
+  );
 }
 
 export const TESTIMONIALS: Testimonial[] = [
@@ -96,13 +111,14 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <article
       data-testimonial-card
+      data-tilt
       className="group relative flex w-[82vw] max-w-[420px] shrink-0 flex-col justify-between rounded-3xl bg-surface border border-border/50 p-8 backdrop-blur-sm shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] hover:border-primary/40 hover:shadow-[0_0_30px_-8px_rgba(255,59,48,0.14)] transition-all duration-500 max-md:snap-center motion-reduce:w-full motion-reduce:max-w-2xl"
     >
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/6 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true" />
       <div className="relative">
         <div className="flex items-center justify-between mb-6">
           <Stars />
-          <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-semibold tracking-wide">
+          <span className={`px-3 py-1 rounded-full border text-xs font-mono font-semibold tracking-wide ${distanceStyle(testimonial.distance)}`}>
             {testimonial.distance} · {testimonial.result}
           </span>
         </div>
@@ -146,21 +162,33 @@ export default function TestimonialsSection() {
 
     // Header reveal (all screens, motion allowed)
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.fromTo(
-        "[data-testimonials-head]",
-        { y: 36, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.12,
-          duration: 0.9,
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 78%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
+      const section = sectionRef.current;
+      if (!section) return;
+      const plain = section.querySelectorAll("[data-testimonials-head]");
+      const splitEl = section.querySelector<HTMLElement>("[data-split]");
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 78%",
+          toggleActions: "play none none none",
+        },
+      });
+      if (plain.length) {
+        tl.fromTo(
+          plain,
+          { y: 36, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.12, duration: 0.9 }
+        );
+      }
+      if (splitEl) {
+        tl.fromTo(
+          splitWords(splitEl),
+          { yPercent: 115 },
+          { yPercent: 0, stagger: 0.05, duration: 0.8 },
+          0.3
+        );
+      }
     }, sectionRef);
 
     // Pinned horizontal scroll — desktop only (pattern from GSAP ScrollTrigger docs)
@@ -222,7 +250,7 @@ export default function TestimonialsSection() {
             Testimonios
           </span>
           <h2
-            data-testimonials-head
+            data-split
             className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >

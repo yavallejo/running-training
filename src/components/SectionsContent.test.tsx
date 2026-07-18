@@ -54,4 +54,27 @@ describe("SectionsContent", () => {
     expect(handler).toHaveBeenCalledTimes(1);
     window.removeEventListener("open-login-modal", handler);
   });
+
+  it("el mid-CTA de solución dispara el evento open-login-modal", () => {
+    const handler = vi.fn();
+    window.addEventListener("open-login-modal", handler);
+
+    render(<SectionsContent />);
+    fireEvent.click(screen.getByRole("button", { name: /empezá tu plan hoy/i }));
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    window.removeEventListener("open-login-modal", handler);
+  });
+
+  it("muestra el mini leaderboard de la comunidad", () => {
+    render(<SectionsContent />);
+
+    expect(screen.getByText(/ranking · 10k/i)).toBeInTheDocument();
+    expect(screen.getByText("Valentina P.")).toBeInTheDocument();
+    expect(screen.getByText("Martín G.")).toBeInTheDocument();
+    expect(screen.getByText(/tu nombre podría estar acá/i)).toBeInTheDocument();
+    // posición única del leaderboard ("05" solo existe en el ranking)
+    expect(screen.getByText("05")).toBeInTheDocument();
+    expect(screen.getAllByText("01").length).toBeGreaterThan(0);
+  });
 });

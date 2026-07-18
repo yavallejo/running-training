@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { gsap } from "@/lib/gsap";
+import MagneticWrap from "@/components/landing/MagneticWrap";
 
 export default function HeroContent() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -59,24 +60,26 @@ export default function HeroContent() {
       </p>
 
       <div data-hero="cta" className="flex flex-col sm:flex-row items-center justify-center gap-5">
-        <button
-          onClick={() => {
-            const event = new CustomEvent("open-login-modal");
-            window.dispatchEvent(event);
-          }}
-          className="group relative px-10 py-5 rounded-2xl font-bold text-lg text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          aria-label="Arrancá tu plan de entrenamiento"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={shouldReduceMotion ? { transitionDuration: '0ms' } : {}} />
-          <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" style={shouldReduceMotion ? { transform: 'translateX(0)', transitionDuration: '0ms' } : {}} />
-          <span className="relative flex items-center justify-center gap-3">
-            <span className="font-mono tracking-tight">ARRANCÁ TU PLAN</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </span>
-        </button>
+        <MagneticWrap strength={0.3}>
+          <button
+            onClick={() => {
+              const event = new CustomEvent("open-login-modal");
+              window.dispatchEvent(event);
+            }}
+            className="group relative px-10 py-5 rounded-2xl font-bold text-lg text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            aria-label="Arrancá tu plan de entrenamiento"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={shouldReduceMotion ? { transitionDuration: '0ms' } : {}} />
+            <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" style={shouldReduceMotion ? { transform: 'translateX(0)', transitionDuration: '0ms' } : {}} />
+            <span className="relative flex items-center justify-center gap-3">
+              <span className="font-mono tracking-tight">ARRANCÁ TU PLAN</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </span>
+          </button>
+        </MagneticWrap>
       </div>
 
       <div data-hero="stats" className="mt-20 p-8 rounded-3xl bg-surface/80 border border-primary/30 backdrop-blur-sm shadow-[0_2px_16px,-4px_rgba(0,0,0,0.07),0_0_40px,-12px_rgba(255,59,48,0.2)]">

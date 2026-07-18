@@ -3,6 +3,8 @@
 import { useRef } from "react";
 import { useLandingAnimations } from "@/hooks/useLandingAnimations";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import StatsBand from "@/components/landing/StatsBand";
+import MagneticWrap from "@/components/landing/MagneticWrap";
 
 const ICON_STROKE = {
   bolt: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z",
@@ -16,6 +18,11 @@ const ICON_STROKE = {
   heart:
     "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
   flag: "M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5",
+  trophy:
+    "M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108.966 3.99 2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0",
+  sliders:
+    "M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75",
+  lock: "M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z",
 } as const;
 
 function StrokeIcon({ path, className }: { path: string; className: string }) {
@@ -48,6 +55,7 @@ function PainCard({
   return (
     <div
       data-reveal-item
+      data-tilt
       className="group relative p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm overflow-hidden hover:border-danger/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_0_30px_-8px_rgba(239,68,68,0.12)] transition-all duration-500"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-danger/6 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true" />
@@ -82,6 +90,7 @@ function SolutionCard({
   return (
     <div
       data-reveal-item
+      data-tilt
       className="group relative flex items-start gap-6 p-8 rounded-3xl bg-surface border border-border backdrop-blur-sm hover:border-primary/40 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.07)] hover:shadow-[0_4px_20px_-8px_rgba(255,59,48,0.1)] transition-all duration-500"
     >
       <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
@@ -143,6 +152,7 @@ function FeatureCard({
   return (
     <div
       data-reveal-item
+      data-tilt
       className={`group relative p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 shadow-[0_1px_6px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-8px_rgba(255,59,48,0.12)] transition-all duration-500 overflow-hidden ${
         featured ? "sm:col-span-2 bg-gradient-to-br from-primary/[0.07] to-transparent border-primary/25" : ""
       }`}
@@ -253,6 +263,35 @@ const features = [
   },
 ];
 
+export const LEADERBOARD = [
+  { pos: 1, name: "Valentina P.", initials: "VP", trophies: 24, time: "49:57" },
+  { pos: 2, name: "Diego R.", initials: "DR", trophies: 21, time: "51:03" },
+  { pos: 3, name: "Martín G.", initials: "MG", trophies: 18, time: "52:30" },
+  { pos: 4, name: "Sebastián T.", initials: "ST", trophies: 15, time: "53:20" },
+  { pos: 5, name: "Lucía F.", initials: "LF", trophies: 12, time: "54:12" },
+] as const;
+
+const COMMUNITY_POINTS = [
+  {
+    icon: ICON_STROKE.trophy,
+    iconClass: "bg-success/10 border-success/20 text-success",
+    title: "Rankings por trofeos",
+    description: "Desbloqueá logros y subí posiciones cada semana.",
+  },
+  {
+    icon: ICON_STROKE.sliders,
+    iconClass: "bg-info/10 border-info/20 text-info",
+    title: "Por distancia y ritmo",
+    description: "Filtrá por 5K, 7K, 10K y compará tu tiempo final con tu categoría.",
+  },
+  {
+    icon: ICON_STROKE.lock,
+    iconClass: "bg-warning/10 border-warning/20 text-warning",
+    title: "Vos decidís qué se ve",
+    description: "Tu perfil es privado por defecto. Activá el modo público cuando quieras.",
+  },
+] as const;
+
 export default function SectionsContent() {
   const rootRef = useRef<HTMLDivElement>(null);
   useLandingAnimations(rootRef);
@@ -273,7 +312,7 @@ export default function SectionsContent() {
               El Problema
             </span>
             <h2
-              data-reveal-head
+              data-split
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
@@ -323,7 +362,7 @@ export default function SectionsContent() {
               La Solución
             </span>
             <h2
-              data-reveal-head
+              data-split
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
@@ -357,8 +396,26 @@ export default function SectionsContent() {
               description="Vas a cruzar la meta sabiendo que hiciste todo bien. Eso no tiene precio."
             />
           </div>
+
+          <div data-reveal-item className="text-center mt-14">
+            <button
+              onClick={() => {
+                const event = new CustomEvent("open-login-modal");
+                window.dispatchEvent(event);
+              }}
+              className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl border border-primary/40 text-primary font-mono font-semibold text-sm tracking-wide hover:bg-primary hover:text-white hover:border-primary hover:shadow-[0_0_24px_-6px_rgba(255,59,48,0.5)] transition-all duration-300"
+              aria-label="Empezá tu plan hoy"
+            >
+              EMPEZÁ TU PLAN HOY
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+          </div>
         </div>
       </section>
+
+      <StatsBand />
 
       <section
         id="pasos"
@@ -375,7 +432,7 @@ export default function SectionsContent() {
               Cómo Funciona
             </span>
             <h2
-              data-reveal-head
+              data-split
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
@@ -422,7 +479,7 @@ export default function SectionsContent() {
               Todo Incluido
             </span>
             <h2
-              data-reveal-head
+              data-split
               className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
               style={{ fontFamily: "var(--font-urbanist)" }}
             >
@@ -454,54 +511,127 @@ export default function SectionsContent() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/8 via-primary/3 to-transparent rounded-full blur-3xl" aria-hidden="true" />
 
         <div className="relative z-10 max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
-              Comunidad
-            </span>
-            <h2
-              data-reveal-head
-              className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
-              style={{ fontFamily: "var(--font-urbanist)" }}
-            >
-              No corras
-              <span className="block text-primary">solo</span>
-            </h2>
-            <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto font-mono">
-              Activá tu perfil público y competí con corredores que comparten tu distancia.
-            </p>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+            <div>
+              <span data-reveal-head className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-mono tracking-widest uppercase mb-6">
+                Comunidad
+              </span>
+              <h2
+                data-split
+                className="text-4xl sm:text-5xl md:text-6xl font-black tracking-[-0.03em] leading-[0.9] mb-6"
+                style={{ fontFamily: "var(--font-urbanist)" }}
+              >
+                No corras
+                <span className="block text-primary">solo</span>
+              </h2>
+              <p data-reveal-head className="text-lg sm:text-xl text-muted-foreground font-mono max-w-md">
+                Activá tu perfil público y competí con corredores que comparten tu distancia.
+              </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
-            <FeatureCard
-              icon="🏆"
-              iconClass="text-3xl mb-4"
-              title="Rankings por trofeos"
-              description="Desbloqueá logros y aparecé en el ranking. Cuantos más trofeos, más arriba."
-            />
-            <FeatureCard
-              icon="📏"
-              iconClass="text-3xl mb-4"
-              title="Por distancia y ritmo"
-              description="Filtrá por 5K, 7K, 10K. Compará tu tiempo final con el de tu categoría."
-            />
-            <FeatureCard
-              icon="🔒"
-              iconClass="text-3xl mb-4"
-              title="Vos decidís qué se ve"
-              description="Tu perfil es privado por defecto. Activá el modo público cuando quieras."
-            />
-          </div>
+              <ul className="mt-10 space-y-5">
+                {COMMUNITY_POINTS.map((point) => (
+                  <li key={point.title} data-reveal-item className="flex items-start gap-4 group">
+                    <span className={`flex-shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${point.iconClass}`}>
+                      <StrokeIcon path={point.icon} className="w-5 h-5" />
+                    </span>
+                    <span>
+                      <span className="block font-bold tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+                        {point.title}
+                      </span>
+                      <span className="block text-sm font-mono text-muted-foreground leading-relaxed">
+                        {point.description}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
 
-          <div className="text-center mt-12" data-reveal-item>
-            <a
-              href="/rankings"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
-            >
-              Ver rankings
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </a>
+              <div data-reveal-item className="mt-10">
+                <a
+                  href="/rankings"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-mono font-semibold hover:bg-primary/90 hover:shadow-[0_0_20px_-6px_rgba(255,59,48,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
+                >
+                  Ver rankings
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            <div data-reveal-item className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent rounded-[2rem] blur-2xl" aria-hidden="true" />
+              <div className="relative rounded-3xl bg-surface border border-border/60 backdrop-blur-sm overflow-hidden shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" aria-hidden="true" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-success" aria-hidden="true" />
+                    </span>
+                    <span className="text-xs font-mono tracking-[0.25em] uppercase text-foreground">
+                      Ranking · 10K
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground">
+                    Esta semana
+                  </span>
+                </div>
+
+                <ul>
+                  {LEADERBOARD.map((row) => (
+                    <li
+                      key={row.pos}
+                      data-reveal-item
+                      className={`transition-colors ${
+                        row.pos === 1
+                          ? "bg-primary/10 border-l-2 border-primary"
+                          : "border-l-2 border-transparent hover:bg-surface-elevated/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 px-6 py-4">
+                        <span
+                          className={`w-7 text-lg font-black tracking-tight ${
+                            row.pos === 1 ? "text-primary" : "text-muted-foreground"
+                          }`}
+                          style={{ fontFamily: "var(--font-urbanist)" }}
+                        >
+                          {String(row.pos).padStart(2, "0")}
+                        </span>
+                        <span
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                            row.pos === 1
+                              ? "bg-primary/20 border border-primary/30 text-primary shadow-[0_0_12px_-3px_rgba(255,59,48,0.3)]"
+                              : "bg-muted border border-border/50 text-muted-foreground"
+                          }`}
+                          style={{ fontFamily: "var(--font-urbanist)" }}
+                          aria-hidden="true"
+                        >
+                          {row.initials}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block font-bold text-sm tracking-tight truncate" style={{ fontFamily: "var(--font-urbanist)" }}>
+                            {row.name}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+                            <StrokeIcon path={ICON_STROKE.trophy} className="w-3 h-3 text-warning" />
+                            {row.trophies} trofeos
+                          </span>
+                        </span>
+                        <span className="font-mono text-sm text-foreground tabular-nums">
+                          {row.time}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="px-6 py-3.5 border-t border-border/50 text-center">
+                  <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-muted-foreground">
+                    Tu nombre podría estar acá
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -513,6 +643,15 @@ export default function SectionsContent() {
       >
         <div className="absolute inset-0" aria-hidden="true">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-br from-primary/30 via-primary/12 to-transparent rounded-full blur-3xl" />
+          <div
+            className="absolute top-0 left-0 right-0 h-3 opacity-20"
+            style={{
+              backgroundImage:
+                "linear-gradient(45deg, var(--foreground) 25%, transparent 25%, transparent 75%, var(--foreground) 75%), linear-gradient(45deg, var(--foreground) 25%, transparent 25%, transparent 75%, var(--foreground) 75%)",
+              backgroundSize: "24px 24px",
+              backgroundPosition: "0 0, 12px 12px",
+            }}
+          />
           <svg className="absolute inset-0 w-full h-full opacity-[0.02]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="diagonal" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -525,7 +664,7 @@ export default function SectionsContent() {
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2
-            data-reveal-head
+            data-split
             className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[-0.03em] leading-[0.9] mb-8"
             style={{ fontFamily: "var(--font-urbanist)" }}
           >
@@ -536,14 +675,20 @@ export default function SectionsContent() {
             Tu carrera no va a esperar. Preguntarte &ldquo;y si hubiera arrancado&rdquo; no es una opción. Arrancá ahora.
           </p>
           <div data-reveal-item>
-            <button
-              onClick={() => {
-                const event = new CustomEvent("open-login-modal");
-                window.dispatchEvent(event);
-              }}
-              className="group relative px-14 py-6 rounded-2xl font-bold text-xl text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
-              aria-label="Empezá ahora"
-            >
+            <MagneticWrap strength={0.3} className="inline-block relative">
+              <span
+                className="absolute inset-0 rounded-2xl border border-primary/50 animate-ping pointer-events-none"
+                style={{ animationDuration: "2.4s" }}
+                aria-hidden="true"
+              />
+              <button
+                onClick={() => {
+                  const event = new CustomEvent("open-login-modal");
+                  window.dispatchEvent(event);
+                }}
+                className="group relative px-14 py-6 rounded-2xl font-bold text-xl text-white overflow-hidden transition-transform hover:scale-[1.02] active:scale-[0.98] glow-primary"
+                aria-label="Empezá ahora"
+              >
               <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/80" aria-hidden="true" />
               <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
               <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" aria-hidden="true" />
@@ -554,6 +699,7 @@ export default function SectionsContent() {
                 </svg>
               </span>
             </button>
+            </MagneticWrap>
             <p className="mt-6 text-sm font-mono text-muted-foreground tracking-wide">
               SIN TARJETA · SIN COMPROMISO · ACCEDÉ HOY
             </p>

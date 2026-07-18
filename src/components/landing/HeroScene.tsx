@@ -244,12 +244,16 @@ export default function HeroScene({ theme }: HeroSceneProps) {
       const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.elapsedTime;
 
+      // The road accelerates as you start scrolling — like taking off
+      const boost =
+        1 + Math.min(window.scrollY / Math.max(window.innerHeight, 1), 1) * 3;
+
       // Road dashes rushing toward the camera
-      roadTexture.offset.y += (SPEED * dt) / TEXTURE_WORLD_LENGTH;
+      roadTexture.offset.y += (SPEED * boost * dt) / TEXTURE_WORLD_LENGTH;
 
       // Terrain chunks flowing forward, recycled past the camera
       for (const chunk of chunks) {
-        chunk.position.z += SPEED * dt;
+        chunk.position.z += SPEED * boost * dt;
         if (chunk.position.z - CHUNK_LENGTH / 2 > 14) {
           chunk.position.z -= CHUNK_LENGTH * CHUNKS_PER_SIDE;
         }
