@@ -9,13 +9,28 @@ vi.mock("next/navigation", () => ({
 
 describe("GlobalError fallback", () => {
   const originalLocation = window.location;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
+    // GlobalError renders <html>/<body> per Next.js global-error contract;
+    // jsdom hosts components inside a <div>, so React logs a DOM-nesting
+    // warning that is a test-environment artifact. Filter only that warning
+    // and let any other console.error through.
+    consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation((...args: unknown[]) => {
+        const message = String(args[0] ?? "");
+        if (message.includes("<html> cannot be a child of")) return;
+        process.stderr.write(args.map(String).join(" ") + "\n");
+      });
+
     Object.defineProperty(window, "location", {
       value: { ...originalLocation, href: "" },
       writable: true,
     });
   });
   afterEach(() => {
+    consoleErrorSpy.mockRestore();
     Object.defineProperty(window, "location", { value: originalLocation, writable: true });
   });
 
