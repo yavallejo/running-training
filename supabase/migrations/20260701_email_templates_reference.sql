@@ -14,6 +14,13 @@
 --   {{ .RedirectTo }}  — the URL Supabase should send the user back to
 --   {{ .Email }}       — the user's email
 --   {{ .ConfirmationURL }} — legacy implicit flow link (do NOT use with PKCE)
+--
+-- Visual style follows the RunPlan Pro design system (DESIGN.md):
+--   - Velocity Crimson #FF3B30 primary
+--   - Crimson glow shadow on CTAs
+--   - Urbanist as display font, Open Sans as body
+--   - Dark theme (#0f1011 background, #f7f8f8 text)
+--   - 12px border-radius on primary buttons
 -- =============================================================================
 
 -- ----- Confirm signup template -----
@@ -21,35 +28,123 @@
 --
 -- Body (HTML):
 --
---   <h2>¡Bienvenido a RunPlan Pro!</h2>
---   <p>Confirmá tu email para activar tu cuenta y empezar a entrenar.</p>
---   <p>
---     <a
---       href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
---       style="display:inline-block;padding:12px 24px;background:#FF3B30;color:white;text-decoration:none;border-radius:8px;font-weight:600"
---     >
---       Confirmar mi email
---     </a>
---   </p>
---   <p style="color:#666;font-size:13px;margin-top:24px">
---     Si no creaste esta cuenta, podés ignorar este email.
---   </p>
+--   <!doctype html>
+--   <html lang="es">
+--     <head>
+--       <meta charset="utf-8" />
+--       <meta name="viewport" content="width=device-width, initial-scale=1" />
+--       <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+--     </head>
+--     <body style="margin:0;padding:0;background:#08090a;font-family:'Open Sans',system-ui,-apple-system,sans-serif;color:#f7f8f8;">
+--       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#08090a;padding:40px 16px;">
+--         <tr>
+--           <td align="center">
+--             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#0f1011;border:1px solid #23252a;border-radius:16px;padding:40px 32px;">
+--               <tr>
+--                 <td align="center" style="padding-bottom:24px;">
+--                   <div style="display:inline-block;padding:14px 18px;border-radius:14px;background:linear-gradient(135deg,#FF3B30,#C62828);box-shadow:0 0 24px -6px rgba(255,59,48,0.45);">
+--                     <span style="font-family:'Urbanist',sans-serif;font-weight:800;font-size:22px;color:#ffffff;letter-spacing:-0.02em;">RunPlan Pro</span>
+--                   </div>
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Urbanist',sans-serif;font-weight:700;font-size:26px;line-height:1.25;color:#f7f8f8;padding-bottom:12px;text-align:center;">
+--                   ¡Bienvenido a RunPlan Pro!
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:15px;line-height:1.6;color:#d0d6e0;padding-bottom:28px;text-align:center;">
+--                   Confirmá tu email para activar tu cuenta y empezar a entrenar.
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td align="center" style="padding-bottom:28px;">
+--                   <a
+--                     href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
+--                     style="display:inline-block;padding:14px 32px;background:#FF3B30;color:#ffffff;text-decoration:none;border-radius:12px;font-family:'Urbanist',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.02em;box-shadow:0 0 18px -4px rgba(255,59,48,0.45);"
+--                   >
+--                     Confirmar mi email
+--                   </a>
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:13px;line-height:1.5;color:#62666d;padding-top:8px;text-align:center;">
+--                   Si no creaste esta cuenta, podés ignorar este email.
+--                 </td>
+--               </tr>
+--             </table>
+--             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;padding-top:16px;">
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:12px;color:#62666d;text-align:center;">
+--                   © RunPlan Pro · Tu plan de entrenamiento personalizado
+--                 </td>
+--               </tr>
+--             </table>
+--           </td>
+--         </tr>
+--       </table>
+--     </body>
+--   </html>
 
 -- ----- Reset password template -----
 -- Subject: Restablecé tu contraseña de RunPlan Pro
 --
 -- Body (HTML):
 --
---   <h2>Restablecé tu contraseña</h2>
---   <p>Recibimos un pedido para restablecer la contraseña de tu cuenta.</p>
---   <p>
---     <a
---       href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/cuenta/nueva-password"
---       style="display:inline-block;padding:12px 24px;background:#FF3B30;color:white;text-decoration:none;border-radius:8px;font-weight:600"
---     >
---       Elegir nueva contraseña
---     </a>
---   </p>
---   <p style="color:#666;font-size:13px;margin-top:24px">
---     Si no pediste restablecerla, ignorá este email.
---   </p>
+--   <!doctype html>
+--   <html lang="es">
+--     <head>
+--       <meta charset="utf-8" />
+--       <meta name="viewport" content="width=device-width, initial-scale=1" />
+--       <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+--     </head>
+--     <body style="margin:0;padding:0;background:#08090a;font-family:'Open Sans',system-ui,-apple-system,sans-serif;color:#f7f8f8;">
+--       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#08090a;padding:40px 16px;">
+--         <tr>
+--           <td align="center">
+--             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#0f1011;border:1px solid #23252a;border-radius:16px;padding:40px 32px;">
+--               <tr>
+--                 <td align="center" style="padding-bottom:24px;">
+--                   <div style="display:inline-block;padding:14px 18px;border-radius:14px;background:linear-gradient(135deg,#FF3B30,#C62828);box-shadow:0 0 24px -6px rgba(255,59,48,0.45);">
+--                     <span style="font-family:'Urbanist',sans-serif;font-weight:800;font-size:22px;color:#ffffff;letter-spacing:-0.02em;">RunPlan Pro</span>
+--                   </div>
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Urbanist',sans-serif;font-weight:700;font-size:26px;line-height:1.25;color:#f7f8f8;padding-bottom:12px;text-align:center;">
+--                   Restablecé tu contraseña
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:15px;line-height:1.6;color:#d0d6e0;padding-bottom:28px;text-align:center;">
+--                   Recibimos un pedido para restablecer la contraseña de tu cuenta. Hacé clic en el botón para elegir una nueva.
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td align="center" style="padding-bottom:28px;">
+--                   <a
+--                     href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/cuenta/nueva-password"
+--                     style="display:inline-block;padding:14px 32px;background:#FF3B30;color:#ffffff;text-decoration:none;border-radius:12px;font-family:'Urbanist',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.02em;box-shadow:0 0 18px -4px rgba(255,59,48,0.45);"
+--                   >
+--                     Elegir nueva contraseña
+--                   </a>
+--                 </td>
+--               </tr>
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:13px;line-height:1.5;color:#62666d;padding-top:8px;text-align:center;">
+--                   Si no pediste restablecerla, ignorá este email. El link expira en 1 hora.
+--                 </td>
+--               </tr>
+--             </table>
+--             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;padding-top:16px;">
+--               <tr>
+--                 <td style="font-family:'Open Sans',sans-serif;font-size:12px;color:#62666d;text-align:center;">
+--                   © RunPlan Pro · Tu plan de entrenamiento personalizado
+--                 </td>
+--               </tr>
+--             </table>
+--           </td>
+--         </tr>
+--       </table>
+--     </body>
+--   </html>

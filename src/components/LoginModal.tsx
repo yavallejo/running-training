@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { signIn } from "@/lib/auth";
@@ -225,11 +226,20 @@ export default function LoginModal({ isOpen, onClose, showRegisterHint = false }
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
                         )}
-                      </button>
+                        </button>
+                      </div>
+                      <div className="flex justify-end">
+                        <Link
+                          href="/recuperar-contrasena"
+                          onClick={onClose}
+                          className="text-xs font-semibold text-primary hover:underline"
+                        >
+                          ¿Olvidaste tu contraseña?
+                        </Link>
+                      </div>
                     </div>
-                  </div>
 
-                  <AnimatePresence>
+                    <AnimatePresence>
                     {error && (
                       <motion.div
                         initial={{ opacity: 0, y: -10, height: 0 }}

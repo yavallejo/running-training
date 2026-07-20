@@ -15,6 +15,9 @@ import ShareModal from "@/components/ShareModal";
 import PlanHeader from "@/components/PlanHeader";
 import PlanStats from "@/components/PlanStats";
 import SessionCard from "@/components/SessionCard";
+import PlanDisclaimer from "@/components/PlanDisclaimer";
+import MedicalConsentModal from "@/components/MedicalConsentModal";
+import { getStoredConsent } from "@/lib/medical-disclaimer";
 import { checkBlockedSessions, getRaceDeadline } from "@/lib/date-utils";
 import { checkAndPersistAchievements } from "@/lib/achievements";
 import { getTodaysMessage } from "@/lib/motivational-messages";
@@ -51,6 +54,9 @@ export default function PlanPage() {
   const [showDeadlineToast, setShowDeadlineToast] = useState(false);
   const [pendingDeadline, setPendingDeadline] = useState<string | null>(null);
   const [pendingRaceName, setPendingRaceName] = useState<string | null>(null);
+
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   const shownBadgesRef = useRef<Set<string>>(new Set());
   const lastCheckedPlanRef = useRef<string>("");
@@ -95,6 +101,16 @@ export default function PlanPage() {
       window.addEventListener("resize", handleResize);
       return () => window.removeEventListener("resize", handleResize);
     }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Check consent status synchronously on mount. The module is already
+    // statically imported via MedicalConsentModal, so this is a sync read
+    // with no microtask delay — the modal appears on the very first paint
+    // if the user has not yet accepted.
+    setShowConsentModal(getStoredConsent() === null);
+    setConsentChecked(true);
   }, []);
 
   useEffect(() => {
@@ -451,6 +467,8 @@ export default function PlanPage() {
           />
         )}
 
+        <PlanDisclaimer variant="footer" className="mt-4" />
+
         <div className="flex justify-end">
           <button
             onClick={() => setViewMode(prev => prev === 'list' ? 'calendar' : 'list')}
@@ -569,6 +587,14 @@ export default function PlanPage() {
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 4000);
           }}
+        />
+      )}
+
+      {consentChecked && (
+        <MedicalConsentModal
+          open={showConsentModal}
+          onAccept={() => setShowConsentModal(false)}
+          onCancel={() => router.replace("/")}
         />
       )}
     </main>

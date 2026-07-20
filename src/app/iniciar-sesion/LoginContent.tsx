@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn, getSessionAsync } from "@/lib/auth";
@@ -267,6 +268,15 @@ export default function LoginContent() {
                   )}
                 </button>
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Link
+                href="/recuperar-contrasena"
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
             <AnimatePresence>

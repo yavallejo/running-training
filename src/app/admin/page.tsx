@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import PlanDisclaimer from "@/components/PlanDisclaimer";
 
 // @ts-expect-error - dynamic import ssr false
 const DatePicker = dynamic(() => import("react-datepicker"), { ssr: false });
@@ -59,6 +60,32 @@ type SortDirection = "asc" | "desc";
 type StatusFilter = "all" | "active" | "inactive" | "deleted";
 
 const USERS_PER_PAGE = 20;
+
+function SummaryStat({
+  label,
+  value,
+  accent
+}: {
+  label: string;
+  value: string;
+  accent?: 'info' | 'warning' | 'primary';
+}) {
+  const accentClass =
+    accent === 'info' ? 'text-info border-info/20' :
+    accent === 'warning' ? 'text-warning border-warning/20' :
+    accent === 'primary' ? 'text-primary border-primary/20' :
+    'text-foreground border-border/30'
+  return (
+    <div className={`p-3 rounded-xl bg-background/30 border ${accentClass}`}>
+      <div className="text-2xl font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>
+        {value}
+      </div>
+      <div className="text-[10px] font-mono text-muted-foreground tracking-widest uppercase mt-0.5">
+        {label}
+      </div>
+    </div>
+  )
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -119,6 +146,15 @@ export default function AdminPage() {
 
   const [showPlanPreviewModal, setShowPlanPreviewModal] = useState(false);
   const [previewSessions, setPreviewSessions] = useState<any[]>([]);
+  const [previewSummary, setPreviewSummary] = useState<{
+    totalKm: number
+    peakWeekKm: number
+    weeks: number
+    deloadWeeks: number
+    taperWeeks: number
+    totalSessions: number
+  } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
 
@@ -418,24 +454,115 @@ export default function AdminPage() {
     }
   };
 
-  const loadPlanPreview = async (planId: string) => {
-    if (!planId) {
-      setPreviewSessions([]);
-      return;
+  // Token to drop stale previews when the user changes selection rapidly.
+  // Without this, two concurrent generateTrainingPlan() calls can resolve
+  // out of order and show the wrong plan in the modal.
+  const previewRequestRef = useRef(0)
+
+  const loadPlanPreview = async (planId: string, contextUserId?: string, contextDistance?: number) => {
+    const requestId = ++previewRequestRef.current
+    setPreviewLoading(true);
+    try {
+      if (!planId) {
+        setPreviewSessions([]);
+        setPreviewSummary(null);
+        return;
+      }
+
+      // The plan is generated client-side from the user's profile and the
+      // race parameters. The DB never stores training_sessions — they are
+      // reconstructed on the fly so changes to the algorithm propagate
+      // instantly and we keep the table count lean.
+      const { generateTrainingPlan, loadUserProfile } = await import('@/lib/training-plan')
+      const profile = contextUserId ? await loadUserProfile(contextUserId) : null
+
+      const distance = contextDistance ?? editRaceDistance ?? 7
+      const start = editStartDate || tomorrowISO()
+      const race = editRaceDate || nextWeekendISO()
+
+      const sessions = await generateTrainingPlan(
+        planId,
+        distance,
+        race,
+        start,
+        profile || undefined,
+        contextUserId
+      )
+
+      // Only commit state if this is still the latest request. If the
+      // user has since clicked a different plan, drop the stale result.
+      if (requestId !== previewRequestRef.current) return
+
+      setPreviewSessions(sessions)
+      setPreviewSummary(summarizePlan(sessions))
+    } catch (err) {
+      if (requestId !== previewRequestRef.current) return
+      console.error('Error generating plan preview:', err)
+      setPreviewSessions([])
+      setPreviewSummary(null)
+    } finally {
+      if (requestId === previewRequestRef.current) {
+        setPreviewLoading(false)
+      }
     }
-
-    const { data } = await supabase
-      .from('training_sessions')
-      .select('*')
-      .eq('plan_id', planId)
-      .order('session_order', { ascending: true });
-
-    setPreviewSessions(data || []);
   };
+
+  // Helpers for default start/race dates in the preview. Use the local
+  // date utils so the result is independent of the browser's UTC offset
+  // (otherwise "tomorrow" can roll over a day late in negative-UTC zones).
+  function tomorrowISO() {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  function nextWeekendISO() {
+    const d = new Date()
+    d.setDate(d.getDate() + 56) // 8 weeks default
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  function summarizePlan(sessions: any[]): {
+    totalKm: number
+    peakWeekKm: number
+    weeks: number
+    deloadWeeks: number
+    taperWeeks: number
+    totalSessions: number
+  } {
+    if (sessions.length === 0) {
+      return { totalKm: 0, peakWeekKm: 0, weeks: 0, deloadWeeks: 0, taperWeeks: 0, totalSessions: 0 }
+    }
+    const totalKm = sessions.reduce((sum: number, s: any) => sum + (s.distance || 0), 0)
+    const weeklyTotals: Record<number, number> = {}
+    const deloadWeeks = new Set<number>()
+    const taperWeeks = new Set<number>()
+    for (const s of sessions) {
+      const w = s.weekNumber ?? 0
+      weeklyTotals[w] = (weeklyTotals[w] || 0) + (s.distance || 0)
+      if (s.isRecoveryWeek) deloadWeeks.add(w)
+      if (s.isTaperWeek) taperWeeks.add(w)
+    }
+    const peakWeekKm = Math.max(...Object.values(weeklyTotals), 0)
+    const weeks = Object.keys(weeklyTotals).length
+    return {
+      totalKm: Math.round(totalKm * 10) / 10,
+      peakWeekKm: Math.round(peakWeekKm * 10) / 10,
+      weeks,
+      deloadWeeks: deloadWeeks.size,
+      taperWeeks: taperWeeks.size,
+      totalSessions: sessions.length
+    }
+  }
 
   const handlePlanSelect = (planId: string) => {
     setEditPlanId(planId);
-    loadPlanPreview(planId);
+    loadPlanPreview(planId, editingUser?.id, editRaceDistance);
   };
 
   const loadUserProgress = async (userId: string) => {
@@ -492,7 +619,7 @@ export default function AdminPage() {
     setEditIsActive(user.is_active !== false);
     setShowEditModal(true);
     if (user.plan_id) {
-      loadPlanPreview(user.plan_id);
+      loadPlanPreview(user.plan_id, user.id, user.race_distance);
     }
   };
 
@@ -1928,7 +2055,7 @@ export default function AdminPage() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showPlanPreviewModal && previewSessions.length > 0 && (
+        {showPlanPreviewModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1941,41 +2068,84 @@ export default function AdminPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="bg-surface border border-border/50 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+              className="bg-surface border border-border/50 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-6 py-5 border-b border-border/50 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black tracking-tight" style={{ fontFamily: "var(--font-urbanist)" }}>PREVIEW DEL PLAN</h2>
-                  <p className="text-xs font-mono text-muted-foreground tracking-wide">{plans.find(p => p.id === editPlanId)?.name}</p>
+                  <p className="text-xs font-mono text-muted-foreground tracking-wide">
+                    {plans.find(p => p.id === editPlanId)?.name} · {editingUser?.username}
+                  </p>
                 </div>
-                <button onClick={() => setShowPlanPreviewModal(false)} className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
+                <button onClick={() => setShowPlanPreviewModal(false)} aria-label="Cerrar" className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-all">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto flex-1">
-                <div className="space-y-2 max-h-[400px]">
-                  {previewSessions.map((session, index) => (
-                    <div
-                      key={session.id || index}
-                      className="p-4 rounded-xl bg-background/30 border border-border/30"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            SESIÓN {session.session_order}: {session.workout}
-                          </p>
-                          <p className="text-xs font-mono text-muted-foreground mt-1">
-                            {session.date} · {session.distance}km · {session.target_pace}
-                          </p>
+              <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                <PlanDisclaimer variant="banner" />
+
+                {previewLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : previewSummary && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <SummaryStat label="Semanas" value={String(previewSummary.weeks)} />
+                    <SummaryStat label="Sesiones" value={String(previewSummary.totalSessions)} />
+                    <SummaryStat label="Volumen total" value={`${previewSummary.totalKm} km`} />
+                    <SummaryStat label="Pico semanal" value={`${previewSummary.peakWeekKm} km`} />
+                    <SummaryStat label="Deloads" value={String(previewSummary.deloadWeeks)} accent="info" />
+                    <SummaryStat label="Taper" value={String(previewSummary.taperWeeks)} accent="warning" />
+                  </div>
+                )}
+
+                {previewSessions.length === 0 && !previewLoading && (
+                  <div className="text-center py-8 text-muted-foreground text-sm font-mono">
+                    No se pudo generar el preview. Verificá que la fecha de inicio sea anterior a la fecha de la carrera.
+                  </div>
+                )}
+
+                {previewSessions.length > 0 && (
+                  <div className="space-y-2">
+                    {previewSessions.map((session, index) => (
+                      <div
+                        key={session.id || index}
+                        className="p-3 rounded-xl bg-background/30 border border-border/30"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[10px] font-mono text-muted-foreground">
+                                S{String(session.weekNumber).padStart(2, '0')}·D{((index % 3) + 1)}
+                              </span>
+                              <p className="text-sm font-semibold truncate">{session.workout}</p>
+                              {session.isTaperWeek && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-warning/10 text-warning text-[9px] font-mono tracking-wider border border-warning/20">TAPER</span>
+                              )}
+                              {session.isRecoveryWeek && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-info/10 text-info text-[9px] font-mono tracking-wider border border-info/20">DELOAD</span>
+                              )}
+                            </div>
+                            <p className="text-xs font-mono text-muted-foreground mt-1">
+                              {session.date} · {session.distance}km · {session.targetPace} · {session.duration}min
+                            </p>
+                            {session.warning && (
+                              <p className="text-[10px] text-warning mt-1.5 leading-relaxed">{session.warning}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
+
+                {previewSessions.length > 0 && (
+                  <PlanDisclaimer variant="footer" className="pt-4 border-t border-border/30" />
+                )}
               </div>
             </motion.div>
           </motion.div>

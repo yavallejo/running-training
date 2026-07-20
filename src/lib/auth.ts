@@ -195,6 +195,60 @@ export async function signOut(): Promise<void> {
   persistSession(null)
 }
 
+export async function requestPasswordReset(
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : undefined)
+    const redirectTo = siteUrl
+      ? `${siteUrl.replace(/\/$/, '')}/auth/confirm?next=/cuenta/nueva-password`
+      : undefined
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.toLowerCase().trim(),
+      { redirectTo }
+    )
+    if (error) {
+      return {
+        success: false,
+        error: 'No pudimos enviar el email. Intentá de nuevo en unos minutos.',
+      }
+    }
+    return { success: true }
+  } catch (e: any) {
+    return {
+      success: false,
+      error: e?.message ?? 'Error de conexión',
+    }
+  }
+}
+
+export async function updatePassword(
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data } = await supabase.auth.getSession()
+    if (!data.session?.user) {
+      return {
+        success: false,
+        error: 'Tu sesión expiró. Pedí un nuevo link de recuperación.',
+      }
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (e: any) {
+    return {
+      success: false,
+      error: e?.message ?? 'Error al actualizar la contraseña',
+    }
+  }
+}
+
 /**
  * Backwards-compatible alias used throughout the app. Sync wrapper that
  * clears the local cache immediately and signs out of Supabase in the
